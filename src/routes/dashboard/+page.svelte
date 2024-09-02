@@ -13,10 +13,17 @@
       {#each data.meditations as meditation}
         <li>
           <div class="meditation-info">
-            <h3>{meditation.title || 'Untitled Meditation'}</h3>
-            <p>{meditation.theme || 'N/A'} | {meditation.difficulty || 'N/A'} | {meditation.length || 'N/A'} min</p>
+            {#if meditation.status === 'processing'}
+              <h3>Processing Meditation...</h3>
+              <p>Theme: {meditation.theme || 'N/A'} | Difficulty: {meditation.difficulty || 'N/A'} | Length: {meditation.length || 'N/A'} min</p>
+            {:else}
+              <h3>{meditation.title || 'Untitled Meditation'}</h3>
+              <p>Theme: {meditation.theme || 'N/A'} | Difficulty: {meditation.difficulty || 'N/A'} | Length: {meditation.length || 'N/A'} min</p>
+            {/if}
           </div>
-          <a href="/meditation/{meditation.id}" class="play-button">Play</a>
+          {#if meditation.status !== 'processing'}
+            <a href="/meditation/{meditation.id}" class="play-button">Play</a>
+          {/if}
         </li>
       {/each}
     </ul>
