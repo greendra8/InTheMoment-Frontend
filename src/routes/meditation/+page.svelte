@@ -1,11 +1,14 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
   import { goto } from '$app/navigation';
-  import type { ActionData } from './$types';
+  import type { ActionData, PageData } from './$types';
 
   export let form: ActionData;
+  export let data: PageData;
 
   let isGenerating = false;
+  let retryCount = 0;
+  const accessToken = data.accessToken; // Access the token from the server
 </script>
 
 <div class="meditation-container">
@@ -15,11 +18,37 @@
     method="POST"
     action="?/generateMeditation"
     use:enhance={() => {
-      isGenerating = true;
       return async ({ result }) => {
         isGenerating = false;
         if (result.type === 'success' && result.data.success) {
-          goto('/dashboard');
+          const meditationId = result.data.meditation_id;
+          const pollStatus = async () => {
+            const response = await fetch(`http://localhost:8000/meditation/${meditationId}`, {
+              headers: {
+                'Authorization': `Bearer ${accessToken}` // Use the token in the request
+              }
+            });
+            const meditation = await response.json();
+            if (meditation.status === 'completed') {
+              goto(`/meditation/${meditationId}`);
+            } else if (meditation.status === 'processing') {
+              isGenerating = true;
+              setTimeout(pollStatus, 5000); // Poll every 5 seconds
+            } else {
+              console.log('Error status:', meditation.status);
+              const retryPollStatus = async () => {
+                if (retryCount < 3) {
+                  retryCount++;
+                  setTimeout(pollStatus, 5000);
+                } else {
+                  isGenerating = false;
+                  form.error = 'An error occurred while generating your meditation. Please try again later.';
+                }
+              };
+              retryPollStatus();
+            }
+          };
+          pollStatus();
         }
       };
     }}
@@ -40,6 +69,7 @@
   {#if isGenerating}
     <p class="generating-message">Generating your meditation...</p>
   {/if}
+
 
   {#if form?.error}
     <p class="error">{form.error}</p>

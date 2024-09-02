@@ -8,7 +8,9 @@ export const load: PageServerLoad = async ({ locals }) => {
     throw redirect(302, '/login');
   }
 
-  return {};
+  return {
+    accessToken: session.access_token // Pass the access token to the client
+  };
 };
 
 export const actions: Actions = {
@@ -39,10 +41,11 @@ export const actions: Actions = {
       }
 
       const result = await response.json();
-      if (result.meditation_url && result.meditation_id) {
-        return { success: true, meditation: result };
+      console.log('Meditation generation started:', result);
+      if (result.status === 'processing' && result.meditation_id) {
+        return { success: true, message: 'Meditation generation started', meditation_id: result.meditation_id };
       } else {
-        return { success: false, error: 'Failed to generate meditation. Please try again.' };
+        return { success: false, error: 'Failed to start meditation generation. Please try again.' };
       }
     } catch (err) {
       console.error('Meditation generation error:', err);
