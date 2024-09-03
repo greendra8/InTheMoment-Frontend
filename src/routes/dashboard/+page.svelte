@@ -1,5 +1,7 @@
 <script lang="ts">
+  import { getUserMeditations } from '$lib/supabase';
   import type { PageData } from './$types';
+  import { page } from '$app/stores';
 
   export let data: PageData;
 
@@ -12,13 +14,10 @@
     isLoading = true;
     error = '';
     try {
-      const response = await fetch(`/dashboard?page=${currentPage + 1}&limit=10`);
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      const newData = await response.json();
-      
-      if (newData.meditations?.length) {
-        meditations = [...meditations, ...newData.meditations];
-        currentPage = newData.currentPage;
+      const newMeditations = await getUserMeditations($page.data.session.user.id, currentPage + 1);
+      if (newMeditations.length) {
+        meditations = [...meditations, ...newMeditations];
+        currentPage += 1;
       }
     } catch (err) {
       console.error('Error loading more meditations:', err);

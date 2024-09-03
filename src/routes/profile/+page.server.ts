@@ -1,63 +1,42 @@
-import type { PageServerLoad } from './$types';
-import { error } from '@sveltejs/kit';
-import type { Actions } from './$types';
+import { error, fail } from '@sveltejs/kit';
+import type { PageServerLoad, Actions } from './$types';
+import { getUserProfile, updateUserProfile } from '$lib/supabase';
 
-export const load: PageServerLoad = async ({ locals, fetch }) => {
-  const { session } = await locals.safeGetSession();
+export const load: PageServerLoad = async ({ locals }) => {
+	const { session } = await locals.safeGetSession();
 
-  if (!session) {
-    throw error(401, 'Unauthorized');
-  }
+	if (!session) {
+		throw error(401, 'Unauthorized');
+	}
 
-  try {
-    const response = await fetch('http://localhost:8000/user/profile', {
-      headers: {
-        'Authorization': `Bearer ${session.access_token}`
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch profile: ${response.statusText}`);
-    }
-
-    const profile = await response.json();
-    return { profile };
-  } catch (err) {
-    console.error('Error fetching profile:', err);
-    throw error(500, 'Failed to load profile');
-  }
+	try {
+		const profile = await getUserProfile(session.user.id);
+		console.log('Fetched profile:', profile);
+		return { profile };
+	} catch (err) {
+		console.error('Error fetching user profile:', err);
+		throw error(500, 'Failed to load user profile');
+	}
 };
 
 export const actions: Actions = {
-  updateProfile: async ({ request, locals, fetch }) => {
-    const { session } = await locals.safeGetSession();
+	updateProfile: async ({ request, locals }) => {
+		const { session } = await locals.safeGetSession();
 
-    if (!session) {
-      throw error(401, 'Unauthorized');
-    }
+		if (!session) {
+			throw error(401, 'Unauthorized');
+		}
 
-    const formData = await request.formData();
-    const updatedProfile = Object.fromEntries(formData);
+		const formData = await request.formData();
+		const name = formData.get('name') as string;
+		const experienceLevel = formData.get('experienceLevel') as string;
 
-    try {
-      const response = await fetch('http://localhost:8000/user/profile', {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updatedProfile),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to update profile: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      return { success: true, profile: result };
-    } catch (err) {
-      console.error('Error updating profile:', err);
-      return { success: false, error: 'Failed to update profile' };
-    }
-  }
+		try {
+			const updatedProfile = await updateUserProfile(session.user.id, { name, experience_level: experienceLevel });
+			return { success: true, profile: updatedProfile };
+		} catch (err) {
+			console.error('Error updating user profile:', err);
+			return fail(500, { message: 'Failed to update profile' });
+		}
+	}
 };

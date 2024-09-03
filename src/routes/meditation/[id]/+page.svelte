@@ -1,10 +1,16 @@
 <script lang="ts">
-  import type { PageData } from './$types';
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
+  import { completeMeditation } from '$lib/supabase';
+  import type { PageData } from './$types';
 
   export let data: PageData;
   const { meditation } = data;
+
+  console.log('Meditation data received in component:', JSON.stringify(meditation, null, 2));
+
+  const audioUrl = meditation.audio_files?.[0]?.file_path;
+  console.log('Audio URL:', audioUrl);
 
   let audioElement: HTMLAudioElement;
   let canvasElement: HTMLCanvasElement;
@@ -46,6 +52,7 @@
   }
 
   onMount(() => {
+    console.log('Component mounted. Audio URL:', audioUrl);
     if (audioElement && canvasElement) {
       setupAudioVisualizer(audioElement, canvasElement, new AnalyserNode(new AudioContext()));
       
@@ -312,29 +319,13 @@
     }
 
     const minutesCompleted = Math.floor(totalPlayTime / 60);
-    const meditationId = $page.params.id;
 
     try {
-      const response = await fetch('http://localhost:8000/meditation/complete', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${$page.data.session.access_token}`
-        },
-        body: JSON.stringify({
-          meditation_id: meditationId,
-          minutes_completed: minutesCompleted
-        })
-      });
-
-      if (response.ok) {
-        console.log('Meditation minutes request sent');
-        hassentCompletionRequest = true;
-      } else {
-        console.error('Failed to record meditation completion');
-      }
+      await completeMeditation(meditation.id, $page.data.session.user.id, minutesCompleted);
+      console.log('Meditation completion recorded');
+      hassentCompletionRequest = true;
     } catch (error) {
-      console.error('Error sending completion request:', error);
+      console.error('Error recording meditation completion:', error);
     }
   }
 </script>
@@ -362,7 +353,7 @@
     </div>
   </header>
 
-  {#if meditation.audio_url}
+  {#if audioUrl}
     <div class="audio-player">
       <div class="canvas-container" on:click={togglePlayPause}>
         <canvas bind:this={canvasElement} width="300" height="300"></canvas>
@@ -375,7 +366,7 @@
       <audio
         bind:this={audioElement}
         crossorigin="anonymous"
-        src={meditation.audio_url}
+        src={audioUrl}
         on:timeupdate={updateProgress}
         on:loadedmetadata={updateProgress}
         on:play={updatePlayingState}
@@ -413,7 +404,7 @@
       </div>
     </div>
   {:else}
-    <p class="no-audio">Audio not available for this meditation.</p>
+    <p class="no-audio">Audio not available for this meditation. (Audio URL: {audioUrl})</p>
   {/if}
 </div>
 

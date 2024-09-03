@@ -1,5 +1,6 @@
 import { error, redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
+import { generateMeditation } from '$lib/pythonApi';
 
 export const load: PageServerLoad = async ({ locals }) => {
   const { session } = await locals.safeGetSession();
@@ -9,12 +10,12 @@ export const load: PageServerLoad = async ({ locals }) => {
   }
 
   return {
-    accessToken: session.access_token // Pass the access token to the client
+    user: session.user
   };
 };
 
 export const actions: Actions = {
-  generateMeditation: async ({ request, locals, fetch }) => {
+  generateMeditation: async ({ request, locals }) => {
     const { session } = await locals.safeGetSession();
 
     if (!session) {
@@ -25,28 +26,8 @@ export const actions: Actions = {
     const duration = parseInt(data.get('duration') as string);
 
     try {
-      const response = await fetch('http://localhost:8000/generate_meditation', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
-        },
-        body: JSON.stringify({ length: duration }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Error response:', response.status, errorText);
-        throw new Error(`Failed to generate meditation: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      console.log('Meditation generation started:', result);
-      if (result.status === 'processing' && result.meditation_id) {
-        return { success: true, message: 'Meditation generation started', meditation_id: result.meditation_id };
-      } else {
-        return { success: false, error: 'Failed to start meditation generation. Please try again.' };
-      }
+      const result = await generateMeditation(duration, session.access_token);
+      return { success: true, meditation_id: result.meditation_id };
     } catch (err) {
       console.error('Meditation generation error:', err);
       return { success: false, error: 'An error occurred while generating the meditation. Please try again.' };
