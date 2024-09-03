@@ -23,10 +23,7 @@ export async function getUserProfile(userId: string) {
     .eq('id', userId)
     .single()
   
-  if (error) {
-    console.error('Error in getUserProfile:', error);
-    throw error;
-  }
+  if (error) throw error;
   return data;
 }
 
@@ -47,8 +44,6 @@ export async function getUserMeditations(userId: string, page: number = 1, limit
   const start = (page - 1) * limit
   const end = start + limit - 1
 
-  console.log('Fetching meditations for user:', userId, 'from', start, 'to', end);
-
   const { data, error } = await supabaseAdmin
     .from('meditations')
     .select('*')
@@ -56,17 +51,12 @@ export async function getUserMeditations(userId: string, page: number = 1, limit
     .range(start, end)
     .order('created_at', { ascending: false })
   
-  if (error) {
-    console.error('Error in getUserMeditations:', error);
-    throw error;
-  }
-  console.log('Meditations fetched:', data);
+  if (error) throw error;
   return data;
 }
 
 // Helper function to get a single meditation
 export async function getMeditation(meditationId: string) {
-  console.log(`Fetching meditation with ID: ${meditationId}`);
   const { data, error } = await supabaseAdmin
     .from('meditations')
     .select(`
@@ -78,12 +68,7 @@ export async function getMeditation(meditationId: string) {
     .eq('id', meditationId)
     .single()
   
-  if (error) {
-    console.error('Error in getMeditation:', error);
-    console.error('Full error object:', JSON.stringify(error, null, 2));
-    throw error;
-  }
-  console.log('Meditation data fetched:', JSON.stringify(data, null, 2));
+  if (error) throw error;
   return data;
 }
 
