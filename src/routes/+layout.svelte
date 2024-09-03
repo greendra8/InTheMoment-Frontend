@@ -3,8 +3,7 @@
   import { invalidate } from '$app/navigation';
   import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
-
-
+	import { page } from '$app/stores';
 
 	export let data;
 	$: ({ session, supabase } = data);
@@ -19,34 +18,46 @@
 		return () => data.subscription.unsubscribe();
 	});
 
-	async function handleLogout() {
-		const { error } = await supabase.auth.signOut();
-		if (!error) {
-			await invalidate('supabase:auth');
-			goto('/login');
-		}
+
+	$: isHomePage = $page.url.pathname === '/';
+	
+	// Redirect to dashboard if user is logged in and trying to access the home page
+	$: if (session && isHomePage) {
+		goto('/dashboard');
 	}
 </script>
 
-<div class="container">
+{#if !isHomePage}
   <nav>
-    <ul>
-      <li><a href="/">Home</a></li>
+    <div class="nav-content">
+      <ul>
+        {#if !session}
+          <li><a href="/">Home</a></li>
+        {/if}
+        {#if session}
+          <li><a href="/dashboard">Dashboard</a></li>
+          <li><a href="/meditation">Meditation</a></li>
+        {:else}
+          <li><a href="/login">Login</a></li>
+          <li><a href="/register">Register</a></li>
+        {/if}
+      </ul>
       {#if session}
-        <li><a href="/dashboard">Dashboard</a></li>
-        <li><a href="/meditation">Meditation</a></li>
-        <li><button on:click={handleLogout}>Logout</button></li>
-      {:else}
-        <li><a href="/login">Login</a></li>
-        <li><a href="/register">Register</a></li>
+        <div class="profile-icon">
+          <a href="/profile">
+            <i style="font-size: 24px" class="fas fa-user"></i>
+          </a>
+        </div>
       {/if}
-    </ul>
+    </div>
   </nav>
+{/if}
 
-  <main>
+<main class:full-width={isHomePage}>
+  <div class="content-container">
     <slot />
-  </main>
-</div>
+  </div>
+</main>
 
 <style>
   :global(body) {
@@ -58,14 +69,28 @@
     padding: 0;
   }
 
-  .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 1rem;
+  .app-wrapper {
+    width: 100%;
   }
 
   nav {
-    margin-bottom: 2rem;
+    width: 100%;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .nav-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .profile-icon {
+    font-size: 1.5rem;
+    color: #333;
   }
 
   nav ul {
@@ -76,11 +101,23 @@
   }
 
   main {
+    /* width: 100%; */ /* Remove this line */
+  }
+
+  .content-container {
+    max-width: 500px;
+    margin: 0 auto;
     padding: 1rem;
   }
 
+  main.full-width .content-container {
+    max-width: none;
+    padding: 0;
+  }
+
   @media (max-width: 1024px) {
-    .container {
+    .nav-content,
+    .content-container {
       padding: 1rem 0.5rem;
     }
   }
@@ -97,5 +134,10 @@
 
   button:hover {
     text-decoration: underline;
+  }
+
+  /* Disable purple color for visited links */
+  :global(a:visited) {
+    color: inherit;
   }
 </style>
