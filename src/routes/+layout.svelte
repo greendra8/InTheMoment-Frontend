@@ -38,7 +38,7 @@
       {#if session}
         <div class="profile-icon">
           <a href="/profile">
-            <i style="font-size: 24px" class="fas fa-user"></i>
+            <i style="font-size: 20px" class="fas fa-user"></i>
           </a>
         </div>
       {/if}
@@ -75,7 +75,6 @@
   .nav-content {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 1rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -83,7 +82,7 @@
 
   .profile-icon {
     font-size: 1.5rem;
-    color: #333;
+    color: #4b4b4b;
   }
 
   nav ul {
@@ -91,6 +90,12 @@
     list-style: none;
     padding: 0;
     gap: 1rem;
+  }
+
+  nav ul li a {
+    font-size: 1.1rem;
+    text-decoration: none;
+
   }
 
   main {
