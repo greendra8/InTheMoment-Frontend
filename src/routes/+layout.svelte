@@ -1,7 +1,6 @@
 <script lang="ts">
   import '../app.css';
   import { invalidate } from '$app/navigation';
-  import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 
@@ -18,13 +17,7 @@
 		return () => data.subscription.unsubscribe();
 	});
 
-
 	$: isHomePage = $page.url.pathname === '/';
-	
-	// Redirect to dashboard if user is logged in and trying to access the home page
-	$: if (session && isHomePage) {
-		goto('/dashboard');
-	}
 </script>
 
 {#if !isHomePage}
