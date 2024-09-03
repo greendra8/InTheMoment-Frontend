@@ -7,13 +7,8 @@ export const load: PageServerLoad = async ({ fetch, url }) => {
 
 	try {
 		const response = await fetch(`/dashboard?page=${page}&limit=${limit}`);
-
-		if (!response.ok) {
-			throw new Error(`Failed to fetch meditations: ${response.statusText}`);
-		}
-
-		const data = await response.json();
-		return data;
+		if (!response.ok) throw new Error(response.statusText);
+		return await response.json();
 	} catch (err) {
 		console.error('Error fetching meditations:', err);
 		throw error(500, 'Failed to load meditations');

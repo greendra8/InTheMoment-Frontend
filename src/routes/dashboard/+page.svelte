@@ -1,6 +1,5 @@
 <script lang="ts">
   import type { PageData } from './$types';
-  import { onMount } from 'svelte';
 
   export let data: PageData;
 
@@ -12,19 +11,14 @@
   async function loadMore() {
     isLoading = true;
     error = '';
-    const nextPage = currentPage + 1;
     try {
-      const response = await fetch(`/dashboard?page=${nextPage}&limit=10`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      const response = await fetch(`/dashboard?page=${currentPage + 1}&limit=10`);
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const newData = await response.json();
       
-      if (newData.meditations && newData.meditations.length > 0) {
+      if (newData.meditations?.length) {
         meditations = [...meditations, ...newData.meditations];
         currentPage = newData.currentPage;
-      } else {
-        console.log('No more meditations to load');
       }
     } catch (err) {
       console.error('Error loading more meditations:', err);
@@ -33,11 +27,6 @@
       isLoading = false;
     }
   }
-
-  onMount(() => {
-    meditations = data.meditations || [];
-    currentPage = data.currentPage;
-  });
 </script>
 
 <div class="dashboard-container">
