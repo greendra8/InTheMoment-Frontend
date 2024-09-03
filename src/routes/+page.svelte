@@ -7,58 +7,78 @@
 </script>
 
 <svelte:head>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
 </svelte:head>
 
 <main>
-  <h1>AI Wellbeing</h1>
-  <p class="tagline">Personalised meditations for your mental wellness journey</p>
+  <section class="hero">
+    <h1>Discover Inner Peace with AI Wellbeing</h1>
+    <p class="tagline">Embark on a personalized meditation journey powered by artificial intelligence</p>
+    <div class="cta">
+      <a href="/register" class="button primary">Start Your Journey</a>
+      <a href="/login" class="button secondary">Welcome Back</a>
+    </div>
+  </section>
   
-  <div class="features">
+  <section class="features">
     <div class="feature">
-      <h2>Customised Experience</h2>
-      <p>AI-generated meditations tailored to your needs and preferences</p>
+      <span class="icon">🧠</span>
+      <h2>AI-Powered Personalization</h2>
+      <p>Experience meditations tailored to your unique needs and preferences</p>
     </div>
     <div class="feature">
-      <h2>Flexible Durations</h2>
-      <p>Choose from 5, 15, or 25-minute sessions to fit your schedule</p>
+      <span class="icon">⏱️</span>
+      <h2>Flexible Sessions</h2>
+      <p>Choose from 5, 15, or 25-minute meditations to fit your busy lifestyle</p>
     </div>
     <div class="feature">
-      <h2>Track Your Progress</h2>
-      <p>Review your meditation history and see your growth over time</p>
+      <span class="icon">📈</span>
+      <h2>Track Your Growth</h2>
+      <p>Visualize your progress and celebrate your mindfulness milestones</p>
     </div>
-  </div>
+  </section>
 
-  <div class="cta">
-    <a href="/register" class="button">Get Started</a>
-    <a href="/login" class="button secondary">Login</a>
-  </div>
+  <section class="testimonial">
+    <blockquote>"AI Wellbeing has transformed my daily routine. I feel more centered and focused than ever before!"</blockquote>
+    <cite>- Sarah K., Mindfulness Enthusiast</cite>
+  </section>
+
+  <section class="final-cta">
+    <h2>Ready to Transform Your Mind?</h2>
+    <a href="/register" class="button primary">Begin Your Free Trial</a>
+  </section>
 </main>
 
 <style>
-
-
   main {
     max-width: 1200px;
     margin: 0 auto;
     padding: 2rem;
     text-align: center;
+    color: #333;
   }
 
   h1, h2 {
     font-family: 'Playfair Display', serif;
   }
 
+  .hero {
+    background-color: #f5f5f5;
+    color: #333;
+    padding: 4rem 2rem;
+    border-radius: 12px;
+    margin-bottom: 4rem;
+  }
+
   h1 {
     font-size: 3.5rem;
-    color: #2c3e50;
-    margin-bottom: 0.5rem;
+    margin-bottom: 1rem;
   }
 
   .tagline {
     font-size: 1.4rem;
-    color: #7f8c8d;
-    margin-bottom: 3rem;
+    margin-bottom: 2rem;
+    color: #555;
   }
 
   .features {
@@ -72,22 +92,61 @@
     flex: 1;
     padding: 2rem;
     background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease;
+  }
+
+  .feature:hover {
+    transform: translateY(-5px);
+  }
+
+  .icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    display: block;
   }
 
   .feature h2 {
     font-size: 1.8rem;
-    color: #2c3e50;
+    color: #333;
     margin-bottom: 1rem;
   }
 
   .feature p {
     font-size: 1.1rem;
+    color: #555;
   }
 
-  .cta {
-    margin-top: 3rem;
+  .testimonial {
+    background-color: #f9f9f9;
+    padding: 3rem;
+    border-radius: 12px;
+    margin-bottom: 4rem;
+  }
+
+  blockquote {
+    font-size: 1.4rem;
+    font-style: italic;
+    margin-bottom: 1rem;
+    color: #444;
+  }
+
+  cite {
+    font-weight: bold;
+    color: #555;
+  }
+
+  .final-cta {
+    background-color: #f5f5f5;
+    color: #333;
+    padding: 3rem;
+    border-radius: 12px;
+  }
+
+  .final-cta h2 {
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
   }
 
   .button {
@@ -95,24 +154,35 @@
     padding: 1rem 2rem;
     font-size: 1.1rem;
     text-decoration: none;
-    color: #fff;
-    background-color: #3498db;
-    border-radius: 4px;
-    transition: background-color 0.3s ease, transform 0.2s ease;
+    color: #333;
+    background-color: #fff;
+    border: 2px solid #333;
+    border-radius: 50px;
+    transition: all 0.3s ease;
     margin: 0 0.5rem;
+    font-weight: bold;
   }
 
   .button:hover {
-    background-color: #2980b9;
+    background-color: #f0f0f0;
     transform: translateY(-2px);
   }
 
+  .button.primary {
+    background-color: #333;
+    color: #fff;
+  }
+
+  .button.primary:hover {
+    background-color: #444;
+  }
+
   .button.secondary {
-    background-color: #95a5a6;
+    background-color: transparent;
   }
 
   .button.secondary:hover {
-    background-color: #7f8c8d;
+    background-color: rgba(0, 0, 0, 0.05);
   }
 
   @media (max-width: 1024px) {
