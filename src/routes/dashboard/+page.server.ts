@@ -14,13 +14,11 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
 	try {
 		const meditations = await getUserMeditations(session.user.id, page, limit);
-		console.log('Fetched meditations:', meditations);
 		return { 
 			meditations,
 			currentPage: page
 		};
 	} catch (err) {
-		console.error('Error fetching meditations:', err);
 		throw error(500, 'Failed to load meditations');
 	}
 };

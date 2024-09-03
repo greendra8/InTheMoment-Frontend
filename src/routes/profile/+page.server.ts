@@ -11,10 +11,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 	try {
 		const profile = await getUserProfile(session.user.id);
-		console.log('Fetched profile:', profile);
 		return { profile };
 	} catch (err) {
-		console.error('Error fetching user profile:', err);
 		throw error(500, 'Failed to load user profile');
 	}
 };
