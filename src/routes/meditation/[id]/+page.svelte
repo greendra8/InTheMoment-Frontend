@@ -23,6 +23,7 @@
 
   let isSeekingProgress = false;
   let hassentCompletionRequest = false;
+  let lockSend = false;
   let totalPlayTime = 0;
   let lastUpdateTime = 0;
 
@@ -110,6 +111,7 @@
   }
 
   function updateProgress() {
+
     const now = Date.now();
     if (isPlaying) {
       totalPlayTime += (now - lastUpdateTime) / 1000;
@@ -119,12 +121,13 @@
     currentTime = audioElement.currentTime;
     duration = audioElement.duration;
 
-    const minimumPlayTimeRequired = duration * 0.8;
+    const minimumPlayTimeRequired = totalPlayTime * 0.8;
     const timeUntilEnd = duration - currentTime;
 
     // send completion request if the user has listened to at least 80% of the audio and is within the last minute
-    if (!hassentCompletionRequest && 
+    if (!lockSend && !hassentCompletionRequest && 
         (totalPlayTime >= minimumPlayTimeRequired && timeUntilEnd <= 60)) {
+      lockSend = true;
       sendCompletionRequest();
     }
   }
@@ -205,17 +208,20 @@
   async function sendCompletionRequest() {
     if (hassentCompletionRequest) return;
 
-    const minimumPlayTimeRequired = audioElement.duration * 0.8;
+    const minimumPlayTimeRequired = totalPlayTime * 0.8;
     if (totalPlayTime < minimumPlayTimeRequired) {
+      lockSend = false;
       return;
     }
 
-    const minutesCompleted = Math.floor(totalPlayTime / 60);
+    const minutesAwarded = Math.floor(duration / 60);
 
     try {
-      await completeMeditation(meditation.id, $page.data.session.user.id, minutesCompleted);
+      await completeMeditation(meditation.id, $page.data.session.user.id, minutesAwarded);
+      console.log('Meditation completion request sent');
       hassentCompletionRequest = true;
     } catch (error) {
+      lockSend = false;
       console.error('Error recording meditation completion:', error);
     }
   }
