@@ -45,7 +45,7 @@
               <h3>
                 {meditation.title || 'Untitled Meditation'}
                 {#if meditation.listened}
-                  <i style="font-size:12px; vertical-align: middle; margin-top: -1px;color: #4caf50;" class="fas fa-check-circle"></i>
+                  <i style="font-size:12px; vertical-align: middle; margin-top: -3px;color: #4caf50;" class="fas fa-check-circle"></i>
                 {/if}
               </h3>
               <p>Theme: {meditation.theme || 'N/A'}</p>
