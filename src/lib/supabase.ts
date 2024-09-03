@@ -90,10 +90,52 @@ export async function getMeditationStatus(meditationId: string) {
 
 // Helper function to mark a meditation as complete
 export async function completeMeditation(meditationId: string, userId: string, minutesCompleted: number) {
-  const { data, error } = await supabaseAdmin
-    .from('meditation_completions')
-    .insert({ meditation_id: meditationId, user_id: userId, minutes_completed: minutesCompleted })
-  
-  if (error) throw error
-  return data
+  // Check if the meditation was last listened to within the last 12 hours
+  const { data: meditationData, error: meditationError } = await supabaseAdmin
+    .from('meditations')
+    .select('last_listened')
+    .eq('id', meditationId)
+    .single()
+
+  if (meditationError) throw meditationError
+
+  const lastListened = meditationData.last_listened ? new Date(meditationData.last_listened) : null
+  const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000)
+
+  if (lastListened && lastListened > twelveHoursAgo) {
+    // Meditation was listened to within the last 12 hours, don't update user's total time
+    console.log('Meditation was listened to recently. Not updating total time.')
+    return
+  }
+
+  // Meditation was not listened to within the last 12 hours or never listened to, update user's total time
+  const { data: userData, error: userError } = await supabaseAdmin
+    .from('users')
+    .select('minutes_meditated')
+    .eq('id', userId)
+    .single()
+
+  if (userError) throw userError
+
+  const updatedMinutes = (userData.minutes_meditated || 0) + minutesCompleted
+
+  const { error: updateUserError } = await supabaseAdmin
+    .from('users')
+    .update({ minutes_meditated: updatedMinutes })
+    .eq('id', userId)
+
+  if (updateUserError) throw updateUserError
+
+  // Update last_listened timestamp and listened status for the meditation
+  const { error: updateMeditationError } = await supabaseAdmin
+    .from('meditations')
+    .update({ 
+      last_listened: new Date().toISOString(),
+      listened: true
+    })
+    .eq('id', meditationId)
+
+  if (updateMeditationError) throw updateMeditationError
+
+  console.log('Meditation completed and user total time updated successfully.')
 }
