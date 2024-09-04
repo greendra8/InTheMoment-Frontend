@@ -77,7 +77,7 @@
 
     // Add fade-in and unblur effect for the canvas container
     const startTime = Date.now();
-    const fadeInDuration = 400; // 0.4 seconds, matching the duration in audioVisualizer.ts
+    const fadeInDuration = 200; // 0.4 seconds, matching the duration in audioVisualizer.ts
 
     function updateCanvasStyle() {
       const currentTime = Date.now();
@@ -150,7 +150,7 @@
     currentTime = audioElement.currentTime;
     duration = audioElement.duration;
 
-    const minimumPlayTimeRequired = totalPlayTime * 0.8;
+    const minimumPlayTimeRequired = duration * 0.8;
     const timeUntilEnd = duration - currentTime;
 
     // send completion request if the user has listened to at least 80% of the audio and is within the last minute
@@ -237,12 +237,6 @@
   async function sendCompletionRequest() {
     if (hassentCompletionRequest) return;
 
-    const minimumPlayTimeRequired = totalPlayTime * 0.8;
-    if (totalPlayTime < minimumPlayTimeRequired) {
-      lockSend = false;
-      return;
-    }
-
     const minutesAwarded = Math.floor(duration / 60);
 
     try {
@@ -256,7 +250,6 @@
   }
 
   function handleAudioEnded() {
-    sendCompletionRequest();
     if (visualizer) {
       visualizer.startCelebration();
     }
@@ -291,7 +284,7 @@
       <div 
         class="canvas-container" 
         on:click={togglePlayPause} 
-        style="opacity: {canvasOpacity}; filter: blur({canvasBlur}px); transition: opacity 0.4s ease-in, filter 0.4s ease-in;"
+        style="opacity: {canvasOpacity}; filter: blur({canvasBlur}px); transition: opacity 0.2s ease-in, filter 0.1s ease-in;"
       >
         <canvas bind:this={canvasElement} width="300" height="300"></canvas>
         <div class="play-overlay" class:visible={!isPlaying}>
@@ -368,7 +361,6 @@
   }
 
   .listened-icon {
-    margin-left: 0.5rem;
     font-size: 1rem;
     color: #4CAF50;
     vertical-align: middle;

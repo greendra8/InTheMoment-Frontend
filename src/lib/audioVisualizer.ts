@@ -49,7 +49,7 @@ export function setupAudioVisualizer(audio: HTMLAudioElement, canvas: HTMLCanvas
 
         let opacity = 0;
         let blur = 5; // Initial blur amount in pixels
-        const fadeInDuration = 400; // 0.4 seconds fade-in
+        const fadeInDuration = 200; // 0.4 seconds fade-in
         const startTimeFade = Date.now();
 
         function draw() {
