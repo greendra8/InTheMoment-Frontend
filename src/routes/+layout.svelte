@@ -5,7 +5,7 @@
 	import { page } from '$app/stores';
 
 	export let data;
-	$: ({ session, supabase } = data);
+	$: ({ session, supabase, navItems } = data);
 
 	onMount(() => {
 		const { data } = supabase.auth.onAuthStateChange((_, newSession) => {
@@ -24,16 +24,9 @@
   <nav>
     <div class="nav-content">
       <ul>
-        {#if !session}
-          <li><a href="/">Home</a></li>
-        {/if}
-        {#if session}
-          <li><a href="/dashboard">Dashboard</a></li>
-          <li><a href="/meditation">Meditation</a></li>
-        {:else}
-          <li><a href="/login">Login</a></li>
-          <li><a href="/register">Register</a></li>
-        {/if}
+        {#each navItems as item}
+          <li><a href={item.href}>{item.label}</a></li>
+        {/each}
       </ul>
       {#if session}
         <div class="profile-icon">
