@@ -1,43 +1,44 @@
 <script lang="ts">
   import '../app.css';
   import { invalidate } from '$app/navigation';
-	import { onMount } from 'svelte';
-	import { page } from '$app/stores';
+  import { onMount } from 'svelte';
+  import { page } from '$app/stores';
 
-	export let data;
-	$: ({ session, supabase, navItems } = data);
+  export let data;
+  $: ({ session, supabase, navItems } = data);
 
-	onMount(() => {
-		const { data } = supabase.auth.onAuthStateChange((_, newSession) => {
-			if (newSession?.expires_at !== session?.expires_at) {
-				invalidate('supabase:auth');
-			}
-		});
+  onMount(() => {
+    const { data } = supabase.auth.onAuthStateChange((_, newSession) => {
+      if (newSession?.expires_at !== session?.expires_at) {
+        invalidate('supabase:auth');
+      }
+    });
 
-		return () => data.subscription.unsubscribe();
-	});
+    return () => data.subscription.unsubscribe();
+  });
 
-	$: isHomePage = $page.url.pathname === '/';
+  $: isHomePage = $page.url.pathname === '/';
 </script>
 
-{#if !isHomePage}
-  <nav>
-    <div class="nav-content">
-      <ul>
-        {#each navItems as item}
-          <li><a href={item.href}>{item.label}</a></li>
-        {/each}
-      </ul>
-      {#if session}
-        <div class="profile-icon">
-          <a href="/profile">
-            <i style="font-size: 20px" class="fas fa-user"></i>
-          </a>
+
+<nav class="nav">
+  {#each navItems as item}
+    <a 
+      href={item.href} 
+      class="nav-item" 
+      class:active={$page.url.pathname === item.href}
+      aria-label={item.label}
+    >
+      <div class="icon-container">
+        <div class="icon-background">
+          <i class="fas {item.icon}"></i>
         </div>
-      {/if}
-    </div>
-  </nav>
-{/if}
+      </div>
+      <span class="nav-label">{item.label}</span>
+    </a>
+  {/each}
+</nav>
+
 
 <main class:full-width={isHomePage}>
   <div class="content-container">
@@ -55,46 +56,98 @@
     padding: 0;
   }
 
-  .app-wrapper {
-    width: 100%;
-  }
-
-  nav {
-    width: 100%;
+  .nav {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
     background-color: #fff;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-
+    border-radius: 25px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    padding: 10px 0; /* Changed padding */
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around; /* Changed from space-between */
+    gap: 10px;
+    z-index: 1000;
+    width: calc(100% - 40px);
+    max-width: 400px;
   }
 
-  .nav-content {
-    max-width: 1200px;
-    margin: 0 auto;
+  .nav-item {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+    justify-content: center;
     align-items: center;
-  }
-
-  .profile-icon {
-    font-size: 1.5rem;
-    color: #4b4b4b;
-  }
-
-  nav ul {
-    display: flex;
-    list-style: none;
-    padding: 0;
-    gap: 1rem;
-  }
-
-  nav ul li a {
-    font-size: 1.1rem;
-    text-decoration: none;
     color: #333;
+    text-decoration: none;
+    flex: 1;
+    transition: transform 0.3s ease;
+    position: relative;
+    padding: 0 10px; /* Added padding */
+  }
 
+  .icon-container {
+    position: relative;
+  }
+
+  .icon-container::before {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 45px;
+    height: px;
+    background-color: #45a049;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .nav-item.active .icon-container::before {
+    opacity: 1;
+  }
+
+  .icon-background {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1), inset 0 0 0 rgba(0,0,0,0.2);
+  }
+
+  .nav-item:hover .icon-background {
+    background-color: #e8e8e8;
+  }
+
+  .nav-item.active .icon-background {
+    background-color: #e0e0e0;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05), inset 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .nav-item i {
+    font-size: 20px;
+  }
+
+  .nav-label {
+    font-size: 12px;
+    text-align: center;
+    display: none; /* Hide labels by default */
+    margin-top: 5px;
+    width: 100%;
   }
 
   main {
-    /* width: 100%; */ /* Remove this line */
+    padding-bottom: 80px;
+  }
+
+  main.full-width .content-container {
+    max-width: none;
+    padding: 0;
   }
 
   .content-container {
@@ -103,33 +156,56 @@
     padding: 1rem;
   }
 
-  main.full-width .content-container {
-    max-width: none;
-    padding: 0;
+  @media (min-width: 1025px) {
+    .nav {
+      top: 20px;
+      bottom: auto;
+      left: 20px;
+      transform: none;
+      width: auto;
+      max-width: none;
+      flex-direction: column;
+      border-radius: 12px;
+      padding: 10px 0; /* Adjusted padding */
+      justify-content: flex-start; /* Reset justify-content */
+    }
+
+    .nav-item {
+      flex-direction: column;
+      gap: 5px;
+      align-items: flex-start;
+      padding: 0; /* Reset padding */
+    }
+
+    .icon-container {
+      position: relative;
+      padding: 0 15px;
+    }
+
+    .icon-container::before {
+      top: 50%;
+      left: 0; /* Adjusted to touch the edge */
+      transform: translateY(-50%);
+      width: 2px;
+      height: 35px;
+    }
+
+    .nav-label {
+      display: block; /* Show labels on desktop */
+    }
+
+    main {
+      padding-top: 0;
+      padding-bottom: 0;
+    }
   }
 
   @media (max-width: 1024px) {
-    .nav-content,
     .content-container {
       padding: 1rem 0.5rem;
     }
   }
 
-  button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: inherit;
-    color: inherit;
-    padding: 0;
-    margin: 0;
-  }
-
-  button:hover {
-    text-decoration: underline;
-  }
-
-  /* Disable purple color for visited links */
   :global(a:visited) {
     color: inherit;
   }
