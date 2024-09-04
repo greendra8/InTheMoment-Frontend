@@ -5,6 +5,8 @@ export function setupAudioVisualizer(audio: HTMLAudioElement, canvas: HTMLCanvas
           console.error('Unable to get 2D context');
           return;
         }
+
+        // analyser.smoothingTimeConstant = 0.8;
     
         const bufferLength = analyser.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLength);
@@ -17,21 +19,66 @@ export function setupAudioVisualizer(audio: HTMLAudioElement, canvas: HTMLCanvas
     
     
         let startTime = Date.now();
-    
+        let lastPulseRadius = maxRadius * 0.6; // Initialize to baseRadius
+        let isBreathing = false;
+        let quietTime = 0;
+
+        // Volume threshold for considering audio as "near zero"
+        // Lower value: more sensitive to quiet sounds
+        // Higher value: requires louder sounds to trigger reactivity
+        const volumeThreshold = 5; // Adjust this value to set the threshold for "near zero" volume
+
+        // Delay (in milliseconds) before starting the breathing animation when audio is quiet
+        // Lower value: breathing starts sooner after audio becomes quiet
+        // Higher value: longer pause before breathing animation begins
+        const breathingDelay = 500; // ms to wait before starting breathing animation
+
+        // Speed of transition for reactive audio visualization
+        // Lower value: slower, smoother transitions but less responsive
+        // Higher value: faster, more immediate responses but potentially jumpier
+        const transitionSpeed = 0.2; // Increased for faster reactivity
+
+        // Speed of transition when entering breathing mode
+        // Lower value: slower, more gradual transition to breathing state
+        // Higher value: faster transition, but may appear more sudden
+        const breathingTransitionSpeed = 0.01; // Slower transition for breathing
+
         function draw() {
           requestAnimationFrame(draw);
     
-          if (!audio.paused) {
-            analyser.getByteFrequencyData(dataArray);
-          }
+          analyser.getByteFrequencyData(dataArray);
     
-          const average = audio.paused ? 0 : dataArray.reduce((sum, value) => sum + value, 0) / analyser.frequencyBinCount;
+          const average = dataArray.reduce((sum, value) => sum + value, 0) / analyser.frequencyBinCount;
     
           canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
     
           const baseRadius = maxRadius * 0.6;
-          const breathingEffect = Math.sin((Date.now() - startTime) / 2000) * 10; // Slow breathing effect
-          const pulseRadius = baseRadius + breathingEffect + (average / 255) * (maxRadius * 0.2);
+    
+          // Modify the breathing effect to only occur when volume is near zero
+          const breathingEffect = Math.sin((Date.now() - startTime) / 2000) * 10;
+    
+          let targetRadius;
+          if (audio.paused || average < volumeThreshold) {
+            quietTime += 16; // Assuming 60fps, each frame is about 16ms
+            if (quietTime >= breathingDelay) {
+              isBreathing = true;
+            }
+          } else {
+            quietTime = 0;
+            isBreathing = false;
+          }
+
+          if (isBreathing) {
+            targetRadius = baseRadius + breathingEffect;
+          } else {
+            targetRadius = baseRadius + (average / 255) * (maxRadius * 0.4); // Increased reactivity
+          }
+
+          // Smooth transition between reactive and breathing states
+          const currentTransitionSpeed = isBreathing ? breathingTransitionSpeed : transitionSpeed;
+          lastPulseRadius = lastPulseRadius + (targetRadius - lastPulseRadius) * currentTransitionSpeed;
+
+          const pulseRadius = lastPulseRadius;
           
           // Create 3D orb effect
           const gradient = canvasCtx.createRadialGradient(
@@ -90,15 +137,14 @@ export function setupAudioVisualizer(audio: HTMLAudioElement, canvas: HTMLCanvas
     
           // Add subtle ripple effect
           for (let i = 1; i <= 2; i++) {
-            const rippleRadius = baseRadius + (i * 15) + Math.sin(Date.now() / (800 - i * 200)) * (3 + average / 60) + breathingEffect;
+            const rippleRadius = baseRadius + (i * 15) + Math.sin(Date.now() / (800 - i * 200)) * (3 + average / 30); // Increased reactivity
             canvasCtx.beginPath();
             canvasCtx.arc(centerX, centerY, rippleRadius, 0, 2 * Math.PI);
-            canvasCtx.strokeStyle = `rgba(150, 180, 255, ${0.1 - i * 0.03 + average / 2500})`;
-            canvasCtx.lineWidth = 1 + average / 200;
+            canvasCtx.strokeStyle = `rgba(150, 180, 255, ${0.2 - i * 0.03 + average / 1000})`; // Increased reactivity
+            canvasCtx.lineWidth = 1 + average / 100; // Increased reactivity
             canvasCtx.stroke();
           }
         }
     
         draw();
       }
-    

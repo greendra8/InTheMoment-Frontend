@@ -102,7 +102,7 @@
     if (!audioContext) {
       audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       const analyser = audioContext.createAnalyser();
-      analyser.fftSize = 1024;
+      analyser.fftSize = 2048;
       const source = audioContext.createMediaElementSource(audioElement);
       source.connect(analyser);
       analyser.connect(audioContext.destination);
@@ -111,7 +111,6 @@
   }
 
   function updateProgress() {
-
     const now = Date.now();
     if (isPlaying) {
       totalPlayTime += (now - lastUpdateTime) / 1000;
