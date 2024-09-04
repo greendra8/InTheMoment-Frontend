@@ -1,13 +1,23 @@
 const PYTHON_SERVER_URL = 'http://localhost:8000';
 
 export async function generateMeditation(length: number, accessToken: string) {
+  // Get the current local time and format it
+  const formattedTime = new Intl.DateTimeFormat('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  }).format(new Date()).replace(/\s/g, ''); // Remove space between time and AM/PM
+
   const response = await fetch(`${PYTHON_SERVER_URL}/generate_meditation`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${accessToken}`
     },
-    body: JSON.stringify({ length }),
+    body: JSON.stringify({ 
+      length,
+      userLocalTime: formattedTime 
+    }),
   });
 
   if (!response.ok) {

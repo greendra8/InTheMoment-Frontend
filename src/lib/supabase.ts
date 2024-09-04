@@ -18,7 +18,7 @@ export const supabaseAdmin = createClient<Database>(
 // Helper function to get user profile
 export async function getUserProfile(userId: string) {
   const { data, error } = await supabaseAdmin
-    .from('users')
+    .from('user_context')
     .select('*')
     .eq('id', userId)
     .single()
@@ -28,15 +28,16 @@ export async function getUserProfile(userId: string) {
 }
 
 // Helper function to update user profile
-export async function updateUserProfile(userId: string, updates: Partial<Database['public']['Tables']['users']['Update']>) {
+export async function updateUserProfile(userId: string, updates: any) {
   const { data, error } = await supabaseAdmin
-    .from('users')
+    .from('user_context')
     .update(updates)
     .eq('id', userId)
-    .single()
-  
+    .select()
+
+
   if (error) throw error
-  return data
+  return data[0]
 }
 
 // Helper function to get user's meditations
@@ -110,18 +111,18 @@ export async function completeMeditation(meditationId: string, userId: string, m
 
   // Meditation was not listened to within the last 12 hours or never listened to, update user's total time
   const { data: userData, error: userError } = await supabaseAdmin
-    .from('users')
-    .select('minutes_meditated')
+    .from('user_context')
+    .select('minutes_listened')
     .eq('id', userId)
     .single()
 
   if (userError) throw userError
 
-  const updatedMinutes = (userData.minutes_meditated || 0) + minutesCompleted
+  const updatedMinutes = (userData.minutes_listened || 0) + minutesCompleted
 
   const { error: updateUserError } = await supabaseAdmin
     .from('users')
-    .update({ minutes_meditated: updatedMinutes })
+    .update({ minutes_listened: updatedMinutes })
     .eq('id', userId)
 
   if (updateUserError) throw updateUserError

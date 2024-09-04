@@ -7,36 +7,43 @@
   export let data: PageData;
   export let form: ActionData;
 
-  let { profile } = data;
-
-  $: ({ profile, supabase } = data);
+  let profile = data.profile;
 
   async function handleLogout() {
-    const { error } = await supabase.auth.signOut();
+    const { error } = await data.supabase.auth.signOut();
     if (!error) {
       await invalidate('supabase:auth');
       goto('/');
     }
   }
+
+  function updateProfile(event: SubmitEvent) {
+    return async ({ result }: { result: ActionData }) => {
+      if (result.type === 'success' && result.data) {
+        profile.profile = result.data;
+      }
+    };
+  }
 </script>
 
+{#if profile}
   <h1>User Profile</h1>
 
   <div class="stats">
-    <p>Minutes Meditated: <span>{profile.minutes_meditated}</span></p>
+    <p>Minutes Listened: <span>{profile.minutes_listened}</span></p>
   </div>
 
-  <form method="POST" action="?/updateProfile" use:enhance>
+  <form method="POST" action="?/updateProfile" use:enhance={updateProfile}>
     <div class="form-group">
       <label for="name">Name:</label>
-      <input type="text" id="name" name="name" value={profile.name || ''} required>
+      <input type="text" id="name" name="name" value={profile.name ?? ''} required>
     </div>
     <div class="form-group">
       <label for="experienceLevel">Experience Level:</label>
-      <select id="experienceLevel" name="experienceLevel" required>
-        <option value="beginner" selected={profile.experience_level === 'beginner'}>Beginner</option>
-        <option value="intermediate" selected={profile.experience_level === 'intermediate'}>Intermediate</option>
-        <option value="advanced" selected={profile.experience_level === 'advanced'}>Advanced</option>
+      <select id="experienceLevel" name="experienceLevel" value={profile.experience ?? 'beginner'} required>
+        <option value="beginner">Beginner</option>
+        <option value="intermediate">Intermediate</option>
+        <option value="advanced">Advanced</option>
       </select>
     </div>
     <button type="submit">Update Profile</button>
@@ -44,14 +51,16 @@
 
   <button class="logout-button" on:click={handleLogout}>Logout</button>
 
-  {#if form?.success}
+  {#if form?.type === 'success'}
     <p class="message success">Profile updated successfully!</p>
   {/if}
 
-  {#if form?.message}
-    <p class="message error">{form.message}</p>
+  {#if form?.type === 'error'}
+    <p class="message error">{form.error}</p>
   {/if}
-
+{:else}
+  <p>Loading profile...</p>
+{/if}
 
 <style>
   h1 {

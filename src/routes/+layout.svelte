@@ -1,3 +1,4 @@
+
 <script lang="ts">
   import '../app.css';
   import { invalidate } from '$app/navigation';
@@ -14,11 +15,43 @@
       }
     });
 
+    // Add Darkmode.js script
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js';
+    script.onload = () => {
+      const options = {
+        bottom: '64px',
+        right: 'unset',
+        left: '32px',
+        time: '0.5s',
+        mixColor: '#fff',
+        backgroundColor: '#fff',
+        buttonColorDark: '#4CAF50',
+        buttonColorLight: '#fff',
+        saveInCookies: true,
+        label: '🌓',
+        autoMatchOsTheme: true
+      };
+
+      function addDarkmodeWidget() {
+        new Darkmode(options).showWidget();
+      }
+      addDarkmodeWidget();
+    };
+    document.head.appendChild(script);
+
     return () => data.subscription.unsubscribe();
   });
 
+  
+
   $: isHomePage = $page.url.pathname === '/';
+
 </script>
+
+
+
+
 
 
 <nav class="nav">

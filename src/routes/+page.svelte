@@ -10,6 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
 </svelte:head>
 
+
 <main>
   <section class="hero">
     <h1>Discover Inner Peace with AI Wellbeing</h1>
