@@ -43,6 +43,10 @@ export function setupAudioVisualizer(audio: HTMLAudioElement, canvas: HTMLCanvas
         // Higher value: faster transition, but may appear more sudden
         const breathingTransitionSpeed = 0.01; // Slower transition for breathing
 
+        let isCelebrating = false;
+        let celebrationStartTime = 0;
+        const celebrationDuration = 3000; // 3 seconds
+
         function draw() {
           requestAnimationFrame(draw);
     
@@ -80,21 +84,30 @@ export function setupAudioVisualizer(audio: HTMLAudioElement, canvas: HTMLCanvas
 
           const pulseRadius = lastPulseRadius;
           
+          let celebrationFactor = 0;
+          if (isCelebrating) {
+            const celebrationProgress = (Date.now() - celebrationStartTime) / celebrationDuration;
+            celebrationFactor = Math.sin(celebrationProgress * Math.PI * 8) * (1 - celebrationProgress) * 0.03;
+          }
+
+          // Subtly adjust the pulseRadius during celebration
+          const celebrationPulseRadius = pulseRadius * (1 + celebrationFactor);
+
           // Create 3D orb effect
           const gradient = canvasCtx.createRadialGradient(
-            centerX - pulseRadius * 0.3,
-            centerY - pulseRadius * 0.3,
+            centerX - celebrationPulseRadius * 0.3,
+            centerY - celebrationPulseRadius * 0.3,
             0,
             centerX,
             centerY,
-            pulseRadius
+            celebrationPulseRadius
           );
           gradient.addColorStop(0, `rgba(255, 255, 255, ${0.9 + average / 1000})`);
           gradient.addColorStop(0.7, `rgba(200, 220, 255, ${0.7 + average / 1500})`);
           gradient.addColorStop(1, `rgba(150, 180, 255, ${0.5 + average / 2000})`);
     
           canvasCtx.beginPath();
-          canvasCtx.arc(centerX, centerY, pulseRadius, 0, 2 * Math.PI);
+          canvasCtx.arc(centerX, centerY, celebrationPulseRadius, 0, 2 * Math.PI);
           canvasCtx.fillStyle = gradient;
           canvasCtx.fill();
     
@@ -136,15 +149,43 @@ export function setupAudioVisualizer(audio: HTMLAudioElement, canvas: HTMLCanvas
           canvasCtx.fill();
     
           // Add subtle ripple effect
-          for (let i = 1; i <= 2; i++) {
-            const rippleRadius = baseRadius + (i * 15) + Math.sin(Date.now() / (800 - i * 200)) * (3 + average / 30); // Increased reactivity
+          for (let i = 1; i <= 2; i++) { // number of ripples
+            let rippleRadius = baseRadius + (i * 15) + Math.sin(Date.now() / (800 - i * 200)) * (3 + average / 30);
+            let rippleOpacity = 0.2 - i * 0.03 + average / 1000;
+            let rippleWidth = 1 + average / 100;
+
+            if (isCelebrating) {
+              const celebrationProgress = (Date.now() - celebrationStartTime) / celebrationDuration;
+              const celebrationFactor = Math.sin(celebrationProgress * Math.PI * 4) * (1 - celebrationProgress);
+              rippleRadius += celebrationFactor * 20;
+              rippleOpacity += celebrationFactor * 0.15;
+              rippleWidth += celebrationFactor * 1.1;
+            }
+
+            // Limit the ripple radius to prevent it from going off-canvas
+            rippleRadius = Math.min(rippleRadius, maxRadius);
+
             canvasCtx.beginPath();
             canvasCtx.arc(centerX, centerY, rippleRadius, 0, 2 * Math.PI);
-            canvasCtx.strokeStyle = `rgba(150, 180, 255, ${0.2 - i * 0.03 + average / 1000})`; // Increased reactivity
-            canvasCtx.lineWidth = 1 + average / 100; // Increased reactivity
+            canvasCtx.strokeStyle = `rgba(150, 180, 255, ${rippleOpacity})`;
+            canvasCtx.lineWidth = rippleWidth;
             canvasCtx.stroke();
           }
+
+          if (isCelebrating && Date.now() - celebrationStartTime > celebrationDuration) {
+            isCelebrating = false;
+          }
         }
-    
+
+        function startCelebration() {
+          isCelebrating = true;
+          celebrationStartTime = Date.now();
+        }
+
+        // Start the drawing loop
         draw();
+
+        return {
+          startCelebration
+        };
       }

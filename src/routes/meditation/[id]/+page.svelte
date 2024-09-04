@@ -27,6 +27,8 @@
   let totalPlayTime = 0;
   let lastUpdateTime = 0;
 
+  let visualizer: { startCelebration: () => void } | null = null;
+
   function handleKeydown(event: KeyboardEvent) {
     if (event.key === 'ArrowLeft') {
       audioElement.currentTime = Math.max(audioElement.currentTime - 10, 0);
@@ -52,12 +54,19 @@
 
   onMount(() => {
     if (audioElement && canvasElement) {
-      setupAudioVisualizer(audioElement, canvasElement, new AnalyserNode(new AudioContext()));
+      audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const analyser = audioContext.createAnalyser();
+      analyser.fftSize = 2048;
+      const source = audioContext.createMediaElementSource(audioElement);
+      source.connect(analyser);
+      analyser.connect(audioContext.destination);
+      
+      visualizer = setupAudioVisualizer(audioElement, canvasElement, analyser);
       
       // Add event listeners for play and pause events
       audioElement.addEventListener('play', updatePlayingState);
       audioElement.addEventListener('pause', updatePlayingState);
-      audioElement.addEventListener('ended', sendCompletionRequest);
+      audioElement.addEventListener('ended', handleAudioEnded);
     } else {
       console.error('Audio or Canvas element is missing');
     }
@@ -68,7 +77,7 @@
       if (audioElement) {
         audioElement.removeEventListener('play', updatePlayingState);
         audioElement.removeEventListener('pause', updatePlayingState);
-        audioElement.removeEventListener('ended', sendCompletionRequest);
+        audioElement.removeEventListener('ended', handleAudioEnded);
       }
     };
   });
@@ -224,6 +233,13 @@
       console.error('Error recording meditation completion:', error);
     }
   }
+
+  function handleAudioEnded() {
+    sendCompletionRequest();
+    if (visualizer) {
+      visualizer.startCelebration();
+    }
+  }
 </script>
 
 <div class="meditation-container" on:click={resumeAudioContext}>
@@ -267,7 +283,7 @@
         on:loadedmetadata={updateProgress}
         on:play={updatePlayingState}
         on:pause={updatePlayingState}
-        on:ended={sendCompletionRequest}
+        on:ended={handleAudioEnded}
       ></audio>
       <div class="custom-audio-controls">
         <div class="progress-container" on:mousedown={startSeek} on:mousemove={seeking} on:mouseup={endSeek} on:mouseleave={endSeek}>
