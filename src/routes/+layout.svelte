@@ -63,6 +63,7 @@
     width: 100%;
     background-color: #fff;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+
   }
 
   .nav-content {
@@ -88,6 +89,7 @@
   nav ul li a {
     font-size: 1.1rem;
     text-decoration: none;
+    color: #333;
 
   }
 
