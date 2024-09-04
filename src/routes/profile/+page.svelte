@@ -15,7 +15,7 @@
     const { error } = await supabase.auth.signOut();
     if (!error) {
       await invalidate('supabase:auth');
-      goto('/login');
+      goto('/');
     }
   }
 </script>
