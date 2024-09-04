@@ -1,11 +1,11 @@
 // Volume threshold for "near zero" audio. Lower: more sensitive, Higher: less reactive
-const VOLUME_THRESHOLD = 5;
+const VOLUME_THRESHOLD = 3;
 
 // Delay (ms) before breathing animation starts. Lower: quicker start, Higher: longer pause
 const BREATHING_DELAY = 500;
 
 // Transition speed for audio visualization. Lower: smoother, Higher: more responsive
-const TRANSITION_SPEED = 0.2;
+const TRANSITION_SPEED = 0.22;
 
 // Transition speed for breathing mode. Lower: gradual, Higher: sudden
 const BREATHING_TRANSITION_SPEED = 0.01;

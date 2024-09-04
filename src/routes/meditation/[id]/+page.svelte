@@ -59,7 +59,7 @@
     if (audioElement && canvasElement) {
       audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       const analyser = audioContext.createAnalyser();
-      analyser.fftSize = 2048;
+      analyser.fftSize = 1024;
       const source = audioContext.createMediaElementSource(audioElement);
       source.connect(analyser);
       analyser.connect(audioContext.destination);
@@ -132,7 +132,7 @@
     if (!audioContext) {
       audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       const analyser = audioContext.createAnalyser();
-      analyser.fftSize = 2048;
+      analyser.fftSize = 32;
       const source = audioContext.createMediaElementSource(audioElement);
       source.connect(analyser);
       analyser.connect(audioContext.destination);
