@@ -47,20 +47,30 @@ export function setupAudioVisualizer(audio: HTMLAudioElement, canvas: HTMLCanvas
         let celebrationStartTime = 0;
         const celebrationDuration = 3000; // 3 seconds
 
+        let opacity = 0;
+        let blur = 5; // Initial blur amount in pixels
+        const fadeInDuration = 400; // 0.4 seconds fade-in
+        const startTimeFade = Date.now();
+
         function draw() {
           requestAnimationFrame(draw);
-    
+
+          const currentTime = Date.now();
+          const fadeProgress = Math.min((currentTime - startTimeFade) / fadeInDuration, 1);
+          opacity = fadeProgress;
+          blur = blur * (1 - fadeProgress); // Reduce blur as fade-in progresses
+
           analyser.getByteFrequencyData(dataArray);
-    
+
           const average = dataArray.reduce((sum, value) => sum + value, 0) / analyser.frequencyBinCount;
-    
+
           canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
-    
+
           const baseRadius = maxRadius * 0.6;
-    
+
           // Modify the breathing effect to only occur when volume is near zero
           const breathingEffect = Math.sin((Date.now() - startTime) / 2000) * 10;
-    
+
           let targetRadius;
           if (audio.paused || average < volumeThreshold) {
             quietTime += 16; // Assuming 60fps, each frame is about 16ms
@@ -175,6 +185,17 @@ export function setupAudioVisualizer(audio: HTMLAudioElement, canvas: HTMLCanvas
           if (isCelebrating && Date.now() - celebrationStartTime > celebrationDuration) {
             isCelebrating = false;
           }
+
+          // Apply blur and opacity to the entire canvas
+          canvasCtx.filter = `blur(${blur}px)`;
+          canvasCtx.globalAlpha = opacity;
+
+          // Draw your visualization here
+          // ... (existing visualization drawing code)
+
+          // Reset canvas context properties
+          canvasCtx.filter = 'none';
+          canvasCtx.globalAlpha = 1;
         }
 
         function startCelebration() {

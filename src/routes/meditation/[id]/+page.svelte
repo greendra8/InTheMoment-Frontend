@@ -29,6 +29,9 @@
 
   let visualizer: { startCelebration: () => void } | null = null;
 
+  let canvasOpacity = 0;
+  let canvasBlur = 3; // Initial blur amount in pixels
+
   function handleKeydown(event: KeyboardEvent) {
     if (event.key === 'ArrowLeft') {
       audioElement.currentTime = Math.max(audioElement.currentTime - 10, 0);
@@ -71,6 +74,24 @@
       console.error('Audio or Canvas element is missing');
     }
     window.addEventListener('keydown', handleKeydown);
+
+    // Add fade-in and unblur effect for the canvas container
+    const startTime = Date.now();
+    const fadeInDuration = 400; // 0.4 seconds, matching the duration in audioVisualizer.ts
+
+    function updateCanvasStyle() {
+      const currentTime = Date.now();
+      const progress = Math.min((currentTime - startTime) / fadeInDuration, 1);
+      canvasOpacity = progress;
+      canvasBlur = 5 * (1 - progress);
+
+      if (progress < 1) {
+        requestAnimationFrame(updateCanvasStyle);
+      }
+    }
+
+    requestAnimationFrame(updateCanvasStyle);
+
     return () => {
       window.removeEventListener('keydown', handleKeydown);
       // Remove event listeners on component unmount
@@ -267,7 +288,11 @@
 
   {#if audioUrl}
     <div class="audio-player">
-      <div class="canvas-container" on:click={togglePlayPause}>
+      <div 
+        class="canvas-container" 
+        on:click={togglePlayPause} 
+        style="opacity: {canvasOpacity}; filter: blur({canvasBlur}px); transition: opacity 0.4s ease-in, filter 0.4s ease-in;"
+      >
         <canvas bind:this={canvasElement} width="300" height="300"></canvas>
         <div class="play-overlay" class:visible={!isPlaying}>
           <svg viewBox="0 0 24 24" width="48" height="48">
@@ -375,6 +400,9 @@
     position: relative;
     cursor: pointer;
     margin-bottom: 1rem;
+    opacity: 0;
+    filter: blur(20px);
+    transition: opacity 0.4s ease-in, filter 0.4s ease-in;
   }
 
   canvas {
