@@ -139,3 +139,41 @@ export async function completeMeditation(meditationId: string, userId: string, m
 
   console.log('Meditation completed and user total time updated successfully.')
 }
+
+// Helper function to check if user profile is completed
+export async function isUserProfileComplete(userId: string) {
+  const { data, error } = await supabaseAdmin
+    .from('user_context')
+    .select('complete')
+    .eq('id', userId)
+    .single()
+  
+  if (error) {
+    console.error('Error checking user profile completion:', error)
+    throw error
+  }
+  
+  return data?.complete || false
+}
+
+// Helper function to submit user context
+export async function submitUserContext(userId: string, profileData: any) {
+  const { data, error } = await supabaseAdmin
+    .from('user_context')
+    .update({
+      name: profileData.name,
+      dob: profileData.dob,
+      gender: profileData.gender,
+      preferences: profileData.preferences,
+      complete: true,
+      experience: profileData.experience
+    })
+    .eq('id', userId)
+
+  if (error) {
+    console.error('Error updating user context:', error)
+    throw error
+  }
+
+  return data
+}
