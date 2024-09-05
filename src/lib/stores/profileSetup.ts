@@ -13,3 +13,19 @@ export const profileSetupStore = writable({
     selfImprovementGoals: []
   }
 });
+
+export function updateProfileSetupStore(field: string, value: any) {
+  profileSetupStore.update(store => {
+    if (field.startsWith('preferences.')) {
+      const preferenceField = field.split('.')[1];
+      return {
+        ...store,
+        preferences: {
+          ...store.preferences,
+          [preferenceField]: value
+        }
+      };
+    }
+    return { ...store, [field]: value };
+  });
+}

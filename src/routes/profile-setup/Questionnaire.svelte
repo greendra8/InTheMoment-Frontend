@@ -1,5 +1,9 @@
 <script lang="ts">
   import { profileSetupStore } from '$lib/stores/profileSetup';
+  import { onMount } from 'svelte';
+
+  export let setTotalQuestions: (count: number) => void;
+  export let updateAnsweredQuestions: (count: number) => void;
 
   let questions = [
     {
@@ -61,6 +65,19 @@
     }
   ];
 
+  let answeredQuestions = new Set();
+
+  onMount(() => {
+    setTotalQuestions(questions.length);
+    // Initialize answered questions based on existing preferences
+    questions.forEach(q => {
+      if ($profileSetupStore.preferences[q.field]) {
+        answeredQuestions.add(q.field);
+      }
+    });
+    updateAnsweredQuestions(answeredQuestions.size);
+  });
+
   function updatePreference(field: string, value: string | string[]) {
     profileSetupStore.update(store => ({
       ...store,
@@ -69,6 +86,13 @@
         [field]: value
       }
     }));
+    
+    if (value && (typeof value === 'string' || value.length > 0)) {
+      answeredQuestions.add(field);
+    } else {
+      answeredQuestions.delete(field);
+    }
+    updateAnsweredQuestions(answeredQuestions.size);
   }
 </script>
 
