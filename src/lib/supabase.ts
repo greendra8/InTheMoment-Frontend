@@ -121,7 +121,7 @@ export async function completeMeditation(meditationId: string, userId: string, m
   const updatedMinutes = (userData.minutes_listened || 0) + minutesCompleted
 
   const { error: updateUserError } = await supabaseAdmin
-    .from('users')
+    .from('user_context')
     .update({ minutes_listened: updatedMinutes })
     .eq('id', userId)
 
