@@ -39,3 +39,6 @@ export const load: LayoutLoad = async ({ data, depends, fetch, url }) => {
 
   return { ...data, supabase, session }
 }
+
+export const prerender = true
+export const ssr = false
