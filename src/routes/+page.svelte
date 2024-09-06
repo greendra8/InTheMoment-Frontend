@@ -11,7 +11,7 @@
 </svelte:head>
 
 
-<main>
+<main class="global-container">
   <section class="hero">
     <h1>Discover Inner Peace with AI Wellbeing</h1>
     <p class="tagline">Embark on a personalized meditation journey powered by artificial intelligence</p>
@@ -52,7 +52,7 @@
 
 <style>
   main {
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
     padding: 2rem;
     text-align: center;
@@ -200,6 +200,55 @@
       width: 100%;
       max-width: 500px;
       margin-bottom: 2rem;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .hero {
+      padding: 2rem 1rem;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+    }
+
+    .tagline {
+      font-size: 1.2rem;
+    }
+
+    .features {
+      flex-direction: column;
+    }
+
+    .feature {
+      width: 100%;
+      margin-bottom: 1rem;
+    }
+
+    .testimonial {
+      padding: 2rem 1rem;
+    }
+
+    .final-cta {
+      padding: 2rem 1rem;
+    }
+
+    .final-cta h2 {
+      font-size: 2rem;
+    }
+  }
+
+  @media (min-width: 601px) {
+    .hero, .features, .testimonial, .final-cta {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .hero, .features, .testimonial, .final-cta {
+      padding-left: 1rem;
+      padding-right: 1rem;
     }
   }
 </style>

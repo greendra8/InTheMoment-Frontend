@@ -26,16 +26,11 @@
 
 <style>
   .auth-container {
-    width: 400px;
-    margin: auto;
-    padding: 2rem;
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    width: 100%;
+    max-width: 400px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+    box-sizing: border-box;
   }
 
   h1 {
@@ -57,6 +52,7 @@
     padding: 0.5rem;
     border: 1px solid #ccc;
     border-radius: 4px;
+    box-sizing: border-box;
   }
 
   button {

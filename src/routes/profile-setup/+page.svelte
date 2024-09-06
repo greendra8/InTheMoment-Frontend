@@ -404,20 +404,16 @@
 
   @media (max-width: 600px) {
     .profile-setup {
-      padding: 1rem 0;
+      padding: 1rem;
     }
 
     h1 {
       font-size: 2rem;
     }
 
-    h2 {
-      font-size: 1.5rem;
-    }
-
-    .btn {
-      font-size: 0.9rem;
-      padding: 0.5rem 1rem;
+    .form-group input,
+    .form-group select {
+      width: 100%;
     }
   }
 </style>

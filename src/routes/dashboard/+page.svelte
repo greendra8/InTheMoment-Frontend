@@ -159,4 +159,20 @@
   .play-button:hover {
     background-color: #45a049;
   }
+
+  @media (max-width: 600px) {
+    .dashboard-container {
+      padding: 0 1rem;
+    }
+
+    li {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .play-button {
+      margin-top: 0.5rem;
+      align-self: flex-start;
+    }
+  }
 </style>

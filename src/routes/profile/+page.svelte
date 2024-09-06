@@ -147,4 +147,14 @@
   .logout-button:hover {
     background-color: #d32f2f;
   }
+
+  @media (max-width: 600px) {
+    form {
+      padding: 0 1rem;
+    }
+
+    input, select {
+      width: 100%;
+    }
+  }
 </style>

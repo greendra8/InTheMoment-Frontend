@@ -340,7 +340,6 @@
 
 <style>
   .meditation-container {
-    max-width: 500px;
     margin: 0 auto;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
   }
@@ -538,4 +537,13 @@
 
   /* Add this to your existing styles or in the head of your HTML */
   @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css');
+
+  /* media query for mobile screens */
+  @media (max-width: 600px) {
+    .custom-audio-controls {
+      width: calc(100% - 20px);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+  }
 </style>
