@@ -2,7 +2,6 @@ import { createServerClient } from '@supabase/ssr'
 import { type Handle, redirect } from '@sveltejs/kit'
 import { sequence } from '@sveltejs/kit/hooks'
 
-
 const PUBLIC_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
 const PUBLIC_SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
 
@@ -14,15 +13,23 @@ const supabase: Handle = async ({ event, resolve }) => {
    */
   event.locals.supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
     cookies: {
-      getAll: () => event.cookies.getAll(),
-      /**
-       * SvelteKit's cookies API requires `path` to be explicitly set in
-       * the cookie options. Setting `path` to `/` replicates previous/
-       * standard behavior.
-       */
-      setAll: (cookiesToSet) => {
-        cookiesToSet.forEach(({ name, value, options }) => {
-          event.cookies.set(name, value, { ...options, path: '/' })
+      get: (key) => event.cookies.get(key),
+      set: (key, value, options) => {
+        event.cookies.set(key, value, {
+          ...options,
+          // DEVELOPMENT ONLY: This allows cookies to be set over HTTP for local development.
+          // IMPORTANT: For production, change this to always be true:
+          // secure: true
+          secure: event.url.protocol === "https:"
+        })
+      },
+      remove: (key, options) => {
+        event.cookies.delete(key, {
+          ...options,
+          // DEVELOPMENT ONLY: This allows cookies to be set over HTTP for local development.
+          // IMPORTANT: For production, change this to always be true:
+          // secure: true
+          secure: event.url.protocol === "https:"
         })
       },
     },
