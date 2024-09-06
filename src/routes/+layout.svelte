@@ -1,9 +1,10 @@
-
 <script lang="ts">
   import '../app.css';
   import { invalidate } from '$app/navigation';
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
+  import { appContext } from '$lib/stores/appContext';
+  
 
   export let data;
   $: ({ session, supabase, navItems } = data);
@@ -40,20 +41,40 @@
     };
     document.head.appendChild(script);
 
+    // Check if running in native app
+    if (window.isNativeApp) {
+      appContext.setIsNativeApp(true);
+    }
+
+    // Check data attribute
+    if (document.body.dataset.nativeApp === 'true') {
+      appContext.setIsNativeApp(true);
+    }
+
+    // Listen for custom event
+    window.addEventListener('nativeAppReady', () => {
+      appContext.setIsNativeAppReady(true);
+      // Perform any app-specific initializations here
+    });
+
+    // To send a message to the React Native app
+    if (window.sendToReactNative) {
+      // You can create a wrapper function if you need to use this often
+      window.sendToReactNativeMessage = (type: string, data: any) => {
+        window.sendToReactNative({ type, data });
+      };
+    }
+
     return () => data.subscription.unsubscribe();
   });
 
-  
-
   $: isHomePage = $page.url.pathname === '/';
+  $: isNativeApp = $appContext.isNativeApp;
 
+  console.log('isNativeApp', isNativeApp);
 </script>
 
-
-
-
-
-
+{#if !isNativeApp}
 <nav class="nav">
   {#each navItems as item}
     <a 
@@ -71,11 +92,12 @@
     </a>
   {/each}
 </nav>
-
-
-<main class:full-width={isHomePage}>
-  <div class="content-container">
-    <slot />
+{/if}
+<main class:full-width={isHomePage} class:native-app={isNativeApp}>
+  <div class="global-container" class:full-width={isHomePage}>
+    <div class="content-container">
+      <slot />
+    </div>
   </div>
 </main>
 
@@ -91,20 +113,20 @@
 
   .nav {
     position: fixed;
-    bottom: 20px;
+    bottom: 10px;
     left: 50%;
     transform: translateX(-50%);
     background-color: #fff;
     border-radius: 25px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    padding: 10px 0; /* Changed padding */
+    padding: 10px 0;
     display: flex;
     flex-direction: row;
-    justify-content: space-around; /* Changed from space-between */
+    justify-content: space-around;
     gap: 10px;
-    z-index: 1000;
-    width: calc(100% - 40px);
+    width: calc(100% - 20px);
     max-width: 400px;
+    z-index: 1000;
   }
 
   .nav-item {
@@ -117,7 +139,7 @@
     flex: 1;
     transition: transform 0.3s ease;
     position: relative;
-    padding: 0 10px; /* Added padding */
+    padding: 0 10px;
   }
 
   .icon-container {
@@ -169,7 +191,7 @@
   .nav-label {
     font-size: 12px;
     text-align: center;
-    display: none; /* Hide labels by default */
+    display: none;
     margin-top: 5px;
     width: 100%;
   }
@@ -184,7 +206,7 @@
   }
 
   .content-container {
-    max-width: 500px;
+    max-width: 800px;
     margin: 0 auto;
     padding: 1rem;
   }
@@ -199,15 +221,15 @@
       max-width: none;
       flex-direction: column;
       border-radius: 12px;
-      padding: 10px 0; /* Adjusted padding */
-      justify-content: flex-start; /* Reset justify-content */
+      padding: 10px 0;
+      justify-content: flex-start;
     }
 
     .nav-item {
       flex-direction: column;
       gap: 5px;
       align-items: flex-start;
-      padding: 0; /* Reset padding */
+      padding: 0;
     }
 
     .icon-container {
@@ -217,14 +239,14 @@
 
     .icon-container::before {
       top: 50%;
-      left: 0; /* Adjusted to touch the edge */
+      left: 0;
       transform: translateY(-50%);
       width: 2px;
       height: 35px;
     }
 
     .nav-label {
-      display: block; /* Show labels on desktop */
+      display: block;
     }
 
     main {
@@ -236,6 +258,33 @@
   @media (max-width: 1024px) {
     .content-container {
       padding: 1rem 0.5rem;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .content-container {
+      padding: 0.5rem;
+    }
+
+    main {
+      padding-bottom: 70px;
+    }
+  }
+
+  .global-container {
+    width: 100%;
+    box-sizing: border-box;
+
+    margin: 0 auto;
+  }
+
+  .global-container.full-width {
+    max-width: none;
+  }
+
+  @media (max-width: 600px) {
+    .global-container {
+      padding: 0 0.5rem;
     }
   }
 
