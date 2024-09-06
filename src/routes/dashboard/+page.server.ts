@@ -1,4 +1,4 @@
-import { error } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { getUserMeditations } from '$lib/supabase';
 
@@ -6,7 +6,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	const { session } = await locals.safeGetSession();
 
 	if (!session) {
-		throw error(401, 'Unauthorized');
+		throw redirect(303, '/login');
 	}
 
 	const page = parseInt(url.searchParams.get('page') || '1');
@@ -19,6 +19,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			currentPage: page
 		};
 	} catch (err) {
+		console.error('Failed to load meditations:', err);
 		throw error(500, 'Failed to load meditations');
 	}
 };
