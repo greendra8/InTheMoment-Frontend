@@ -17,4 +17,12 @@ declare global {
   }
 }
 
+declare global {
+  interface Window {
+    isNativeApp?: boolean;
+    sendToReactNative?: (message: { type: string; data: any }) => void;
+    sendToReactNativeMessage?: (type: string, data: any) => void;
+  }
+}
+
 export {}
