@@ -18,7 +18,7 @@ export const supabaseAdmin = createClient<Database>(
 // Helper function to get user profile
 export async function getUserProfile(userId: string) {
   const { data, error } = await supabaseAdmin
-    .from('user_context')
+    .from('profiles')
     .select('*')
     .eq('id', userId)
     .single()
@@ -30,11 +30,10 @@ export async function getUserProfile(userId: string) {
 // Helper function to update user profile
 export async function updateUserProfile(userId: string, updates: any) {
   const { data, error } = await supabaseAdmin
-    .from('user_context')
+    .from('profiles')
     .update(updates)
     .eq('id', userId)
     .select()
-
 
   if (error) throw error
   return data[0]
@@ -46,7 +45,7 @@ export async function getUserMeditations(userId: string, page: number = 1, limit
   const end = start + limit - 1
 
   const { data, error } = await supabaseAdmin
-    .from('meditations')
+    .from('mindfulness_meditations')
     .select('*')
     .eq('user_id', userId)
     .range(start, end)
@@ -59,13 +58,8 @@ export async function getUserMeditations(userId: string, page: number = 1, limit
 // Helper function to get a single meditation
 export async function getMeditation(meditationId: string) {
   const { data, error } = await supabaseAdmin
-    .from('meditations')
-    .select(`
-      *,
-      audio_files (
-        file_path
-      )
-    `)
+    .from('mindfulness_meditations')
+    .select('*')
     .eq('id', meditationId)
     .single()
   
@@ -76,8 +70,8 @@ export async function getMeditation(meditationId: string) {
 // Helper function to check meditation status
 export async function getMeditationStatus(meditationId: string) {
   const { data, error } = await supabaseAdmin
-    .from('meditations')
-    .select('status')
+    .from('mindfulness_meditations')
+    .select('generation_status')
     .eq('id', meditationId)
     .single();
 
@@ -93,7 +87,7 @@ export async function getMeditationStatus(meditationId: string) {
 export async function completeMeditation(meditationId: string, userId: string, minutesCompleted: number) {
   // Check if the meditation was last listened to within the last 12 hours
   const { data: meditationData, error: meditationError } = await supabaseAdmin
-    .from('meditations')
+    .from('mindfulness_meditations')
     .select('last_listened')
     .eq('id', meditationId)
     .single()
@@ -111,7 +105,7 @@ export async function completeMeditation(meditationId: string, userId: string, m
 
   // Meditation was not listened to within the last 12 hours or never listened to, update user's total time
   const { data: userData, error: userError } = await supabaseAdmin
-    .from('user_context')
+    .from('profiles')
     .select('minutes_listened')
     .eq('id', userId)
     .single()
@@ -121,7 +115,7 @@ export async function completeMeditation(meditationId: string, userId: string, m
   const updatedMinutes = (userData.minutes_listened || 0) + minutesCompleted
 
   const { error: updateUserError } = await supabaseAdmin
-    .from('user_context')
+    .from('profiles')
     .update({ minutes_listened: updatedMinutes })
     .eq('id', userId)
 
@@ -129,7 +123,7 @@ export async function completeMeditation(meditationId: string, userId: string, m
 
   // Update last_listened timestamp and listened status for the meditation
   const { error: updateMeditationError } = await supabaseAdmin
-    .from('meditations')
+    .from('mindfulness_meditations')
     .update({ 
       last_listened: new Date().toISOString(),
       listened: true
@@ -144,7 +138,7 @@ export async function completeMeditation(meditationId: string, userId: string, m
 // Helper function to check if user profile is completed
 export async function isUserProfileComplete(userId: string) {
   const { data, error } = await supabaseAdmin
-    .from('user_context')
+    .from('profiles')
     .select('complete')
     .eq('id', userId)
     .single()
@@ -160,9 +154,9 @@ export async function isUserProfileComplete(userId: string) {
 // Helper function to submit user context
 export async function submitUserContext(userId: string, profileData: any) {
   const { data, error } = await supabaseAdmin
-    .from('user_context')
+    .from('profiles')
     .update({
-      name: profileData.name,
+      full_name: profileData.name,
       dob: profileData.dob,
       gender: profileData.gender,
       preferences: profileData.preferences,
@@ -172,7 +166,7 @@ export async function submitUserContext(userId: string, profileData: any) {
     .eq('id', userId)
 
   if (error) {
-    console.error('Error updating user context:', error)
+    console.error('Error updating user profile:', error)
     throw error
   }
 
