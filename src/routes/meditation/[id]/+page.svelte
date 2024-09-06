@@ -8,7 +8,8 @@
   export let data: PageData;
   const { meditation } = data;
 
-  const audioUrl = meditation.audio_files?.[0]?.file_path;
+  console.log(meditation);
+  const audioUrl = meditation.file_path;
 
   let audioElement: HTMLAudioElement;
   let canvasElement: HTMLCanvasElement;

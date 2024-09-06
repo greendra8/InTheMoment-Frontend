@@ -36,7 +36,7 @@
   <form method="POST" action="?/updateProfile" use:enhance={updateProfile}>
     <div class="form-group">
       <label for="name">Name:</label>
-      <input type="text" id="name" name="name" value={profile.name ?? ''} required>
+      <input type="text" id="name" name="name" value={profile.full_name ?? ''} required>
     </div>
     <div class="form-group">
       <label for="experienceLevel">Experience Level:</label>
