@@ -5,8 +5,6 @@ import { getUserMeditations } from '$lib/supabase';
 export const load: PageServerLoad = async ({ locals, url }) => {
 	const { session } = await locals.safeGetSession();
 
-	console.log('Session in dashboard load:', session); // Add this log
-
 	if (!session) {
 		console.log('No session found, redirecting to login'); // Add this log
 		throw redirect(303, '/login');

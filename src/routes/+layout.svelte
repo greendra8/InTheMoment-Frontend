@@ -4,77 +4,26 @@
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
   import { appContext } from '$lib/stores/appContext';
-  
 
   export let data;
-  $: ({ session, supabase, navItems } = data);
+  $: ({ session, supabase, navItems, isNativeApp } = data);
+
+  $: appContext.setIsNativeApp(isNativeApp);
 
   onMount(() => {
-    const { data } = supabase.auth.onAuthStateChange((_, newSession) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((_, newSession) => {
       if (newSession?.expires_at !== session?.expires_at) {
         invalidate('supabase:auth');
       }
     });
 
-    // Add Darkmode.js script
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js';
-    script.onload = () => {
-      const options = {
-        bottom: '64px',
-        right: 'unset',
-        left: '32px',
-        time: '0.5s',
-        mixColor: '#fff',
-        backgroundColor: '#fff',
-        buttonColorDark: '#4CAF50',
-        buttonColorLight: '#fff',
-        saveInCookies: true,
-        label: '🌓',
-        autoMatchOsTheme: true
-      };
-
-      function addDarkmodeWidget() {
-        new Darkmode(options).showWidget();
-      }
-      addDarkmodeWidget();
-    };
-    document.head.appendChild(script);
-
-    // Check if running in native app
-    if (window.isNativeApp) {
-      appContext.setIsNativeApp(true);
-    }
-
-    // Check data attribute
-    if (document.body.dataset.nativeApp === 'true') {
-      appContext.setIsNativeApp(true);
-    }
-
-    // Listen for custom event
-    window.addEventListener('nativeAppReady', () => {
-      appContext.setIsNativeAppReady(true);
-      // Perform any app-specific initializations here
-    });
-
-    // To send a message to the React Native app
-    if (window.sendToReactNative) {
-      // You can create a wrapper function if you need to use this often
-      window.sendToReactNativeMessage = (type: string, data: any) => {
-        window.sendToReactNative({ type, data });
-      };
-    }
-
-    return () => data.subscription.unsubscribe();
+    return () => authListener?.subscription.unsubscribe();
   });
 
   $: isHomePage = $page.url.pathname === '/';
-  $: isNativeApp = $appContext.isNativeApp;
-
-  console.log('isNativeApp', isNativeApp);
 </script>
 
-{#if !isNativeApp}
+{#if !$appContext.isNativeApp}
 <nav class="nav">
   {#each navItems as item}
     <a 
@@ -93,7 +42,8 @@
   {/each}
 </nav>
 {/if}
-<main class:full-width={isHomePage} class:native-app={isNativeApp}>
+
+<main class:full-width={isHomePage} class:native-app={$appContext.isNativeApp}>
   <div class="global-container" class:full-width={isHomePage}>
     <div class="content-container">
       <slot />

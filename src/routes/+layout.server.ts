@@ -4,12 +4,10 @@ import { redirect } from '@sveltejs/kit';
 export const load: LayoutServerLoad = async ({ locals, url }) => {
   const { session } = await locals.safeGetSession();
 
-  // Redirect to login if user is not authenticated and trying to access a protected route
   if (!session && (url.pathname.startsWith('/dashboard') || url.pathname.startsWith('/meditation'))) {
     throw redirect(303, '/login');
   }
 
-  // Generate the navigation menu structure based on the session
   const navItems = session
     ? [
         { href: '/dashboard', label: 'Dashboard', icon: 'fa-home' },
@@ -25,6 +23,7 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
   return {
     session,
     navItems,
+    isNativeApp: locals.isNativeApp,
     cookies: locals.cookies,
   };
 };
