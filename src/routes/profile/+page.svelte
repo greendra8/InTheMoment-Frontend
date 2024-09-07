@@ -13,7 +13,7 @@
     const { error } = await data.supabase.auth.signOut({ scope: 'local' });
     if (!error) {
       await invalidate('supabase:auth');
-      goto('/');
+      window.location.href = '/';
     }
   }
 
