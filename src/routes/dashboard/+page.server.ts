@@ -5,8 +5,16 @@ import { getUserMeditations } from '$lib/supabase';
 export const load: PageServerLoad = async ({ locals, url }) => {
 	const { session } = await locals.safeGetSession();
 
+	console.log('Session in dashboard load:', session); // Add this log
+
 	if (!session) {
+		console.log('No session found, redirecting to login'); // Add this log
 		throw redirect(303, '/login');
+	}
+
+	if (!session.user || !session.user.id) {
+		console.error('Session user or user ID is undefined:', session); // Add this log
+		throw error(500, 'Invalid session data');
 	}
 
 	const page = parseInt(url.searchParams.get('page') || '1');
