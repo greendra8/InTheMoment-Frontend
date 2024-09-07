@@ -20,7 +20,7 @@ function createAuthStore() {
     },
     signOut: async () => {
       console.log('Signing out...');
-      await supabase.auth.signOut();
+      await supabase.auth.signOut({ scope: 'local' });
       set(null);
     },
     getToken: async () => {
