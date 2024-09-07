@@ -2,13 +2,13 @@ import type { LayoutServerLoad } from './$types';
 import { redirect } from '@sveltejs/kit';
 
 export const load: LayoutServerLoad = async ({ locals, url }) => {
-  const { session } = await locals.safeGetSession();
+  const { session, user } = await locals.safeGetSession();
 
-  if (!session && (url.pathname.startsWith('/dashboard') || url.pathname.startsWith('/meditation'))) {
+  if (!user && (url.pathname.startsWith('/dashboard') || url.pathname.startsWith('/meditation'))) {
     throw redirect(303, '/login');
   }
 
-  const navItems = session
+  const navItems = user
     ? [
         { href: '/dashboard', label: 'Dashboard', icon: 'fa-home' },
         { href: '/meditation', label: 'Meditation', icon: 'fa-spa' },
@@ -21,9 +21,8 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
       ];
 
   return {
-    session,
+    user: user ? { id: user.id, email: user.email } : null,
     navItems,
     isNativeApp: locals.isNativeApp,
-    cookies: locals.cookies,
   };
 };
