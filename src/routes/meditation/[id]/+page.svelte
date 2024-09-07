@@ -1,9 +1,10 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import { page } from '$app/stores';
   import { completeMeditation } from '$lib/supabase';
   import { setupAudioVisualizer } from '$lib/audioVisualizer';
   import type { PageData } from './$types';
+  import { browser } from '$app/environment';
 
   export let data: PageData;
   const { meditation } = data;
@@ -32,6 +33,33 @@
 
   let canvasOpacity = 0;
   let canvasBlur = 3; // Initial blur amount in pixels
+
+  let isDownloaded = false;
+
+  function updateDownloadUI(meditationId: string, downloadStatus: boolean) {
+    if (meditationId === meditation.id) {
+      isDownloaded = downloadStatus;
+    }
+  }
+
+  function handleDownloadStatusUpdate(event: CustomEvent) {
+    const { meditationId, isDownloaded: downloadStatus } = event.detail;
+    updateDownloadUI(meditationId, downloadStatus);
+  }
+
+  function handleDownloadComplete(event: CustomEvent) {
+    const { meditationId } = event.detail;
+    updateDownloadUI(meditationId, true);
+  }
+
+  function checkDownloadStatus() {
+    if (browser && (window as any).ReactNativeWebView) {
+      (window as any).ReactNativeWebView.postMessage(JSON.stringify({
+        type: 'checkDownloadStatus',
+        payload: { meditationId: meditation.id }
+      }));
+    }
+  }
 
   function handleKeydown(event: KeyboardEvent) {
     if (event.key === 'ArrowLeft') {
@@ -93,6 +121,10 @@
 
     requestAnimationFrame(updateCanvasStyle);
 
+    window.addEventListener('downloadStatusUpdate', handleDownloadStatusUpdate as EventListener);
+    window.addEventListener('downloadComplete', handleDownloadComplete as EventListener);
+    checkDownloadStatus();
+
     return () => {
       window.removeEventListener('keydown', handleKeydown);
       // Remove event listeners on component unmount
@@ -101,6 +133,8 @@
         audioElement.removeEventListener('pause', updatePlayingState);
         audioElement.removeEventListener('ended', handleAudioEnded);
       }
+      window.removeEventListener('downloadStatusUpdate', handleDownloadStatusUpdate as EventListener);
+      window.removeEventListener('downloadComplete', handleDownloadComplete as EventListener);
     };
   });
 
@@ -255,6 +289,31 @@
       visualizer.startCelebration();
     }
   }
+
+  function triggerDownload() {
+    if (browser && (window as any).ReactNativeWebView) {
+      const message = {
+        type: 'download',
+        payload: {
+          url: audioUrl,
+          filename: `meditation_${meditation.id}.mp3`,
+          metadata: {
+            id: meditation.id,
+            title: meditation.title,
+            duration: duration,
+            theme: meditation.theme,
+            difficulty: meditation.difficulty,
+            audio_data: meditation.audio_data, // Include the audio_data here
+          }
+        }
+      };
+      
+      (window as any).ReactNativeWebView.postMessage(JSON.stringify(message));
+    } else {
+      console.log('Download functionality is only available in the mobile app');
+      // You might want to show a toast or some other notification to the user here
+    }
+  }
 </script>
 
 <div class="meditation-container" on:click={resumeAudioContext}>
@@ -277,6 +336,15 @@
         <i class="fas fa-check-circle"></i>
       </span>
     {/if}
+      <span 
+        id="download-button-{meditation.id}" 
+        class="info-item {isDownloaded ? 'download-status' : 'download-icon'}" 
+        on:click|stopPropagation={isDownloaded ? null : triggerDownload} 
+        title={isDownloaded ? "Meditation downloaded" : "Download meditation"}
+      >
+        <i class="fas {isDownloaded ? 'fa-check-circle' : 'fa-download'}"></i>
+        {isDownloaded ? 'Downloaded' : 'Download'}
+      </span>
     </div>
   </header>
 
@@ -546,5 +614,19 @@
       max-width: 600px;
       margin: 0 auto;
     }
+  }
+
+  .download-icon {
+    cursor: pointer;
+    transition: color 0.3s ease;
+  }
+
+  .download-icon:hover {
+    color: #007AFF;
+  }
+
+  .download-status {
+    color: #4CAF50;
+    cursor: default;
   }
 </style>
