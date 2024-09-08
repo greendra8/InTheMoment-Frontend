@@ -155,6 +155,10 @@
     padding: 0;
   }
 
+  main.native-app {
+    padding-bottom: 100px;
+  }
+
   .content-container {
     max-width: 800px;
     margin: 0 auto;

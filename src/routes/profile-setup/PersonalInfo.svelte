@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
   import { profileSetupStore } from '$lib/stores/profileSetup';
 
   function updateStore(field: string, value: string) {
@@ -56,4 +56,4 @@
     outline: none;
     border-bottom-color: #4a90e2;
   }
-</style>
+</style> -->

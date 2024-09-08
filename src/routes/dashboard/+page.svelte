@@ -78,7 +78,7 @@
 <style>
   .dashboard-container {
     max-width: 800px;
-    margin: 0 auto;
+    margin: 0;
   }
 
   h1, h2, h3 {
@@ -93,7 +93,7 @@
   li {
     display: flex;
     justify-content: space-between;
-    align-items: stretch;
+    align-items: center; /* Change from stretch to center */
     margin-bottom: 1rem;
     padding: 0.5rem;
     background-color: #f9f9f9;
@@ -148,6 +148,7 @@
     font-size: 0.8rem;
     min-width: 70px;
     align-self: center;
+    white-space: nowrap; /* Ensure the button text doesn't wrap */
   }
 
   .play-button svg {
@@ -162,17 +163,17 @@
 
   @media (max-width: 600px) {
     .dashboard-container {
-      padding: 0 1rem;
+      
     }
 
     li {
-      flex-direction: column;
-      align-items: flex-start;
+      flex-direction: row; /* Ensure the flex direction remains row */
+      align-items: center; /* Ensure items are centered vertically */
     }
 
     .play-button {
-      margin-top: 0.5rem;
-      align-self: flex-start;
+      margin-top: 0; /* Remove top margin */
+      align-self: center; /* Ensure the button stays centered */
     }
   }
 </style>

@@ -9,30 +9,35 @@
 
   let isGenerating = false;
   let retryCount = 0;
+  let duration = 5;
 
   async function pollMeditationStatus(meditationId: string) {
     try {
       const result = await getMeditationStatus(meditationId);
       
-      if (result.status === 'completed') {
+      if (result.generation_status === 'completed') {
+        isGenerating = false;
         goto(`/meditation/${meditationId}`);
-      } else if (result.status === 'processing') {
+      } else if (result.generation_status === 'processing') {
         isGenerating = true;
         setTimeout(() => pollMeditationStatus(meditationId), 5000); // Poll every 5 seconds
       } else {
-        console.log('Error status:', result.status);
-        if (retryCount < 3) {
-          retryCount++;
-          setTimeout(() => pollMeditationStatus(meditationId), 5000);
-        } else {
-          isGenerating = false;
-          form = { success: false, error: 'An error occurred while generating your meditation. Please try again later.' };
-        }
+        console.log('Unexpected status:', result.generation_status);
+        handleError();
       }
     } catch (error) {
       console.error('Error polling meditation status:', error);
+      handleError();
+    }
+  }
+
+  function handleError() {
+    if (retryCount < 3) {
+      retryCount++;
+      setTimeout(() => pollMeditationStatus(meditationId), 5000);
+    } else {
       isGenerating = false;
-      form = { success: false, error: 'An error occurred while checking meditation status. Please try again later.' };
+      form = { success: false, error: 'An error occurred while generating your meditation. Please try again later.' };
     }
   }
 
@@ -40,7 +45,7 @@
 </script>
 
 <div class="meditation-container">
-  <h1>Generate New Meditation</h1>
+  <h1>New Meditation</h1>
 
   <form
     method="POST"
@@ -55,21 +60,20 @@
       };
     }}
   >
-    <div class="duration-options">
-      <button type="submit" name="duration" value="5" disabled={isGenerating}>
-        5 Minutes
-      </button>
-      <button type="submit" name="duration" value="15" disabled={isGenerating}>
-        15 Minutes
-      </button>
-      <button type="submit" name="duration" value="25" disabled={isGenerating}>
-        25 Minutes
-      </button>
+    <div class="duration-slider">
+      <label for="duration">Duration: <span id="duration-value">{duration}</span> minutes</label>
+      <input type="range" id="duration" name="duration" min="1" max="30" bind:value={duration} />
     </div>
+    <button type="submit" class="generate-btn" disabled={isGenerating}>
+      <i class="fas fa-paper-plane"></i>
+      <span>Generate Meditation</span>
+    </button>
   </form>
 
   {#if isGenerating}
-    <p class="generating-message">Generating your meditation...</p>
+    <div class="generating-message">
+      <p><i class="fas fa-spinner fa-spin"></i> &nbsp; Generating your meditation...</p>
+    </div>
   {/if}
 
   {#if form?.error}
@@ -87,33 +91,88 @@
   h1 {
     margin-bottom: 2rem;
   }
-
-  .duration-options {
-    display: flex;
-    justify-content: space-between;
+  .duration-slider {
     margin-bottom: 2rem;
+    text-align: left;
   }
 
-  button {
-    flex: 1;
-    margin: 0 0.5rem;
-    padding: 1rem;
+  .duration-slider label {
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+
+  .duration-slider input {
+    margin-top: 1rem;
+    width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 10px;
+    background: #ddd;
+    outline: none;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    border-radius: 5px;
+  }
+
+  .duration-slider input:hover {
+    opacity: 1;
+  }
+
+  .duration-slider input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #4CAF50;
+    cursor: pointer;
+    border-radius: 50%;
+  }
+
+  .duration-slider input::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: #4CAF50;
+    cursor: pointer;
+    border-radius: 50%;
+  }
+
+  .generate-btn {
+    width: 100%;
+    padding: 0.75rem 1rem;
     font-size: 1rem;
     background-color: #4CAF50;
     color: white;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
   }
 
-  button:hover {
+  .generate-btn:hover {
     background-color: #45a049;
+    transform: translateY(-1px);
   }
 
-  button:disabled {
+  .generate-btn:active {
+    transform: translateY(1px);
+  }
+
+  .generate-btn:disabled {
     background-color: #cccccc;
     cursor: not-allowed;
+    transform: none;
+  }
+
+  .generate-btn i {
+    font-size: 1.2rem;
+  }
+
+  .generate-btn span {
+    font-weight: 500;
   }
 
   .generating-message {

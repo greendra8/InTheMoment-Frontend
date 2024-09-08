@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
   import { profileSetupStore } from '$lib/stores/profileSetup';
 
   let experiences = ['beginner', 'intermediate', 'advanced'];
@@ -40,4 +40,4 @@
     color: #555;
     font-size: 0.9rem;
   }
-</style>
+</style> -->

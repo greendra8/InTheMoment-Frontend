@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
   import { profileSetupStore } from '$lib/stores/profileSetup';
   import { onMount } from 'svelte';
 
@@ -162,4 +162,4 @@
     color: #555;
     font-size: 0.9rem;
   }
-</style>
+</style> -->

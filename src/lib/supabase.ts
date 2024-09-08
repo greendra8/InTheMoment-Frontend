@@ -156,7 +156,7 @@ export async function submitUserContext(userId: string, profileData: any) {
   const { data, error } = await supabaseAdmin
     .from('profiles')
     .update({
-      full_name: profileData.name,
+      name: profileData.name,
       dob: profileData.dob,
       gender: profileData.gender,
       preferences: profileData.preferences,
