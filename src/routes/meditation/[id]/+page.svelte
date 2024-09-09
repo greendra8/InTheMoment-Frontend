@@ -7,9 +7,8 @@
   import { browser } from '$app/environment';
 
   export let data: PageData;
-  const { meditation } = data;
+  const { meditation, userId } = data;
 
-  console.log(meditation);
   const audioUrl = meditation.file_path;
 
   let audioElement: HTMLAudioElement;
@@ -275,7 +274,7 @@
     const minutesAwarded = Math.floor(duration / 60);
 
     try {
-      await completeMeditation(meditation.id, $page.data.session.user.id, minutesAwarded);
+      await completeMeditation(meditation.id, userId, minutesAwarded);
       console.log('Meditation completion request sent');
       hassentCompletionRequest = true;
     } catch (error) {
