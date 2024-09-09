@@ -119,7 +119,7 @@
   button {
     margin-top: 1rem;
     padding: 0.5rem 1rem;
-    background-color: #4CAF50;
+    background-color: #333;
     color: white;
     border: none;
     border-radius: 4px;
@@ -141,7 +141,7 @@
     align-items: center;
     justify-content: center;
     padding: 0.3rem 0.5rem;
-    background-color: #4CAF50;
+    background-color: #333;
     color: white;
     text-decoration: none;
     border-radius: 4px;
@@ -158,7 +158,7 @@
   }
 
   .play-button:hover {
-    background-color: #45a049;
+    background-color: #000;
   }
 
   @media (max-width: 600px) {

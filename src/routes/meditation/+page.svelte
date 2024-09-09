@@ -123,7 +123,7 @@
     appearance: none;
     width: 20px;
     height: 20px;
-    background: #4CAF50;
+    background: #000000;
     cursor: pointer;
     border-radius: 50%;
   }
@@ -131,7 +131,7 @@
   .duration-slider input::-moz-range-thumb {
     width: 20px;
     height: 20px;
-    background: #4CAF50;
+    background: #000000;
     cursor: pointer;
     border-radius: 50%;
   }
@@ -140,7 +140,7 @@
     width: 100%;
     padding: 0.75rem 1rem;
     font-size: 1rem;
-    background-color: #4CAF50;
+    background-color: #333;
     color: white;
     border: none;
     border-radius: 4px;
@@ -153,7 +153,7 @@
   }
 
   .generate-btn:hover {
-    background-color: #45a049;
+    background-color: #000;
     transform: translateY(-1px);
   }
 
