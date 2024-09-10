@@ -303,6 +303,7 @@
             theme: meditation.theme,
             difficulty: meditation.difficulty,
             audio_data: meditation.audio_data, // Include the audio_data here
+            created_at: meditation.created_at
           }
         }
       };
@@ -319,6 +320,11 @@
   <header>
     <h2>
       {meditation.title}
+      {#if meditation.listened}
+      <span class="listened-icon" title="You've listened to this meditation before">
+        <i class="fas fa-check-circle"></i>
+      </span>
+    {/if}
     </h2>
     <div class="meditation-info">
       <span class="info-item">
@@ -330,11 +336,6 @@
       <span class="info-item">
         <i class="far fa-clock"></i> {meditation.length} minutes
       </span>
-      {#if meditation.listened}
-      <span class="listened-icon" title="You've listened to this meditation before">
-        <i class="fas fa-check-circle"></i>
-      </span>
-    {/if}
       <span 
         id="download-button-{meditation.id}" 
         class="info-item {isDownloaded ? 'download-status' : 'download-icon'}" 
@@ -431,6 +432,9 @@
     font-size: 1rem;
     color: #4CAF50;
     vertical-align: middle;
+    padding-left: 0.5rem;
+    /* move it down a bit */
+    margin-top: 7px;
   }
 
   .meditation-info {
