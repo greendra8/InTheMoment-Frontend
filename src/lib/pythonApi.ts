@@ -1,4 +1,5 @@
-const PYTHON_SERVER_URL = 'http://localhost:8000';
+// const PYTHON_SERVER_URL = 'http://localhost:8000';
+const PYTHON_SERVER_URL = 'https://aiwellbeingfastapi.onrender.com';
 
 export async function generateMeditation(length: number, accessToken: string) {
   // Get the current local time and format it
