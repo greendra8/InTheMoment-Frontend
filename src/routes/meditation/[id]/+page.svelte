@@ -195,12 +195,12 @@
     }
   }
 
-  function startSeek(event: MouseEvent) {
+  function startSeek(event: MouseEvent | TouchEvent) {
     isSeekingProgress = true;
     seek(event);
   }
 
-  function seeking(event: MouseEvent) {
+  function seeking(event: MouseEvent | TouchEvent) {
     if (isSeekingProgress) {
       seek(event);
     }
@@ -210,10 +210,18 @@
     isSeekingProgress = false;
   }
 
-  function seek(event: MouseEvent) {
+  function seek(event: MouseEvent | TouchEvent) {
     const progressBar = event.currentTarget as HTMLDivElement;
     const rect = progressBar.getBoundingClientRect();
-    const clickPosition = (event.clientX - rect.left) / rect.width;
+    let clientX: number;
+
+    if (event instanceof MouseEvent) {
+      clientX = event.clientX;
+    } else {
+      clientX = event.touches[0].clientX;
+    }
+
+    const clickPosition = (clientX - rect.left) / rect.width;
     audioElement.currentTime = clickPosition * audioElement.duration;
     updateProgress();
   }
@@ -373,7 +381,17 @@
         on:ended={handleAudioEnded}
       ></audio>
       <div class="custom-audio-controls">
-        <div class="progress-container" on:mousedown={startSeek} on:mousemove={seeking} on:mouseup={endSeek} on:mouseleave={endSeek}>
+        <div 
+          class="progress-container" 
+          on:mousedown={startSeek} 
+          on:mousemove={seeking} 
+          on:mouseup={endSeek} 
+          on:mouseleave={endSeek}
+          on:touchstart={startSeek}
+          on:touchmove={seeking}
+          on:touchend={endSeek}
+          on:touchcancel={endSeek}
+        >
           <div class="progress-bar" style="width: {(currentTime / duration) * 100}%"></div>
           <div class="progress-knob" style="left: calc({(currentTime / duration) * 100}% - 8px)"></div>
         </div>
@@ -631,5 +649,18 @@
   .download-status {
     color: #4CAF50;
     cursor: default;
+  }
+
+  @media (max-width: 768px) {
+    
+
+    .progress-knob {
+      width: 20px;
+      height: 20px;
+    }
+
+    .progress-knob:hover {
+      transform: translateY(-50%) scale(1.1);
+    }
   }
 </style>
