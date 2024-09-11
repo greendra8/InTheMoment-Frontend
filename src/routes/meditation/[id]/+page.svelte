@@ -655,8 +655,8 @@
     
 
     .progress-knob {
-      width: 20px;
-      height: 20px;
+      width: 16px;
+      height: 16px;
     }
 
     .progress-knob:hover {

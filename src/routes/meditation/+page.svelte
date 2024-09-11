@@ -12,6 +12,14 @@
   let duration = 5;
   let generationStatus = '';
 
+  function getUserLocalTime() {
+    return new Intl.DateTimeFormat('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    }).format(new Date()).replace(/\s/g, '');
+  }
+
   async function pollMeditationStatus(meditationId: string) {
     try {
       const result = await getMeditationStatus(meditationId);
@@ -102,6 +110,7 @@
       <label for="duration">Duration: <span id="duration-value">{duration}</span> minutes</label>
       <input type="range" id="duration" name="duration" min="1" max="30" bind:value={duration} />
     </div>
+    <input type="hidden" name="userLocalTime" value={getUserLocalTime()} />
     <button type="submit" class="generate-btn" disabled={isGenerating}>
       <i class="fas fa-paper-plane"></i>
       <span>Generate Meditation</span>
