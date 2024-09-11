@@ -48,7 +48,7 @@ export async function getUserMeditations(userId: string, page: number = 1, limit
     .from('mindfulness_meditations')
     .select('*')
     .eq('user_id', userId)
-    .neq('generation_status', 'failed')
+    .neq('generation_status', 'Failed')
     .range(start, end)
     .order('created_at', { ascending: false })
   
@@ -70,6 +70,7 @@ export async function getMeditation(meditationId: string) {
 
 // Helper function to check meditation status
 export async function getMeditationStatus(meditationId: string) {
+  console.log('Checking meditation status for:', meditationId);
   const { data, error } = await supabaseAdmin
     .from('mindfulness_meditations')
     .select('generation_status')

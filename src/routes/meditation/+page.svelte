@@ -10,29 +10,45 @@
   let isGenerating = false;
   let retryCount = 0;
   let duration = 5;
+  let generationStatus = '';
 
   async function pollMeditationStatus(meditationId: string) {
     try {
       const result = await getMeditationStatus(meditationId);
       
-      if (result.generation_status === 'completed') {
-        isGenerating = false;
-        goto(`/meditation/${meditationId}`);
-      } else if (result.generation_status === 'processing') {
-        isGenerating = true;
-        setTimeout(() => pollMeditationStatus(meditationId), 5000); // Poll every 5 seconds
-      } else {
-        console.log('Unexpected status:', result.generation_status);
-        handleError();
+      generationStatus = result.generation_status;
+      
+      switch (result.generation_status) {
+        case 'Queued':
+        case 'Fetching':
+        case 'Scripting':
+        case 'Generating':
+        case 'Processing':
+        case 'Uploading':
+        case 'Saving':
+          isGenerating = true;
+          setTimeout(() => pollMeditationStatus(meditationId), 1000); // Poll every 5 seconds
+          break;
+        case 'Completed':
+          isGenerating = false;
+          goto(`/meditation/${meditationId}`);
+          break;
+        case 'Failed':
+          isGenerating = false;
+          form = { success: false, error: 'Meditation generation failed. Please try again.' };
+          break;
+        default:
+          console.log('Unexpected status:', result.generation_status);
+          handleError(meditationId);
       }
     } catch (error) {
       console.error('Error polling meditation status:', error);
-      handleError();
+      handleError(meditationId);
     }
   }
 
-  function handleError() {
-    if (retryCount < 3) {
+  function handleError(meditationId: string) {
+    if (retryCount < 5) {
       retryCount++;
       setTimeout(() => pollMeditationStatus(meditationId), 5000);
     } else {
@@ -41,7 +57,27 @@
     }
   }
 
-  // ... rest of the component code
+  function getStatusMessage(status: string): string {
+    switch (status) {
+      case 'Queued':
+        return 'Your meditation is in the queue...';
+      case 'Fetching':
+        return 'Fetching meditation details...';
+      case 'Scripting':
+        return 'Crafting your personalized meditation script...';
+      case 'Generating':
+        return 'Generating your meditation audio...';
+      case 'Processing':
+        return 'Processing your meditation...';
+      case 'Uploading':
+        return 'Uploading your meditation...';
+      case 'Saving':
+        return 'Saving your meditation...';
+      default:
+        return 'Generating your meditation...';
+    }
+  }
+
 </script>
 
 <div class="meditation-container">
@@ -53,9 +89,11 @@
     use:enhance={() => {
       return async ({ result }) => {
         isGenerating = false;
-        if (result.type === 'success' && result.data.success) {
+        if (result.type === 'success' && result.data?.success) {
           const meditationId = result.data.meditation_id;
-          pollMeditationStatus(meditationId);
+          if (typeof meditationId === 'string') {
+            pollMeditationStatus(meditationId);
+          }
         }
       };
     }}
@@ -72,7 +110,7 @@
 
   {#if isGenerating}
     <div class="generating-message">
-      <p><i class="fas fa-spinner fa-spin"></i> &nbsp; Generating your meditation...</p>
+      <p><i class="fas fa-spinner fa-spin"></i> &nbsp; {getStatusMessage(generationStatus)}</p>
     </div>
   {/if}
 
