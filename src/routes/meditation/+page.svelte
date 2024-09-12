@@ -12,6 +12,9 @@
   let duration = 5;
   let generationStatus = '';
 
+  // Add this line
+  let buttonDisabled = false;
+
   function getUserLocalTime() {
     return new Intl.DateTimeFormat('en-US', {
       hour: 'numeric',
@@ -55,12 +58,23 @@
     }
   }
 
+  function handleFormSubmit() {
+    buttonDisabled = true;
+    isGenerating = true;
+    setTimeout(() => {
+      if (!isGenerating) {
+        buttonDisabled = false;
+      }
+    }, 5000);
+  }
+
   function handleError(meditationId: string) {
     if (retryCount < 5) {
       retryCount++;
       setTimeout(() => pollMeditationStatus(meditationId), 5000);
     } else {
       isGenerating = false;
+      buttonDisabled = false;
       form = { success: false, error: 'An error occurred while generating your meditation. Please try again later.' };
     }
   }
@@ -95,23 +109,37 @@
     method="POST"
     action="?/generateMeditation"
     use:enhance={() => {
+      handleFormSubmit();
       return async ({ result }) => {
-        isGenerating = false;
         if (result.type === 'success' && result.data?.success) {
           const meditationId = result.data.meditation_id;
           if (typeof meditationId === 'string') {
             pollMeditationStatus(meditationId);
           }
+        } else {
+          isGenerating = false;
+          buttonDisabled = false;
         }
       };
     }}
   >
     <div class="duration-slider">
       <label for="duration">Duration: <span id="duration-value">{duration}</span> minutes</label>
-      <input type="range" id="duration" name="duration" min="1" max="30" bind:value={duration} />
+      <div class="slider-container">
+        <input 
+          type="range" 
+          id="duration" 
+          name="duration" 
+          min="1" 
+          max="30" 
+          bind:value={duration} 
+        />
+        <div class="slider-progress" style="width: {(duration - 1) / 29 * 100}%"></div>
+        <div class="slider-thumb" style="left: calc({(duration - 1) / 29 * 100}% - 10px)"></div>
+      </div>
     </div>
     <input type="hidden" name="userLocalTime" value={getUserLocalTime()} />
-    <button type="submit" class="generate-btn" disabled={isGenerating}>
+    <button type="submit" class="generate-btn" disabled={buttonDisabled}>
       <i class="fas fa-paper-plane"></i>
       <span>Generate Meditation</span>
     </button>
@@ -148,39 +176,66 @@
     margin-bottom: 0.5rem;
   }
 
-  .duration-slider input {
-    margin-top: 1rem;
+  .slider-container {
+    position: relative;
     width: 100%;
-    -webkit-appearance: none;
-    appearance: none;
-    height: 10px;
+    height: 20px;
     background: #ddd;
-    outline: none;
-    opacity: 0.7;
-    transition: opacity 0.2s;
     border-radius: 5px;
   }
 
-  .duration-slider input:hover {
-    opacity: 1;
+  .slider-progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: #000000;
+    border-radius: 5px;
+    pointer-events: none;
+  }
+
+  .slider-thumb {
+    position: absolute;
+    top: 50%;
+    width: 25px;
+    height: 25px;
+    background: #ffffff;
+    border: 2px solid #000000;
+    border-radius: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .duration-slider input {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 20px;
+    background: transparent;
+    outline: none;
+    margin: 0;
+    padding: 0;
+    cursor: pointer;
+    position: relative;
+    z-index: 1;
   }
 
   .duration-slider input::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 20px;
-    height: 20px;
-    background: #000000;
+    width: 25px;
+    height: 25px;
+    background: transparent;
     cursor: pointer;
-    border-radius: 50%;
   }
 
   .duration-slider input::-moz-range-thumb {
-    width: 20px;
-    height: 20px;
-    background: #000000;
+    width: 25px;
+    height: 25px;
+    background: transparent;
     cursor: pointer;
-    border-radius: 50%;
+    border: none;
   }
 
   .generate-btn {
