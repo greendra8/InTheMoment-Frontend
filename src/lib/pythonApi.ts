@@ -1,13 +1,7 @@
 // const PYTHON_SERVER_URL = 'http://localhost:8000';
 const PYTHON_SERVER_URL = 'https://aiwellbeingfastapi.onrender.com';
 
-export async function generateMeditation(length: number, accessToken: string) {
-  // Get the current local time and format it
-  const formattedTime = new Intl.DateTimeFormat('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true
-  }).format(new Date()).replace(/\s/g, ''); // Remove space between time and AM/PM
+export async function generateMeditation(length: number, accessToken: string, userLocalTime: string) {
 
   const response = await fetch(`${PYTHON_SERVER_URL}/generate_meditation`, {
     method: 'POST',
@@ -17,7 +11,7 @@ export async function generateMeditation(length: number, accessToken: string) {
     },
     body: JSON.stringify({ 
       length,
-      userLocalTime: formattedTime 
+      userLocalTime
     }),
   });
 
