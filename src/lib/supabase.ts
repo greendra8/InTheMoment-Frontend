@@ -48,7 +48,7 @@ export async function getUserMeditations(userId: string, page: number = 1, limit
     .from('mindfulness_meditations')
     .select('*')
     .eq('user_id', userId)
-    .neq('generation_status', 'Failed')
+    .eq('generation_status', 'Completed')
     .range(start, end)
     .order('created_at', { ascending: false })
   
