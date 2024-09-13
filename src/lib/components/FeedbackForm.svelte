@@ -47,20 +47,28 @@
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    border-radius: 8px;
-    width: 100%; /* Ensure the form takes full width of its container */
-    box-sizing: border-box; /* Include padding in the width calculation */
+    width: 100%;
+    box-sizing: border-box;
   }
 
   textarea {
     width: 100%;
-    padding: 0.5rem;
-    border: 1px solid #ccc;
+    padding: 0.75rem;
+    border: 1px solid #e0e0e0;
     border-radius: 4px;
     resize: vertical;
     background-color: #ffffff;
     color: #333;
-    box-sizing: border-box; /* Include padding and border in the width calculation */
+    box-sizing: border-box;
+    font-size: 1rem;
+    line-height: 1.5;
+    transition: border-color 0.3s ease;
+    min-height: 100px;
+  }
+
+  textarea:focus {
+    outline: none;
+    border-color: #9e9e9e;
   }
 
   .button-container {
@@ -69,17 +77,19 @@
   }
 
   button {
-    padding: 0.5rem 1rem;
-    background-color: #333;
-    color: white;
+    padding: 0.75rem 1.5rem;
+    background-color: #f0f0f0;
+    color: #333;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.3s ease, opacity 0.3s ease;
+    font-size: 1rem;
+    font-weight: 500;
   }
 
   button:hover:not(:disabled) {
-    background-color: #555;
+    background-color: #e0e0e0;
   }
 
   button:disabled {

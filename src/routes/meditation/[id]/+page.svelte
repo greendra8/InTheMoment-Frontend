@@ -739,9 +739,10 @@
 
   .feedback-section {
     margin-top: 2rem;
-    padding: 1rem;
-    background-color: rgb(232, 232, 232);
-    border-radius: 20px;
+    padding: 1.5rem;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     width: 100%;
     box-sizing: border-box;
   }
@@ -749,23 +750,26 @@
   .feedback-section h3 {
     margin-bottom: 1rem;
     color: #333;
+    font-size: 1.2rem;
+    font-weight: 500;
   }
 
   .show-feedback-button,
   .hide-feedback-button {
     margin-top: 1rem;
     padding: 0.5rem 1rem;
-    background-color: #333;
-    color: white;
+    background-color: #f0f0f0;
+    color: #333;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    font-size: 0.9rem;
   }
 
   .show-feedback-button:hover,
   .hide-feedback-button:hover {
-    background-color: #555;
+    background-color: #e0e0e0;
   }
 
   .show-feedback-button {
@@ -783,15 +787,17 @@
 
   .feedback-confirmation {
     margin-top: 1rem;
-    padding: 0.5rem 1rem;
+    padding: 0.75rem 1rem;
     border-radius: 4px;
-    background-color: #4CAF50;
-    color: white;
+    background-color: #e8f5e9;
+    color: #2e7d32;
     text-align: center;
     transition: opacity 0.3s ease;
+    font-size: 0.9rem;
   }
 
   .feedback-confirmation.error {
-    background-color: #f44336;
+    background-color: #ffebee;
+    color: #c62828;
   }
 </style>
