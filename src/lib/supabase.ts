@@ -174,3 +174,79 @@ export async function submitUserContext(userId: string, profileData: any) {
 
   return data
 }
+
+// Add these new functions to the existing file
+
+export async function getFeedback(sessionId: string, profileId: string) {
+  console.log(`Getting feedback for sessionId: ${sessionId}, profileId: ${profileId}`);
+  const { data, error } = await supabaseAdmin
+    .from('audio_feedback')
+    .select('feedback')
+    .eq('session_id', sessionId)
+    .eq('profile_id', profileId)
+    .maybeSingle(); // Use maybeSingle() instead of single()
+
+  if (error && error.code !== 'PGRST116') {
+    console.error('Error fetching feedback:', error);
+    throw error;
+  }
+  console.log('Fetched feedback:', data);
+  return data?.feedback || null;
+}
+
+export async function submitFeedback(sessionId: string, profileId: string, feedback: string) {
+  console.log(`Submitting feedback for sessionId: ${sessionId}, profileId: ${profileId}`);
+  console.log('Feedback content:', feedback);
+  
+  try {
+    // First, check if a record already exists
+    const { data: existingFeedback, error: checkError } = await supabaseAdmin
+      .from('audio_feedback')
+      .select('*')
+      .eq('session_id', sessionId)
+      .eq('profile_id', profileId)
+      .single();
+
+    if (checkError && checkError.code !== 'PGRST116') {
+      console.error('Error checking existing feedback:', checkError);
+      throw checkError;
+    }
+
+    let result;
+    if (existingFeedback) {
+      // Update existing feedback
+      const { data, error } = await supabaseAdmin
+        .from('audio_feedback')
+        .update({ 
+          feedback: { text: feedback },
+          modified_at: new Date().toISOString()
+        })
+        .eq('session_id', sessionId)
+        .eq('profile_id', profileId)
+        .select();
+
+      if (error) throw error;
+      result = data;
+    } else {
+      // Insert new feedback
+      const { data, error } = await supabaseAdmin
+        .from('audio_feedback')
+        .insert({ 
+          session_id: sessionId, 
+          profile_id: profileId, 
+          feedback: { text: feedback },
+          modified_at: new Date().toISOString()
+        })
+        .select();
+
+      if (error) throw error;
+      result = data;
+    }
+
+    console.log('Submitted feedback:', result);
+    return result[0];
+  } catch (err) {
+    console.error('Caught error in submitFeedback:', err);
+    throw err;
+  }
+}

@@ -1,13 +1,14 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import { page } from '$app/stores';
-  import { completeMeditation } from '$lib/supabase';
+  import { completeMeditation, submitFeedback } from '$lib/supabase';
   import { setupAudioVisualizer } from '$lib/audioVisualizer';
   import type { PageData } from './$types';
   import { browser } from '$app/environment';
+  import FeedbackForm from '$lib/components/FeedbackForm.svelte';
 
   export let data: PageData;
-  const { meditation, userId } = data;
+  const { meditation, userId, feedback } = data;
 
   const audioUrl = meditation.file_path;
 
@@ -35,6 +36,36 @@
 
   let isDownloaded = false;
 
+  let showFeedbackForm = meditation.listened || !!feedback;
+  let isFeedbackVisible = !feedback; // Initialize to true if no feedback exists
+
+  let isFeedbackFocused = false;
+
+  let feedbackConfirmation = '';
+  let showFeedbackConfirmation = false;
+
+  async function handleFeedbackSubmit(event: CustomEvent) {
+    const { sessionId, profileId, feedback } = event.detail;
+    console.log('Handling feedback submission:', { sessionId, profileId, feedback });
+    try {
+      const result = await submitFeedback(sessionId, profileId, feedback);
+      console.log('Feedback submitted successfully:', result);
+      feedbackConfirmation = 'Feedback submitted successfully!';
+      showFeedbackConfirmation = true;
+      setTimeout(() => {
+        showFeedbackConfirmation = false;
+      }, 3000); // Hide the confirmation after 3 seconds
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
+      feedbackConfirmation = 'Error submitting feedback. Please try again.';
+      showFeedbackConfirmation = true;
+      setTimeout(() => {
+        showFeedbackConfirmation = false;
+      }, 3000); // Hide the error message after 3 seconds
+    }
+  }
+
   function updateDownloadUI(meditationId: string, downloadStatus: boolean) {
     if (meditationId === meditation.id) {
       isDownloaded = downloadStatus;
@@ -61,6 +92,8 @@
   }
 
   function handleKeydown(event: KeyboardEvent) {
+    if (isFeedbackFocused) return; // Exit early if the feedback form is focused
+
     if (event.key === 'ArrowLeft') {
       audioElement.currentTime = Math.max(audioElement.currentTime - 10, 0);
       updateProgress();
@@ -77,6 +110,14 @@
     } else if (event.key === 'ArrowDown') {
       adjustVolume(-0.1);
     }
+  }
+
+  function handleFeedbackFocus() {
+    isFeedbackFocused = true;
+  }
+
+  function handleFeedbackBlur() {
+    isFeedbackFocused = false;
   }
 
   function updatePlayingState() {
@@ -322,6 +363,10 @@
       // You might want to show a toast or some other notification to the user here
     }
   }
+
+  function toggleFeedbackVisibility() {
+    isFeedbackVisible = !isFeedbackVisible;
+  }
 </script>
 
 <div class="meditation-container" on:click={resumeAudioContext}>
@@ -422,6 +467,34 @@
     </div>
   {:else}
     <p class="no-audio">Audio not available for this meditation. (Audio URL: {audioUrl})</p>
+  {/if}
+
+  {#if showFeedbackForm}
+    {#if isFeedbackVisible}
+      <div class="feedback-section">
+        <h3>Your Feedback</h3>
+        <FeedbackForm 
+          sessionId={meditation.id}
+          profileId={userId}
+          existingFeedback={feedback?.text}
+          on:submit={handleFeedbackSubmit}
+          on:focus={handleFeedbackFocus}
+          on:blur={handleFeedbackBlur}
+        />
+        {#if showFeedbackConfirmation}
+          <div class="feedback-confirmation" class:error={feedbackConfirmation.includes('Error')}>
+            {feedbackConfirmation}
+          </div>
+        {/if}
+        {#if feedback}
+          <button class="hide-feedback-button" on:click={toggleFeedbackVisibility}>Hide Feedback</button>
+        {/if}
+      </div>
+    {:else}
+      <button class="show-feedback-button" on:click={toggleFeedbackVisibility}>
+        View/Edit Feedback
+      </button>
+    {/if}
   {/if}
 </div>
 
@@ -662,5 +735,63 @@
     .progress-knob:hover {
       transform: translateY(-50%) scale(1.1);
     }
+  }
+
+  .feedback-section {
+    margin-top: 2rem;
+    padding: 1rem;
+    background-color: rgb(232, 232, 232);
+    border-radius: 20px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .feedback-section h3 {
+    margin-bottom: 1rem;
+    color: #333;
+  }
+
+  .show-feedback-button,
+  .hide-feedback-button {
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    background-color: #333;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  .show-feedback-button:hover,
+  .hide-feedback-button:hover {
+    background-color: #555;
+  }
+
+  .show-feedback-button {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .hide-feedback-button {
+    display: block;
+    margin-top: 1rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .feedback-confirmation {
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    background-color: #4CAF50;
+    color: white;
+    text-align: center;
+    transition: opacity 0.3s ease;
+  }
+
+  .feedback-confirmation.error {
+    background-color: #f44336;
   }
 </style>
