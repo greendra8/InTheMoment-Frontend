@@ -45,7 +45,7 @@ export async function getUserMeditations(userId: string, page: number = 1, limit
   const end = start + limit - 1
 
   const { data, error } = await supabaseAdmin
-    .from('mindfulness_meditations')
+    .from('audio_sessions')
     .select('*')
     .eq('user_id', userId)
     .eq('generation_status', 'Completed')
@@ -59,7 +59,7 @@ export async function getUserMeditations(userId: string, page: number = 1, limit
 // Helper function to get a single meditation
 export async function getMeditation(meditationId: string) {
   const { data, error } = await supabaseAdmin
-    .from('mindfulness_meditations')
+    .from('audio_sessions')
     .select('*')
     .eq('id', meditationId)
     .single()
@@ -72,7 +72,7 @@ export async function getMeditation(meditationId: string) {
 export async function getMeditationStatus(meditationId: string) {
   console.log('Checking meditation status for:', meditationId);
   const { data, error } = await supabaseAdmin
-    .from('mindfulness_meditations')
+    .from('audio_sessions')
     .select('generation_status')
     .eq('id', meditationId)
     .single();
@@ -89,7 +89,7 @@ export async function getMeditationStatus(meditationId: string) {
 export async function completeMeditation(meditationId: string, userId: string, minutesCompleted: number) {
   // Check if the meditation was last listened to within the last 12 hours
   const { data: meditationData, error: meditationError } = await supabaseAdmin
-    .from('mindfulness_meditations')
+    .from('audio_sessions')
     .select('last_listened')
     .eq('id', meditationId)
     .single()
@@ -125,7 +125,7 @@ export async function completeMeditation(meditationId: string, userId: string, m
 
   // Update last_listened timestamp and listened status for the meditation
   const { error: updateMeditationError } = await supabaseAdmin
-    .from('mindfulness_meditations')
+    .from('audio_sessions')
     .update({ 
       last_listened: new Date().toISOString(),
       listened: true
