@@ -5,6 +5,7 @@
   import type { ActionData, PageData } from './$types';
   import { onDestroy } from 'svelte';
   import { spring } from 'svelte/motion';
+  import { fade } from 'svelte/transition';
 
   export let form: ActionData;
   export let data: PageData;
@@ -14,7 +15,7 @@
   let generationStatus = '';
   let buttonDisabled = false;
   let unsubscribe: (() => void) | null = null;
-  let currentMeditationId: string | null = null;  // New variable to store the current meditation ID
+  let currentMeditationId: string | null = null;
 
   let stanceOptions = [
     { value: 'The user is sitting down during this session', display: 'Sitting', icon: 'fa-chair' },
@@ -31,8 +32,19 @@
   let stanceSpring = spring(0);
   let eyesSpring = spring(0);
 
-  $: stanceSpring.set(stanceOptions.findIndex(option => option.value === selectedStance));
-  $: eyesSpring.set(eyesOptions.findIndex(option => option.value === selectedEyes));
+  let selectedStanceIndex = 0;
+  let selectedEyesIndex = 1;
+
+  $: {
+    selectedStanceIndex = stanceOptions.findIndex(option => option.value === selectedStance);
+  }
+
+  $: {
+    selectedEyesIndex = eyesOptions.findIndex(option => option.value === selectedEyes);
+  }
+
+  $: stanceSpring.set(selectedStanceIndex);
+  $: eyesSpring.set(selectedEyesIndex);
 
   function getUserLocalTime() {
     return new Intl.DateTimeFormat('en-US', {
@@ -59,7 +71,7 @@
         isGenerating = false;
         buttonDisabled = false;
         if (unsubscribe) unsubscribe();
-        if (currentMeditationId) {  // Use the stored meditation ID
+        if (currentMeditationId) {
           goto(`/meditation/${currentMeditationId}`);
         } else {
           console.error('No meditation ID available for navigation');
@@ -73,15 +85,15 @@
         break;
       default:
         console.log('Unexpected status:', status);
-        isGenerating = false;  // Add this line to handle unexpected statuses
-        buttonDisabled = false;  // Add this line to re-enable the button
+        isGenerating = false;
+        buttonDisabled = false;
     }
   }
 
   function createParametersJSON() {
     return {
-      stance: [selectedStance],
-      eyes: [selectedEyes]
+      stance: selectedStance,
+      eyes: selectedEyes
     };
   }
 
@@ -125,7 +137,7 @@
     <div class="option-group">
       <h3>Stance</h3>
       <div class="sliding-checkbox" style="--option-count: {stanceOptions.length};">
-        <div class="slider-background" style="transform: translateX({100 * $stanceSpring}%)"></div>
+        <div class="slider-background" style="transform: translateX({100 * selectedStanceIndex}%)"></div>
         {#each stanceOptions as stance, i}
           <label class="option">
             <input
@@ -135,8 +147,10 @@
               bind:group={selectedStance}
               hidden
             >
-            <i class="fas {stance.icon}"></i>
-            <span>{stance.display}</span>
+            <div class="option-content" class:selected={i === selectedStanceIndex}>
+              <i class="fas {stance.icon}"></i>
+              <span>{stance.display}</span>
+            </div>
           </label>
         {/each}
       </div>
@@ -144,7 +158,7 @@
     <div class="option-group">
       <h3>Eyes</h3>
       <div class="sliding-checkbox" style="--option-count: {eyesOptions.length};">
-        <div class="slider-background" style="transform: translateX({100 * $eyesSpring}%)"></div>
+        <div class="slider-background" style="transform: translateX({100 * selectedEyesIndex}%)"></div>
         {#each eyesOptions as eye, i}
           <label class="option">
             <input
@@ -154,8 +168,10 @@
               bind:group={selectedEyes}
               hidden
             >
-            <i class="fas {eye.icon}"></i>
-            <span>{eye.display}</span>
+            <div class="option-content" class:selected={i === selectedEyesIndex}>
+              <i class="fas {eye.icon}"></i>
+              <span>{eye.display}</span>
+            </div>
           </label>
         {/each}
       </div>
@@ -187,17 +203,21 @@
         if (result.type === 'success' && result.data?.success) {
           const meditationId = result.data.meditation_id;
           if (typeof meditationId === 'string') {
-            currentMeditationId = meditationId;  // Store the meditation ID
+            currentMeditationId = meditationId;
             unsubscribe = subscribeMeditationStatus(meditationId, handleMeditationStatus);
           }
         } else {
           isGenerating = false;
           buttonDisabled = false;
+          if (result.type === 'error') {
+            form = { success: false, error: result.error?.message || 'An error occurred' };
+          }
         }
       };
     }}
   >
     <input type="hidden" name="userLocalTime" value={getUserLocalTime()} />
+    <input type="hidden" name="length" value={duration} />
     <input type="hidden" name="parameters" value={JSON.stringify(createParametersJSON())} />
     <button type="submit" class="generate-btn" disabled={buttonDisabled}>
       <i class="fas fa-paper-plane"></i>
@@ -385,10 +405,20 @@
     padding: 0.5rem;
     text-align: center;
     cursor: pointer;
-    transition: color 0.3s ease;
     position: relative;
     z-index: 1;
+  }
+
+  .option-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: color 1s ease;
     color: #333;
+  }
+
+  .option-content.selected {
+    color: white;
   }
 
   .option i {
@@ -399,10 +429,5 @@
 
   .option span {
     font-size: 0.8rem;
-  }
-
-  input[type="radio"]:checked + i,
-  input[type="radio"]:checked + i + span {
-    color: white;
   }
 </style>
