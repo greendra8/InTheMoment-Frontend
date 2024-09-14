@@ -29,20 +29,18 @@
   let totalPlayTime = 0;
   let lastUpdateTime = 0;
 
-  let visualizer: { startCelebration: () => void } | null = null;
+  let visualizer: ReturnType<typeof setupAudioVisualizer> | null = null;
 
   let canvasOpacity = 0;
   let canvasBlur = 3; // Initial blur amount in pixels
 
   let isDownloaded = false;
 
-  let showFeedbackForm = meditation.listened || !!feedback;
+  let isCompletedThisSession = false;
+  let showFeedbackForm = meditation.listened || !!feedback || isCompletedThisSession;
   let isFeedbackVisible = !feedback; // Initialize to true if no feedback exists
 
   let isFeedbackFocused = false;
-
-  let feedbackConfirmation = '';
-  let showFeedbackConfirmation = false;
 
   async function handleFeedbackSubmit(event: CustomEvent) {
     const { sessionId, profileId, feedback } = event.detail;
@@ -50,19 +48,11 @@
     try {
       const result = await submitFeedback(sessionId, profileId, feedback);
       console.log('Feedback submitted successfully:', result);
-      feedbackConfirmation = 'Feedback submitted successfully!';
-      showFeedbackConfirmation = true;
-      setTimeout(() => {
-        showFeedbackConfirmation = false;
-      }, 3000); // Hide the confirmation after 3 seconds
+      // Optionally, you can update the local state or show a success message
     } catch (error) {
       console.error('Error submitting feedback:', error);
       console.error('Error details:', JSON.stringify(error, null, 2));
-      feedbackConfirmation = 'Error submitting feedback. Please try again.';
-      showFeedbackConfirmation = true;
-      setTimeout(() => {
-        showFeedbackConfirmation = false;
-      }, 3000); // Hide the error message after 3 seconds
+      // Handle error (e.g., show error message to user)
     }
   }
 
@@ -326,6 +316,9 @@
       await completeMeditation(meditation.id, userId, minutesAwarded);
       console.log('Meditation completion request sent');
       hassentCompletionRequest = true;
+      isCompletedThisSession = true;
+      showFeedbackForm = true;
+      isFeedbackVisible = true;
     } catch (error) {
       lockSend = false;
       console.error('Error recording meditation completion:', error);
@@ -367,6 +360,8 @@
   function toggleFeedbackVisibility() {
     isFeedbackVisible = !isFeedbackVisible;
   }
+
+  $: showFeedbackForm = meditation.listened || !!feedback || isCompletedThisSession;
 </script>
 
 <div class="meditation-container" on:click={resumeAudioContext}>
@@ -481,18 +476,13 @@
           on:focus={handleFeedbackFocus}
           on:blur={handleFeedbackBlur}
         />
-        {#if showFeedbackConfirmation}
-          <div class="feedback-confirmation" class:error={feedbackConfirmation.includes('Error')}>
-            {feedbackConfirmation}
-          </div>
-        {/if}
-        {#if feedback}
+        {#if feedback || isCompletedThisSession}
           <button class="hide-feedback-button" on:click={toggleFeedbackVisibility}>Hide Feedback</button>
         {/if}
       </div>
     {:else}
       <button class="show-feedback-button" on:click={toggleFeedbackVisibility}>
-        View/Edit Feedback
+        {feedback ? 'View/Edit Feedback' : 'Provide Feedback'}
       </button>
     {/if}
   {/if}
@@ -739,10 +729,9 @@
 
   .feedback-section {
     margin-top: 2rem;
-    padding: 1.5rem;
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+    background-color: rgb(232, 232, 232);
+    border-radius: 20px;
     width: 100%;
     box-sizing: border-box;
   }
@@ -750,26 +739,23 @@
   .feedback-section h3 {
     margin-bottom: 1rem;
     color: #333;
-    font-size: 1.2rem;
-    font-weight: 500;
   }
 
   .show-feedback-button,
   .hide-feedback-button {
     margin-top: 1rem;
     padding: 0.5rem 1rem;
-    background-color: #f0f0f0;
-    color: #333;
+    background-color: #333;
+    color: white;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.3s ease;
-    font-size: 0.9rem;
   }
 
   .show-feedback-button:hover,
   .hide-feedback-button:hover {
-    background-color: #e0e0e0;
+    background-color: #555;
   }
 
   .show-feedback-button {
@@ -783,21 +769,5 @@
     margin-top: 1rem;
     margin-left: auto;
     margin-right: auto;
-  }
-
-  .feedback-confirmation {
-    margin-top: 1rem;
-    padding: 0.75rem 1rem;
-    border-radius: 4px;
-    background-color: #e8f5e9;
-    color: #2e7d32;
-    text-align: center;
-    transition: opacity 0.3s ease;
-    font-size: 0.9rem;
-  }
-
-  .feedback-confirmation.error {
-    background-color: #ffebee;
-    color: #c62828;
   }
 </style>
