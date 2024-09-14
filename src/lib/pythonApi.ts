@@ -1,7 +1,7 @@
-// const PYTHON_SERVER_URL = 'http://localhost:8000';
-const PYTHON_SERVER_URL = 'https://aiwellbeingfastapi.onrender.com';
+const PYTHON_SERVER_URL = 'http://localhost:8000';
+//const PYTHON_SERVER_URL = 'https://aiwellbeingfastapi.onrender.com';
 
-export async function generateMeditation(length: number, accessToken: string, userLocalTime: string) {
+export async function generateMeditation(length: number, accessToken: string, userLocalTime: string, parameters: any) {
 
   const response = await fetch(`${PYTHON_SERVER_URL}/generate_meditation`, {
     method: 'POST',
@@ -11,7 +11,8 @@ export async function generateMeditation(length: number, accessToken: string, us
     },
     body: JSON.stringify({ 
       length,
-      userLocalTime
+      userLocalTime,
+      parameters
     }),
   });
 

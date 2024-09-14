@@ -15,6 +15,18 @@
   let unsubscribe: (() => void) | null = null;
   let currentMeditationId: string | null = null;  // New variable to store the current meditation ID
 
+  let stanceOptions = [
+    { value: 'The user is sitting down during this session', display: 'Sitting' },
+    { value: 'The user is lyign down during this session', display: 'Lying Down' },
+    { value: 'The user is on a walk during this session', display: 'Walking' }
+  ];
+  let eyesOptions = [
+    { value: 'The user wants to keep their eyes open during this session', display: 'Open' },
+    { value: 'The user wants to have their eyes closed during this session', display: 'Closed' }
+  ];
+  let selectedStance: string[] = ['sitting'];
+  let selectedEyes: string[] = ['closed'];
+
   function getUserLocalTime() {
     return new Intl.DateTimeFormat('en-US', {
       hour: 'numeric',
@@ -57,6 +69,13 @@
         isGenerating = false;  // Add this line to handle unexpected statuses
         buttonDisabled = false;  // Add this line to re-enable the button
     }
+  }
+
+  function createParametersJSON() {
+    return {
+      stance: selectedStance,
+      eyes: selectedEyes
+    };
   }
 
   function handleFormSubmit() {
@@ -129,7 +148,28 @@
         <div class="slider-thumb" style="left: calc({(duration - 1) / 29 * 100}% - 10px)"></div>
       </div>
     </div>
+    <div class="options-container">
+      <div class="option-group">
+        <h3>Stance</h3>
+        {#each stanceOptions as stance}
+          <label>
+            <input type="checkbox" bind:group={selectedStance} value={stance.value}>
+            {stance.display}
+          </label>
+        {/each}
+      </div>
+      <div class="option-group">
+        <h3>Eyes</h3>
+        {#each eyesOptions as eye}
+          <label>
+            <input type="checkbox" bind:group={selectedEyes} value={eye.value}>
+            {eye.display}
+          </label>
+        {/each}
+      </div>
+    </div>
     <input type="hidden" name="userLocalTime" value={getUserLocalTime()} />
+    <input type="hidden" name="parameters" value={JSON.stringify(createParametersJSON())} />
     <button type="submit" class="generate-btn" disabled={buttonDisabled}>
       <i class="fas fa-paper-plane"></i>
       <span>Generate Meditation</span>
@@ -276,5 +316,24 @@
   .error {
     color: red;
     margin-top: 1rem;
+  }
+
+  .options-container {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+
+  .option-group {
+    text-align: left;
+  }
+
+  .option-group h3 {
+    margin-bottom: 0.5rem;
+  }
+
+  .option-group label {
+    display: block;
+    margin-bottom: 0.25rem;
   }
 </style>
