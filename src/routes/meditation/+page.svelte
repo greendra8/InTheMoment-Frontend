@@ -1,19 +1,19 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
   import { goto } from '$app/navigation';
-  import { getMeditationStatus } from '$lib/supabase';
+  import { subscribeMeditationStatus } from '$lib/supabase';
   import type { ActionData, PageData } from './$types';
+  import { onDestroy } from 'svelte';
 
   export let form: ActionData;
   export let data: PageData;
 
   let isGenerating = false;
-  let retryCount = 0;
   let duration = 5;
   let generationStatus = '';
-
-  // Add this line
   let buttonDisabled = false;
+  let unsubscribe: (() => void) | null = null;
+  let currentMeditationId: string | null = null;  // New variable to store the current meditation ID
 
   function getUserLocalTime() {
     return new Intl.DateTimeFormat('en-US', {
@@ -23,50 +23,48 @@
     }).format(new Date()).replace(/\s/g, '');
   }
 
-  async function pollMeditationStatus(meditationId: string) {
-    try {
-      const result = await getMeditationStatus(meditationId);
-      
-      generationStatus = result.generation_status;
-      
-      switch (result.generation_status) {
-        case 'Queued':
-        case 'Fetching':
-        case 'Scripting':
-        case 'Generating':
-        case 'Processing':
-        case 'Uploading':
-        case 'Saving':
-          isGenerating = true;
-          setTimeout(() => pollMeditationStatus(meditationId), 1000); // Poll every 5 seconds
-          break;
-        case 'Completed':
-          isGenerating = false;
-          goto(`/meditation/${meditationId}`);
-          break;
-        case 'Failed':
-          isGenerating = false;
-          form = { success: false, error: 'Meditation generation failed. Please try again.' };
-          break;
-        default:
-          console.log('Unexpected status:', result.generation_status);
-          handleError(meditationId);
-      }
-    } catch (error) {
-      console.error('Error polling meditation status:', error);
-      handleError(meditationId);
+  function handleMeditationStatus(status: string) {
+    generationStatus = status;
+    
+    switch (status) {
+      case 'Queued':
+      case 'Fetching':
+      case 'Scripting':
+      case 'Generating':
+      case 'Processing':
+      case 'Uploading':
+      case 'Saving':
+        isGenerating = true;
+        break;
+      case 'Completed':
+        isGenerating = false;
+        buttonDisabled = false;
+        if (unsubscribe) unsubscribe();
+        if (currentMeditationId) {  // Use the stored meditation ID
+          goto(`/meditation/${currentMeditationId}`);
+        } else {
+          console.error('No meditation ID available for navigation');
+        }
+        break;
+      case 'Failed':
+        isGenerating = false;
+        buttonDisabled = false;
+        if (unsubscribe) unsubscribe();
+        form = { success: false, error: 'Meditation generation failed. Please try again.' };
+        break;
+      default:
+        console.log('Unexpected status:', status);
     }
   }
 
   function handleFormSubmit() {
     buttonDisabled = true;
     isGenerating = true;
-    setTimeout(() => {
-      if (!isGenerating) {
-        buttonDisabled = false;
-      }
-    }, 5000);
   }
+
+  onDestroy(() => {
+    if (unsubscribe) unsubscribe();
+  });
 
   function handleError(meditationId: string) {
     if (retryCount < 5) {
@@ -94,6 +92,7 @@
       case 'Uploading':
         return 'Uploading your meditation...';
       case 'Saving':
+      case 'Completed':
         return 'Saving your meditation...';
       default:
         return 'Generating your meditation...';
@@ -114,7 +113,8 @@
         if (result.type === 'success' && result.data?.success) {
           const meditationId = result.data.meditation_id;
           if (typeof meditationId === 'string') {
-            pollMeditationStatus(meditationId);
+            currentMeditationId = meditationId;  // Store the meditation ID
+            unsubscribe = subscribeMeditationStatus(meditationId, handleMeditationStatus);
           }
         } else {
           isGenerating = false;

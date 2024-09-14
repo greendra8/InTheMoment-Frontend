@@ -250,3 +250,27 @@ export async function submitFeedback(sessionId: string, profileId: string, feedb
     throw err;
   }
 }
+
+export function subscribeMeditationStatus(meditationId: string, callback: (status: string) => void) {
+  const channel = supabase
+    .channel(`meditation-${meditationId}`)
+    .on(
+      'postgres_changes',
+      {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'audio_sessions',
+        filter: `id=eq.${meditationId}`
+      },
+      (payload) => {
+        if (payload.new && payload.new.generation_status) {
+          callback(payload.new.generation_status);
+        }
+      }
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}
