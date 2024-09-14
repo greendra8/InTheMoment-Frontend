@@ -54,6 +54,8 @@
         break;
       default:
         console.log('Unexpected status:', status);
+        isGenerating = false;  // Add this line to handle unexpected statuses
+        buttonDisabled = false;  // Add this line to re-enable the button
     }
   }
 
@@ -65,17 +67,6 @@
   onDestroy(() => {
     if (unsubscribe) unsubscribe();
   });
-
-  function handleError(meditationId: string) {
-    if (retryCount < 5) {
-      retryCount++;
-      setTimeout(() => pollMeditationStatus(meditationId), 5000);
-    } else {
-      isGenerating = false;
-      buttonDisabled = false;
-      form = { success: false, error: 'An error occurred while generating your meditation. Please try again later.' };
-    }
-  }
 
   function getStatusMessage(status: string): string {
     switch (status) {
