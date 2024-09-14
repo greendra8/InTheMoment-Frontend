@@ -4,6 +4,7 @@
   import { subscribeMeditationStatus } from '$lib/supabase';
   import type { ActionData, PageData } from './$types';
   import { onDestroy } from 'svelte';
+  import { spring } from 'svelte/motion';
 
   export let form: ActionData;
   export let data: PageData;
@@ -16,16 +17,22 @@
   let currentMeditationId: string | null = null;  // New variable to store the current meditation ID
 
   let stanceOptions = [
-    { value: 'The user is sitting down during this session', display: 'Sitting' },
-    { value: 'The user is lyign down during this session', display: 'Lying Down' },
-    { value: 'The user is on a walk during this session', display: 'Walking' }
+    { value: 'The user is sitting down during this session', display: 'Sitting', icon: 'fa-chair' },
+    { value: 'The user is lying down during this session', display: 'Lying Down', icon: 'fa-bed' },
+    { value: 'The user is on a walk during this session', display: 'Walking', icon: 'fa-walking' }
   ];
   let eyesOptions = [
-    { value: 'The user wants to keep their eyes open during this session', display: 'Open' },
-    { value: 'The user wants to have their eyes closed during this session', display: 'Closed' }
+    { value: 'The user wants to keep their eyes open during this session', display: 'Open', icon: 'fa-eye' },
+    { value: 'The user wants to have their eyes closed during this session', display: 'Closed', icon: 'fa-eye-slash' }
   ];
-  let selectedStance: string[] = ['sitting'];
-  let selectedEyes: string[] = ['closed'];
+  let selectedStance = stanceOptions[0].value;
+  let selectedEyes = eyesOptions[1].value;
+
+  let stanceSpring = spring(0);
+  let eyesSpring = spring(0);
+
+  $: stanceSpring.set(stanceOptions.findIndex(option => option.value === selectedStance));
+  $: eyesSpring.set(eyesOptions.findIndex(option => option.value === selectedEyes));
 
   function getUserLocalTime() {
     return new Intl.DateTimeFormat('en-US', {
@@ -73,8 +80,8 @@
 
   function createParametersJSON() {
     return {
-      stance: selectedStance,
-      eyes: selectedEyes
+      stance: [selectedStance],
+      eyes: [selectedEyes]
     };
   }
 
@@ -114,6 +121,63 @@
 <div class="meditation-container">
   <h1>New Meditation</h1>
 
+  <div class="options-container">
+    <div class="option-group">
+      <h3>Stance</h3>
+      <div class="sliding-checkbox" style="--option-count: {stanceOptions.length};">
+        <div class="slider-background" style="transform: translateX({100 * $stanceSpring}%)"></div>
+        {#each stanceOptions as stance, i}
+          <label class="option">
+            <input
+              type="radio"
+              name="stance"
+              value={stance.value}
+              bind:group={selectedStance}
+              hidden
+            >
+            <i class="fas {stance.icon}"></i>
+            <span>{stance.display}</span>
+          </label>
+        {/each}
+      </div>
+    </div>
+    <div class="option-group">
+      <h3>Eyes</h3>
+      <div class="sliding-checkbox" style="--option-count: {eyesOptions.length};">
+        <div class="slider-background" style="transform: translateX({100 * $eyesSpring}%)"></div>
+        {#each eyesOptions as eye, i}
+          <label class="option">
+            <input
+              type="radio"
+              name="eyes"
+              value={eye.value}
+              bind:group={selectedEyes}
+              hidden
+            >
+            <i class="fas {eye.icon}"></i>
+            <span>{eye.display}</span>
+          </label>
+        {/each}
+      </div>
+    </div>
+  </div>
+
+  <div class="duration-slider">
+    <label for="duration">Duration: <span id="duration-value">{duration}</span> minutes</label>
+    <div class="slider-container">
+      <input 
+        type="range" 
+        id="duration" 
+        name="duration" 
+        min="1" 
+        max="30" 
+        bind:value={duration} 
+      />
+      <div class="slider-progress" style="width: {(duration - 1) / 29 * 100}%"></div>
+      <div class="slider-thumb" style="left: calc({(duration - 1) / 29 * 100}% - 10px)"></div>
+    </div>
+  </div>
+
   <form
     method="POST"
     action="?/generateMeditation"
@@ -133,41 +197,6 @@
       };
     }}
   >
-    <div class="duration-slider">
-      <label for="duration">Duration: <span id="duration-value">{duration}</span> minutes</label>
-      <div class="slider-container">
-        <input 
-          type="range" 
-          id="duration" 
-          name="duration" 
-          min="1" 
-          max="30" 
-          bind:value={duration} 
-        />
-        <div class="slider-progress" style="width: {(duration - 1) / 29 * 100}%"></div>
-        <div class="slider-thumb" style="left: calc({(duration - 1) / 29 * 100}% - 10px)"></div>
-      </div>
-    </div>
-    <div class="options-container">
-      <div class="option-group">
-        <h3>Stance</h3>
-        {#each stanceOptions as stance}
-          <label>
-            <input type="checkbox" bind:group={selectedStance} value={stance.value}>
-            {stance.display}
-          </label>
-        {/each}
-      </div>
-      <div class="option-group">
-        <h3>Eyes</h3>
-        {#each eyesOptions as eye}
-          <label>
-            <input type="checkbox" bind:group={selectedEyes} value={eye.value}>
-            {eye.display}
-          </label>
-        {/each}
-      </div>
-    </div>
     <input type="hidden" name="userLocalTime" value={getUserLocalTime()} />
     <input type="hidden" name="parameters" value={JSON.stringify(createParametersJSON())} />
     <button type="submit" class="generate-btn" disabled={buttonDisabled}>
@@ -320,8 +349,9 @@
 
   .options-container {
     display: flex;
-    justify-content: space-between;
-    margin-bottom: 1rem;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2rem;
   }
 
   .option-group {
@@ -332,8 +362,47 @@
     margin-bottom: 0.5rem;
   }
 
-  .option-group label {
+  .sliding-checkbox {
+    display: flex;
+    background-color: #f0f0f0;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .slider-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: calc(100% / var(--option-count));
+    height: 100%;
+    background-color: #333;
+    transition: transform 0.3s ease;
+  }
+
+  .option {
+    flex: 1;
+    padding: 0.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    position: relative;
+    z-index: 1;
+    color: #333;
+  }
+
+  .option i {
     display: block;
+    font-size: 1.5rem;
     margin-bottom: 0.25rem;
+  }
+
+  .option span {
+    font-size: 0.8rem;
+  }
+
+  input[type="radio"]:checked + i,
+  input[type="radio"]:checked + i + span {
+    color: white;
   }
 </style>
