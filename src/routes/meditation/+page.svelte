@@ -49,15 +49,20 @@
     eyesSpring.set(selectedEyesIndex);
   }
 
+  console.log('Component initialized');
+
   function getUserLocalTime() {
-    return new Intl.DateTimeFormat('en-US', {
+    const time = new Intl.DateTimeFormat('en-US', {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true
     }).format(new Date()).replace(/\s/g, '');
+    console.log('getUserLocalTime called, returning:', time);
+    return time;
   }
 
   function handleMeditationStatus(status: string) {
+    console.log('handleMeditationStatus called with status:', status);
     generationStatus = status;
     
     switch (status) {
@@ -93,15 +98,18 @@
   }
 
   function createParametersJSON() {
-    return {
+    const params = {
       stance: selectedStance,
       eyes: selectedEyes
     };
+    console.log('createParametersJSON called, returning:', params);
+    return params;
   }
 
   let formElement: HTMLFormElement;
 
   async function handleFormSubmit(event: Event) {
+    console.log('handleFormSubmit called');
     event.preventDefault();
     buttonDisabled = true;
     isGenerating = true;
@@ -111,28 +119,46 @@
     formData.set('length', duration.toString());
     formData.set('parameters', JSON.stringify(createParametersJSON()));
 
-    const response = await fetch(formElement.action, {
-      method: 'POST',
-      body: formData
-    });
+    console.log('Form data prepared:', Object.fromEntries(formData));
 
-    const result = await response.json();
+    try {
+      const response = await fetch(formElement.action, {
+        method: 'POST',
+        body: formData
+      });
 
-    if (result.success) {
-      const meditationId = result.meditation_id;
-      if (typeof meditationId === 'string') {
-        currentMeditationId = meditationId;
-        unsubscribe = subscribeMeditationStatus(meditationId, handleMeditationStatus);
+      console.log('Fetch response received:', response);
+
+      const result = await response.json();
+      console.log('Parsed result:', result);
+
+      if (result.type === 'success' && result.data) {
+        const parsedData = JSON.parse(result.data);
+        console.log('Parsed data:', parsedData);
+        const meditationId = parsedData[2]; // Extracting the meditation ID from the third element
+        if (typeof meditationId === 'string') {
+          currentMeditationId = meditationId;
+          console.log('Subscribing to meditation status updates for ID:', meditationId);
+          unsubscribe = subscribeMeditationStatus(meditationId, handleMeditationStatus);
+        } else {
+          console.error('Invalid meditation ID:', meditationId);
+        }
+      } else {
+        console.error('Unsuccessful result:', result);
+        isGenerating = false;
+        buttonDisabled = false;
+        form = { success: false, error: result.error || 'An error occurred' };
       }
-    } else {
+    } catch (error) {
+      console.error('Error in handleFormSubmit:', error);
       isGenerating = false;
       buttonDisabled = false;
-      form = { success: false, error: result.error || 'An error occurred' };
-      console.error('Meditation generation error:', result || 'An error occurred');
+      form = { success: false, error: 'An unexpected error occurred' };
     }
   }
 
   onDestroy(() => {
+    console.log('Component being destroyed');
     if (unsubscribe) unsubscribe();
   });
 
