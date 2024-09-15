@@ -1,11 +1,9 @@
 <script lang="ts">
-  import { enhance } from '$app/forms';
   import { goto } from '$app/navigation';
   import { subscribeMeditationStatus } from '$lib/supabase';
   import type { ActionData, PageData } from './$types';
   import { onDestroy } from 'svelte';
   import { spring } from 'svelte/motion';
-  import { fade } from 'svelte/transition';
 
   export let form: ActionData;
   export let data: PageData;
@@ -43,8 +41,13 @@
     selectedEyesIndex = eyesOptions.findIndex(option => option.value === selectedEyes);
   }
 
-  $: stanceSpring.set(selectedStanceIndex);
-  $: eyesSpring.set(selectedEyesIndex);
+  $: {
+    stanceSpring.set(selectedStanceIndex);
+  }
+
+  $: {
+    eyesSpring.set(selectedEyesIndex);
+  }
 
   function getUserLocalTime() {
     return new Intl.DateTimeFormat('en-US', {
@@ -84,7 +87,6 @@
         form = { success: false, error: 'Meditation generation failed. Please try again.' };
         break;
       default:
-        console.log('Unexpected status:', status);
         isGenerating = false;
         buttonDisabled = false;
     }
@@ -97,9 +99,37 @@
     };
   }
 
-  function handleFormSubmit() {
+  let formElement: HTMLFormElement;
+
+  async function handleFormSubmit(event: Event) {
+    event.preventDefault();
     buttonDisabled = true;
     isGenerating = true;
+
+    const formData = new FormData(formElement);
+    formData.set('userLocalTime', getUserLocalTime());
+    formData.set('length', duration.toString());
+    formData.set('parameters', JSON.stringify(createParametersJSON()));
+
+    const response = await fetch(formElement.action, {
+      method: 'POST',
+      body: formData
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      const meditationId = result.meditation_id;
+      if (typeof meditationId === 'string') {
+        currentMeditationId = meditationId;
+        unsubscribe = subscribeMeditationStatus(meditationId, handleMeditationStatus);
+      }
+    } else {
+      isGenerating = false;
+      buttonDisabled = false;
+      form = { success: false, error: result.error || 'An error occurred' };
+      console.error('Meditation generation error:', result || 'An error occurred');
+    }
   }
 
   onDestroy(() => {
@@ -194,28 +224,7 @@
     </div>
   </div>
 
-  <form
-    method="POST"
-    action="?/generateMeditation"
-    use:enhance={() => {
-      handleFormSubmit();
-      return async ({ result }) => {
-        if (result.type === 'success' && result.data?.success) {
-          const meditationId = result.data.meditation_id;
-          if (typeof meditationId === 'string') {
-            currentMeditationId = meditationId;
-            unsubscribe = subscribeMeditationStatus(meditationId, handleMeditationStatus);
-          }
-        } else {
-          isGenerating = false;
-          buttonDisabled = false;
-          if (result.type === 'error') {
-            form = { success: false, error: result.error?.message || 'An error occurred' };
-          }
-        }
-      };
-    }}
-  >
+  <form bind:this={formElement} method="POST" action="?/generateMeditation" on:submit={handleFormSubmit}>
     <input type="hidden" name="userLocalTime" value={getUserLocalTime()} />
     <input type="hidden" name="length" value={duration} />
     <input type="hidden" name="parameters" value={JSON.stringify(createParametersJSON())} />
