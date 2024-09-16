@@ -93,7 +93,26 @@
 
   onMount(() => {
     resetProfileSetupStore();
+    
+    // Push initial state
+    history.pushState({ question: currentQuestion }, '');
+
+    // Listen for popstate events
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      // Clean up the event listener when the component is destroyed
+      window.removeEventListener('popstate', handlePopState);
+    };
   });
+
+  function handlePopState(event: PopStateEvent) {
+    if (event.state && typeof event.state.question === 'number') {
+      currentQuestion = event.state.question;
+      transition.setVisible(true);
+      transition.fadeIn();
+    }
+  }
 
   function updateStore(key: keyof ProfileSetup, value: string) {
     updateProfileSetupStore(key, value);
@@ -102,13 +121,11 @@
   function nextQuestion() {
     if (currentQuestion < questions.length - 1) {
       setTimeout(() => {
-        transition.fadeOut();
-        setTimeout(() => {
-          currentQuestion++;
-          transition.setVisible(true);
-          transition.fadeIn();
-        }, 150);
-      }, 300);
+        currentQuestion++;
+        history.pushState({ question: currentQuestion }, '');
+        transition.setVisible(true);
+        transition.fadeIn();
+      }, 700); // 500ms pause before fade-in starts
     } else {
       submitForm();
     }
@@ -116,14 +133,7 @@
 
   function prevQuestion() {
     if (currentQuestion > 0) {
-      setTimeout(() => {
-        transition.fadeOut();
-        setTimeout(() => {
-          currentQuestion--;
-          transition.setVisible(true);
-          transition.fadeIn();
-        }, 200);
-      }, 300);
+      history.back();
     }
   }
 
@@ -145,10 +155,24 @@
     }
   }
 
-  function handleOptionChange(key: keyof ProfileSetup, value: string) {
-    if ($profileSetupStore[key] !== value) {
-      updateStore(key, value);
+  function handleOptionClick(key: keyof ProfileSetup, value: string) {
+    if ($profileSetupStore[key] === value) {
+      // Important: This handles the case where a user selects the same option again
+      // It allows progression to the next question even if the value hasn't changed
+      if (!questions[currentQuestion].multiple) {
+        if (currentQuestion === questions.length - 1) {
+          setTimeout(() => submitForm(), 600);
+        } else {
+          nextQuestion();
+        }
+      }
     }
+  }
+
+  function handleOptionChange(key: keyof ProfileSetup, value: string) {
+    updateStore(key, value);
+    // Important: This progresses to the next question automatically
+    // when a new option is selected for non-multiple choice questions
     if (!questions[currentQuestion].multiple) {
       if (currentQuestion === questions.length - 1) {
         setTimeout(() => submitForm(), 600);
@@ -162,6 +186,8 @@
 <div class="profile-setup">
   <form method="POST" use:enhance>
     {#each questions as q}
+      <!-- Important: These hidden inputs ensure all question responses are submitted,
+           even if the user navigates back and forth between questions -->
       <input type="hidden" name={q.key} value={$profileSetupStore[q.key] || ''}>
     {/each}
     <div class="form-content">
@@ -174,10 +200,11 @@
                 <label class="option-label">
                   <input
                     type={questions[currentQuestion].multiple ? "checkbox" : "radio"}
-                    name={`question_${currentQuestion}`}
+                    name={questions[currentQuestion].key}
                     value={option.value}
                     checked={$profileSetupStore[questions[currentQuestion].key] === option.value}
-                    on:click={() => handleOptionChange(questions[currentQuestion].key, option.value)}
+                    on:click={() => handleOptionClick(questions[currentQuestion].key, option.value)}
+                    on:change={() => handleOptionChange(questions[currentQuestion].key, option.value)}
                   >
                   <span class="option-text">{option.display}</span>
                 </label>
@@ -289,8 +316,11 @@
     border-radius: 8px;
   }
 
-  .option-text:hover {
-    background-color: rgba(0, 0, 0, 0.05);
+  /* Hover effect only for non-touch devices */
+  @media (hover: hover) {
+    .option-text:hover {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
   }
 
   .option-label input:checked + .option-text {
