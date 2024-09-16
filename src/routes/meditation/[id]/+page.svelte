@@ -586,7 +586,7 @@
   .progress-container {
     width: 100%;
     height: 6px;
-    background-color: #e0e0e0;
+    background-color: #d0d0d0;
     border-radius: 3px;
     cursor: pointer;
     position: relative;
@@ -662,7 +662,7 @@
   .volume-slider::-webkit-slider-runnable-track {
     width: 100%;
     height: 4px;
-    background: linear-gradient(to right, #007AFF var(--volume-percentage), #e0e0e0 var(--volume-percentage));
+    background: linear-gradient(to right, #007AFF var(--volume-percentage), #d0d0d0 var(--volume-percentage));
     border-radius: 2px;
   }
 
