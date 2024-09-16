@@ -97,7 +97,7 @@
     align-items: center; /* Change from stretch to center */
     margin-bottom: 1rem;
     padding: 0.5rem;
-    border-radius: 4px;
+    border-radius: 10px;
     background-color: #e8e8e8;
   }
 
