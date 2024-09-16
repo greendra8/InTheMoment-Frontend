@@ -1,6 +1,6 @@
 import { writable } from 'svelte/store';
 
-type ProfileSetup = {
+export type ProfileSetup = {
   meditationGoal: string;
   stressLevel: string;
   sleepPattern: string;
@@ -9,15 +9,21 @@ type ProfileSetup = {
   techUsage: string;
 };
 
-export const profileSetupStore = writable<ProfileSetup>({
+const initialState: ProfileSetup = {
   meditationGoal: '',
   stressLevel: '',
   sleepPattern: '',
   focusDuration: '',
   mentalState: '',
   techUsage: ''
-});
+};
 
-export function updateProfileSetupStore(key: keyof ProfileSetup, value: string) {
+export const profileSetupStore = writable<ProfileSetup>(initialState);
+
+export function updateProfileSetupStore(key: string, value: string) {
   profileSetupStore.update(store => ({ ...store, [key]: value }));
+}
+
+export function resetProfileSetupStore() {
+  profileSetupStore.set(initialState);
 }

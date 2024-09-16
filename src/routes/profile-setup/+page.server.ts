@@ -3,7 +3,7 @@ import type { Actions } from './$types';
 import { updateUserProfile } from '$lib/supabase';
 
 export const actions: Actions = {
-	default: async ({ request, locals }) => {
+	submit: async ({ request, locals }) => {
 		const { session } = await locals.safeGetSession();
 
 		if (!session) {
@@ -20,11 +20,14 @@ export const actions: Actions = {
 			}
 		}
 
+		console.log('Collected preferences:', preferences);
+
 		try {
 			const updatedProfile = await updateUserProfile(session.user.id, { 
 				preferences,
-				complete: true // Set complete to true
+				complete: true
 			});
+			console.log('Profile updated successfully:', updatedProfile);
 			return { success: true, profile: updatedProfile };
 		} catch (err) {
 			console.error('Error updating user profile:', err);

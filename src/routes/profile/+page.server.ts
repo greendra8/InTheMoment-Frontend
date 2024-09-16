@@ -1,6 +1,6 @@
-import { error, fail } from '@sveltejs/kit';
-import type { PageServerLoad, Actions } from './$types';
-import { getUserProfile, updateUserProfile } from '$lib/supabase';
+import { error } from '@sveltejs/kit';
+import type { PageServerLoad } from './$types';
+import { getUserProfile } from '$lib/supabase';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const { session } = await locals.safeGetSession();
@@ -11,7 +11,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 	try {
 		const profile = await getUserProfile(session.user.id);
-		return { profile };
+		return { profile, session };
 	} catch (err) {
 		throw error(500, 'Failed to load user profile');
 	}

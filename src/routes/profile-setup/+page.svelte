@@ -1,16 +1,21 @@
 <script lang="ts">
-  import { enhance } from '$app/forms';
-  import { profileSetupStore, updateProfileSetupStore } from '$lib/stores/profileSetup';
-  import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
-  import { browser } from '$app/environment';
-
-  export let data;
+  import { enhance } from '$app/forms';
+  import { profileSetupStore, updateProfileSetupStore, resetProfileSetupStore } from '$lib/stores/profileSetup';
+  import { goto } from '$app/navigation';
+  import type { ProfileSetup } from '$lib/stores/profileSetup';
 
   let currentQuestion = 0;
   let errorMessage = '';
 
-  const questions = [
+  type Question = {
+    question: string;
+    options: Array<{ display: string; value: string }>;
+    key: keyof ProfileSetup;
+    multiple: boolean;
+  };
+
+  const questions: Question[] = [
     {
       question: "What's your main goal for meditating?",
       options: [
@@ -85,7 +90,9 @@
     }
   ];
 
-  $: progress = ((currentQuestion + 1) / questions.length) * 100;
+  onMount(() => {
+    resetProfileSetupStore();
+  });
 
   function updateStore(key: keyof ProfileSetup, value: string) {
     updateProfileSetupStore(key, value);
@@ -94,6 +101,8 @@
   function nextQuestion() {
     if (currentQuestion < questions.length - 1) {
       currentQuestion++;
+    } else {
+      submitForm();
     }
   }
 
@@ -103,54 +112,85 @@
     }
   }
 
-  function handleSubmit(event: Event) {
-    return async ({ result }) => {
-      if (result.type === 'success') {
-        goto('/dashboard');
+  async function submitForm() {
+    const formElement = document.querySelector('form');
+    if (!formElement) {
+      errorMessage = 'Form not found';
+      return;
+    }
+    const response = await fetch('?/submit', {
+      method: 'POST',
+      body: new FormData(formElement as HTMLFormElement),
+    });
+    const result = await response.json();
+    if (result.type === 'success') {
+      goto('/dashboard');
+    } else {
+      errorMessage = 'An error occurred while saving your profile. Please try again.';
+    }
+  }
+
+  function handleOptionChange(key: keyof ProfileSetup, value: string) {
+    if ($profileSetupStore[key] !== value) {
+      updateStore(key, value);
+    }
+    if (!questions[currentQuestion].multiple) {
+      if (currentQuestion === questions.length - 1) {
+        submitForm();
       } else {
-        errorMessage = 'An error occurred while saving your profile. Please try again.';
+        setTimeout(() => nextQuestion(), 0);
       }
-    };
+    }
   }
 </script>
 
-<form method="POST" use:enhance={handleSubmit}>
-  {#each questions as q}
-    <input type="hidden" name={q.key} value={$profileSetupStore[q.key]}>
-  {/each}
-  <div class="form-container">
-    {#if currentQuestion < questions.length}
-      {@const q = questions[currentQuestion]}
-      <div class="question">
-        <h3>{q.question}</h3>
-        {#each q.options as option}
-          <label class="option-label">
-            <input
-              type={q.multiple ? "checkbox" : "radio"}
-              name={q.key}
-              value={option.value}
-              checked={$profileSetupStore[q.key] === option.value}
-              on:change={() => updateStore(q.key, option.value)}
-            >
-            <span class="option-text">{option.display}</span>
-          </label>
-        {/each}
+<div class="profile-setup">
+  <form method="POST" use:enhance>
+    {#each questions as q}
+      <input type="hidden" name={q.key} value={$profileSetupStore[q.key] || ''}>
+    {/each}
+    <div class="form-content">
+      <div class="form-container">
+        {#if currentQuestion < questions.length}
+          {@const q = questions[currentQuestion]}
+          <div class="question">
+            <h3>{q.question}</h3>
+            <div class="options-grid">
+              {#each q.options as option}
+                <label class="option-label">
+                  <input
+                    type={q.multiple ? "checkbox" : "radio"}
+                    name={q.key}
+                    value={option.value}
+                    checked={$profileSetupStore[q.key] === option.value}
+                    on:click={() => handleOptionChange(q.key, option.value)}
+                  >
+                  <span class="option-text">{option.display}</span>
+                </label>
+              {/each}
+            </div>
+          </div>
+        {/if}
       </div>
-    {/if}
-  </div>
+    </div>
 
-  <div class="navigation">
-    {#if currentQuestion > 0}
-      <button type="button" class="btn secondary" on:click={prevQuestion}>Previous</button>
-    {/if}
-    
-    {#if currentQuestion < questions.length - 1}
-      <button type="button" class="btn primary" on:click={nextQuestion}>Next</button>
-    {:else}
-      <button type="submit" class="btn primary">Submit</button>
-    {/if}
-  </div>
-</form>
+    <div class="navigation">
+      <div class="nav-left">
+        {#if currentQuestion > 0}
+          <button type="button" class="back-link" on:click={prevQuestion}>Back</button>
+        {/if}
+      </div>
+      <div class="nav-right">
+        <div class="question-counter">{currentQuestion + 1}/{questions.length}</div>
+        {#if questions[currentQuestion].multiple}
+          <button type="button" class="btn primary" on:click={nextQuestion}>
+            {currentQuestion === questions.length - 1 ? 'Submit' : 'Next'}
+          </button>
+        {/if}
+      </div>
+    </div>
+  </form>
+</div>
 
 {#if errorMessage}
   <div class="error-message">
@@ -160,92 +200,59 @@
 
 <style>
   .profile-setup {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 2rem 0;
-  }
-
-  h1 {
-    text-align: center;
-    color: #333;
-    margin-bottom: 2rem;
-    font-size: 2.5rem;
-    font-weight: 300;
-  }
-
-  h2 {
-    color: #444;
-    margin-bottom: 1.5rem;
-    font-size: 1.8rem;
-    font-weight: 300;
-  }
-
-  .progress-bar {
-    width: 100%;
-    height: 4px;
-    background-color: #e0e0e0;
-    margin-bottom: 1.5rem;
-  }
-
-  .progress {
-    height: 100%;
-    background-color: #4a90e2;
-    transition: width 0.3s ease;
-  }
-
-  .step-text {
-    text-align: center;
-    color: #666;
-    margin-bottom: 2rem;
-    font-size: 1rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-
-  .form-group {
-    margin-bottom: 2rem;
-  }
-
-  label {
-    display: block;
-    margin-bottom: 0.5rem;
-    color: #555;
-    font-size: 1rem;
-  }
-
-  input[type="text"],
-  input[type="date"] {
-    width: 100%;
-    padding: 0.75rem 0;
-    border: none;
-    border-bottom: 2px solid #ddd;
-    font-size: 1rem;
-    background-color: transparent;
-    transition: border-color 0.3s ease;
-  }
-
-  input[type="text"]:focus,
-  input[type="date"]:focus {
-    outline: none;
-    border-bottom-color: #4a90e2;
-  }
-
-  .radio-label,
-  .option-label {
     display: flex;
-    align-items: center;
-    margin-bottom: 1rem;
-    cursor: pointer;
-    padding: 0.75rem;
-    border: 2px solid #ddd;
-    border-radius: 8px;
-    transition: all 0.3s ease;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 2rem;
+    box-sizing: border-box;
     position: relative;
   }
 
-  .radio-label:hover,
+  .form-content {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .form-container {
+    width: 100%;
+  }
+
+  .question {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  h3 {
+    font-weight: 400;
+    color: #333;
+    margin-bottom: 2rem;
+    font-size: 1.5rem;
+  }
+
+  .options-grid {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  }
+
+  .option-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    border: 2px solid black;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    position: relative;
+    text-align: center;
+  }
+
   .option-label:hover {
-    border-color: #4a90e2;
+    background-color: rgba(0, 0, 0, 0.05);
   }
 
   input[type="radio"],
@@ -257,26 +264,8 @@
     width: 0;
   }
 
-  input[type="radio"]:checked + .option-text,
-  input[type="checkbox"]:checked + .option-text {
-    color: #4a90e2;
-  }
-
-  input[type="radio"]:checked + .option-text::after,
-  input[type="checkbox"]:checked + .option-text::after {
-    content: '✓';
-    position: absolute;
-    right: 0.75rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #4a90e2;
-    font-size: 1.2rem;
-  }
-
-  input[type="radio"]:checked ~ .option-label,
-  input[type="checkbox"]:checked ~ .option-label {
-    background-color: #e6f3ff;
-    border-color: #4a90e2;
+  .option-label input:checked {
+    background-color: black;
   }
 
   .option-text {
@@ -284,30 +273,61 @@
     font-size: 1rem;
     display: flex;
     align-items: center;
+    justify-content: center;
     width: 100%;
+    text-align: center;
+    transition: color 0.3s ease;
+    position: relative;
+    z-index: 1;
+    padding: 0.75rem;
+    border-radius: 8px;
   }
 
-  .question {
-    margin-bottom: 2.5rem;
-  }
-
-  h3 {
-    font-weight: 400;
-    color: #333;
-    margin-bottom: 1rem;
-    font-size: 1.2rem;
+  .option-label input:checked + .option-text {
+    color: white;
+    background-color: black;
   }
 
   .navigation {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     margin-top: 2rem;
+    width: 100%;
+  }
+
+  .nav-left, .nav-right {
+    display: flex;
+    align-items: center;
+  }
+
+  .nav-right {
+    justify-content: flex-end;
+  }
+
+  .question-counter {
+    font-size: 1rem;
+    color: #666;
+  }
+
+  .back-link {
+    background: none;
+    border: none;
+    color: #4a90e2;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0;
+    text-decoration: underline;
+  }
+
+  .back-link:hover {
+    color: #3a7bc8;
   }
 
   .btn {
     padding: 0.75rem 1.5rem;
     border: none;
-    border-radius: 2px;
+    border-radius: 4px;
     cursor: pointer;
     font-size: 1rem;
     transition: background-color 0.3s ease, transform 0.1s ease;
@@ -327,6 +347,7 @@
   .btn.secondary {
     background-color: transparent;
     color: #4a90e2;
+    border: 1px solid #4a90e2;
   }
 
   .btn:hover {
@@ -345,13 +366,39 @@
       padding: 1rem;
     }
 
-    h1 {
-      font-size: 2rem;
+    h3 {
+      font-size: 1.2rem;
     }
 
-    .form-group input,
-    .form-group select {
+    .options-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .navigation {
+      flex-direction: row;
+      align-items: center;
+    }
+
+    .nav-left, .nav-right {
+      flex: 0 0 auto;
+    }
+
+    .question-counter {
+      margin-right: 0.5rem;
+    }
+
+    .btn {
       width: 100%;
+      max-width: 200px;
+      margin: 0.5rem 0;
+    }
+
+    .options-grid {
+      gap: 0.5rem;
+    }
+
+    .option-label {
+      margin-bottom: 0.25rem;
     }
   }
 </style>

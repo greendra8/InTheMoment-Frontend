@@ -28,15 +28,27 @@ export async function getUserProfile(userId: string) {
 }
 
 // Helper function to update user profile
-export async function updateUserProfile(userId: string, updates: any) {
-  const { data, error } = await supabaseAdmin
-    .from('profiles')
-    .update(updates)
-    .eq('id', userId)
-    .select()
+export async function updateUserProfile(userId: string, data: { preferences: Record<string, string>, complete: boolean }) {
+  console.log('Updating user profile for userId:', userId);
+  console.log('Data to update:', data);
 
-  if (error) throw error
-  return data[0]
+  const { data: updatedProfile, error } = await supabaseAdmin
+    .from('profiles')
+    .upsert({ 
+      id: userId,
+      ...data,
+      updated_at: new Date().toISOString()
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating profile:', error);
+    throw error;
+  }
+
+  console.log('Profile updated successfully:', updatedProfile);
+  return updatedProfile;
 }
 
 // Helper function to get user's meditations
