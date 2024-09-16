@@ -1,31 +1,23 @@
 import { writable } from 'svelte/store';
 
-export const profileSetupStore = writable({
-  name: '',
-  dob: '',
-  gender: '',
-  experience: '',
-  preferences: {
-    primaryGoal: '',
-    challenges: [],
-    bestTime: '',
-    audioPreference: '',
-    selfImprovementGoals: []
-  }
+type ProfileSetup = {
+  meditationGoal: string;
+  stressLevel: string;
+  sleepPattern: string;
+  focusDuration: string;
+  mentalState: string;
+  techUsage: string;
+};
+
+export const profileSetupStore = writable<ProfileSetup>({
+  meditationGoal: '',
+  stressLevel: '',
+  sleepPattern: '',
+  focusDuration: '',
+  mentalState: '',
+  techUsage: ''
 });
 
-export function updateProfileSetupStore(field: string, value: any) {
-  profileSetupStore.update(store => {
-    if (field.startsWith('preferences.')) {
-      const preferenceField = field.split('.')[1];
-      return {
-        ...store,
-        preferences: {
-          ...store.preferences,
-          [preferenceField]: value
-        }
-      };
-    }
-    return { ...store, [field]: value };
-  });
+export function updateProfileSetupStore(key: keyof ProfileSetup, value: string) {
+  profileSetupStore.update(store => ({ ...store, [key]: value }));
 }

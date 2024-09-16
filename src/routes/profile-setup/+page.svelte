@@ -7,114 +7,103 @@
 
   export let data;
 
-  let currentStep = 0;
-  let steps = ['Personal Information', 'Experience', 'Questionnaire'];
   let currentQuestion = 0;
-
-  let formElement: HTMLFormElement;
   let errorMessage = '';
 
-  let experiences = ['beginner', 'intermediate', 'advanced'];
-
-  let questions = [
+  const questions = [
     {
-      question: "What is your primary goal for using this app?",
-      options: ["Reduce stress and anxiety", "Improve sleep quality", "Enhance focus and concentration", "Boost overall mood and emotional well-being", "Other"],
-      field: "primaryGoal"
+      question: "What's your main goal for meditating?",
+      options: [
+        { display: "Reduce stress", value: "User seeks to alleviate stress and tension in their life." },
+        { display: "Improve sleep", value: "User aims to enhance their sleep quality and patterns." },
+        { display: "Increase focus", value: "User wants to improve their concentration and attention span." },
+        { display: "Emotional balance", value: "User desires better control and understanding of their emotions." },
+        { display: "Personal growth", value: "User is interested in self-improvement and inner development." },
+        { display: "I'm not sure yet", value: "User is new to meditation and exploring its benefits." }
+      ],
+      key: "meditationGoal",
+      multiple: false
     },
     {
-      question: "What are your biggest challenges related to stress and well-being?",
-      options: ["Difficulty managing daily stress", "Trouble falling asleep or staying asleep", "Struggling with focus and concentration", "Experiencing low mood or negative emotions", "Other"],
-      field: "challenges"
+      question: "How would you describe your current stress level?",
+      options: [
+        { display: "Generally relaxed", value: "User experiences low levels of stress in their daily life." },
+        { display: "Occasionally stressed", value: "User faces moderate stress levels from time to time." },
+        { display: "Frequently overwhelmed", value: "User often experiences high levels of stress and feels overwhelmed." },
+        { display: "I'm not sure", value: "User is uncertain about their stress levels or how to categorise them." }
+      ],
+      key: "stressLevel",
+      multiple: false
     },
     {
-      question: "What time of day do you typically have the most time and energy to dedicate to self-care?",
-      options: ["Morning", "Afternoon", "Evening", "Night", "Varies depending on the day"],
-      field: "bestTime"
+      question: "Which best describes your sleep?",
+      options: [
+        { display: "Fall asleep easily, wake up refreshed", value: "User has a healthy sleep pattern with no significant issues." },
+        { display: "Trouble falling asleep", value: "User struggles with initiating sleep at bedtime." },
+        { display: "Wake up frequently during the night", value: "User experiences interrupted sleep and difficulty staying asleep." },
+        { display: "Wake up feeling unrefreshed", value: "User's sleep quality is poor, leading to fatigue upon waking." },
+        { display: "I'm not sure", value: "User is uncertain about their sleep patterns or quality." }
+      ],
+      key: "sleepPattern",
+      multiple: false
     },
     {
-      question: "What type of audio experience do you find most calming and relaxing?",
-      options: ["Gentle female voice with nature sounds", "Calm male voice with instrumental music", "Gender-neutral voice with white noise", "No voice, only nature sounds or ambient music", "Other"],
-      field: "audioPreference"
+      question: "How long can you typically focus on one task without getting distracted?",
+      options: [
+        { display: "Less than 5 minutes", value: "User has a very short attention span and gets distracted easily." },
+        { display: "5-15 minutes", value: "User can maintain focus for short periods but struggles with longer durations." },
+        { display: "15-30 minutes", value: "User has a moderate attention span suitable for many tasks." },
+        { display: "More than 30 minutes", value: "User can sustain focus for extended periods without significant distraction." },
+        { display: "I haven't really noticed", value: "User is unaware of their typical focus duration." }
+      ],
+      key: "focusDuration",
+      multiple: false
     },
     {
-      question: "What are your goals for self-improvement?",
-      options: ["Increase self-confidence and assertiveness", "Improve communication and interpersonal skills", "Develop better emotional regulation", "Learn stress management techniques", "Explore mindfulness and meditation practices", "Enhance creativity and artistic expression", "Other"],
-      field: "selfImprovementGoals"
+      question: "How would you describe your typical mental state throughout the day?",
+      options: [
+        { display: "Calm and centred", value: "User generally maintains a balanced and peaceful state of mind." },
+        { display: "Anxious or worried", value: "User often experiences anxiety or excessive worry in their daily life." },
+        { display: "Distracted or scattered", value: "User frequently feels unfocused and has difficulty concentrating." },
+        { display: "Tired or low energy", value: "User commonly experiences fatigue or lack of energy throughout the day." },
+        { display: "It varies greatly day to day", value: "User's mental state is highly variable and inconsistent." }
+      ],
+      key: "mentalState",
+      multiple: false
+    },
+    {
+      question: "How would you characterise your daily technology use?",
+      options: [
+        { display: "Minimal - I use tech only when necessary", value: "User has limited engagement with technology in their daily life." },
+        { display: "Moderate - I balance tech use with offline activities", value: "User maintains a healthy balance between technology use and other activities." },
+        { display: "Heavy - I'm connected most of the day", value: "User spends a significant portion of their day engaged with technology." },
+        { display: "Constant - I feel anxious when not connected", value: "User has a strong dependency on technology and feels uneasy without it." },
+        { display: "I'm not sure how to categorise my usage", value: "User is uncertain about their technology usage patterns." }
+      ],
+      key: "techUsage",
+      multiple: false
     }
   ];
 
-  $: totalSteps = steps.length + questions.length - 1;
-  $: progress = calculateProgress();
+  $: progress = ((currentQuestion + 1) / questions.length) * 100;
 
-  $: {
-    if (browser) {
-      console.log('Current step:', currentStep);
-      console.log('Current question:', currentQuestion);
-      console.log('Progress:', progress);
-      console.log('Profile store:', $profileSetupStore);
-    }
+  function updateStore(key: keyof ProfileSetup, value: string) {
+    updateProfileSetupStore(key, value);
   }
 
-  function calculateProgress() {
-    const baseProgress = (currentStep / steps.length) * 100;
-    if (currentStep < 2) {
-      return baseProgress;
-    } else {
-      const answeredQuestions = Object.values($profileSetupStore.preferences).filter(v => v && (Array.isArray(v) ? v.length > 0 : v !== '')).length;
-      const questionProgress = (answeredQuestions / questions.length) * (100 / steps.length);
-      const calculatedProgress = baseProgress + questionProgress;
-      if (browser) console.log('Calculated progress:', calculatedProgress, 'Answered questions:', answeredQuestions);
-      return calculatedProgress;
-    }
-  }
-
-  function nextStep() {
-    if (currentStep < 2) {
-      currentStep++;
-      currentQuestion = 0;
-    } else if (currentQuestion < questions.length - 1) {
+  function nextQuestion() {
+    if (currentQuestion < questions.length - 1) {
       currentQuestion++;
-    } else if (currentStep === 2 && currentQuestion === questions.length - 1) {
-      // This is the last question, prepare for submission
-      currentStep++;
     }
-    if (browser) console.log('Next step:', currentStep, 'Current question:', currentQuestion);
   }
 
-  function prevStep() {
-    if (currentStep === 3) {
-      // If we're at the submission step, go back to the last question
-      currentStep = 2;
-      currentQuestion = questions.length - 1;
-    } else if (currentQuestion > 0) {
+  function prevQuestion() {
+    if (currentQuestion > 0) {
       currentQuestion--;
-    } else if (currentStep > 0) {
-      currentStep--;
-      currentQuestion = 0;
     }
-    if (browser) console.log('Prev step:', currentStep, 'Current question:', currentQuestion);
   }
 
-  function updateStore(field: string, value: any) {
-    if (browser) console.log('Updating store:', field, value);
-    updateProfileSetupStore(field, value);
-    progress = calculateProgress(); // Recalculate progress after updating the store
-  }
-
-  onMount(() => {
-    profileSetupStore.subscribe(($store) => {
-      if (formElement) {
-        formElement.name.value = $store.name;
-        formElement.dob.value = $store.dob;
-        formElement.gender.value = $store.gender;
-        formElement.experience.value = $store.experience;
-        formElement.preferences.value = JSON.stringify($store.preferences);
-      }
-    });
-  });
-
-  function handleSubmit(event) {
+  function handleSubmit(event: Event) {
     return async ({ result }) => {
       if (result.type === 'success') {
         goto('/dashboard');
@@ -125,94 +114,43 @@
   }
 </script>
 
-<div class="profile-setup">
-  <h1>Profile Setup</h1>
-
-  <div class="progress-bar">
-    <div class="progress" style="width: {progress}%"></div>
-  </div>
-  <div class="step-text">{steps[currentStep]}{currentStep === 2 ? ` - Question ${currentQuestion + 1}/${questions.length}` : ''}</div>
-
-  <form method="POST" action="?/submitProfile" use:enhance={handleSubmit} bind:this={formElement}>
-    <input type="hidden" name="name" />
-    <input type="hidden" name="dob" />
-    <input type="hidden" name="gender" />
-    <input type="hidden" name="experience" />
-    <input type="hidden" name="preferences" />
-
-    <div class="form-container">
-      {#if currentStep === 0}
-        <h2>Personal Information</h2>
-        <div class="form-group">
-          <label for="name">Name:</label>
-          <input type="text" id="name" bind:value={$profileSetupStore.name} on:input={() => updateStore('name', $profileSetupStore.name)} required>
-        </div>
-        <div class="form-group">
-          <label for="dob">Date of Birth:</label>
-          <input type="date" id="dob" bind:value={$profileSetupStore.dob} on:input={() => updateStore('dob', $profileSetupStore.dob)} required>
-        </div>
-        <div class="form-group">
-          <label for="gender">Gender:</label>
-          <input type="text" id="gender" bind:value={$profileSetupStore.gender} on:input={() => updateStore('gender', $profileSetupStore.gender)} required>
-        </div>
-      {:else if currentStep === 1}
-        <h2>Experience Level</h2>
-        {#each experiences as exp}
-          <label class="radio-label">
-            <input type="radio" name="experience" value={exp} checked={$profileSetupStore.experience === exp} on:change={() => updateStore('experience', exp)}>
-            <span class="radio-text">{exp.charAt(0).toUpperCase() + exp.slice(1)}</span>
+<form method="POST" use:enhance={handleSubmit}>
+  {#each questions as q}
+    <input type="hidden" name={q.key} value={$profileSetupStore[q.key]}>
+  {/each}
+  <div class="form-container">
+    {#if currentQuestion < questions.length}
+      {@const q = questions[currentQuestion]}
+      <div class="question">
+        <h3>{q.question}</h3>
+        {#each q.options as option}
+          <label class="option-label">
+            <input
+              type={q.multiple ? "checkbox" : "radio"}
+              name={q.key}
+              value={option.value}
+              checked={$profileSetupStore[q.key] === option.value}
+              on:change={() => updateStore(q.key, option.value)}
+            >
+            <span class="option-text">{option.display}</span>
           </label>
         {/each}
-      {:else if currentStep === 2}
-        <h2>Questionnaire</h2>
-        {#if currentQuestion < questions.length}
-          {@const q = questions[currentQuestion]}
-          <div class="question">
-            <h3>{q.question}</h3>
-            {#each q.options as option}
-              <label class="option-label">
-                <input
-                  type={q.field === 'challenges' || q.field === 'selfImprovementGoals' ? "checkbox" : "radio"}
-                  name={q.field}
-                  value={option}
-                  checked={Array.isArray($profileSetupStore.preferences[q.field])
-                    ? $profileSetupStore.preferences[q.field].includes(option)
-                    : $profileSetupStore.preferences[q.field] === option}
-                  on:change={() => {
-                    let newValue;
-                    if (q.field === 'challenges' || q.field === 'selfImprovementGoals') {
-                      newValue = $profileSetupStore.preferences[q.field].includes(option)
-                        ? $profileSetupStore.preferences[q.field].filter(v => v !== option)
-                        : [...($profileSetupStore.preferences[q.field] || []), option];
-                    } else {
-                      newValue = option;
-                    }
-                    updateStore(`preferences.${q.field}`, newValue);
-                  }}
-                >
-                <span class="option-text">{option}</span>
-              </label>
-            {/each}
-          </div>
-        {/if}
-      {/if}
-    </div>
+      </div>
+    {/if}
+  </div>
 
-    <div class="navigation">
-      {#if currentStep > 0 || currentQuestion > 0}
-        <button type="button" class="btn secondary" on:click={prevStep}>Previous</button>
-      {/if}
-      
-      {#if currentStep < 2 || (currentStep === 2 && currentQuestion < questions.length - 1)}
-        <button type="button" class="btn primary" on:click={nextStep}>Next</button>
-      {:else if currentStep === 2 && currentQuestion === questions.length - 1}
-        <button type="button" class="btn primary" on:click={nextStep}>Review</button>
-      {:else}
-        <button type="submit" class="btn primary">Submit</button>
-      {/if}
-    </div>
-  </form>
-</div>
+  <div class="navigation">
+    {#if currentQuestion > 0}
+      <button type="button" class="btn secondary" on:click={prevQuestion}>Previous</button>
+    {/if}
+    
+    {#if currentQuestion < questions.length - 1}
+      <button type="button" class="btn primary" on:click={nextQuestion}>Next</button>
+    {:else}
+      <button type="submit" class="btn primary">Submit</button>
+    {/if}
+  </div>
+</form>
 
 {#if errorMessage}
   <div class="error-message">

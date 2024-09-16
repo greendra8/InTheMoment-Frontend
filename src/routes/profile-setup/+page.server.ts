@@ -1,48 +1,34 @@
-import { error, redirect } from '@sveltejs/kit';
-import type { PageServerLoad, Actions } from './$types';
-import { submitUserContext, isUserProfileComplete } from '$lib/supabase';
-
-export const load: PageServerLoad = async ({ locals }) => {
-	const session = await locals.safeGetSession();
-
-	if (!session) {
-		throw redirect(302, '/login');
-	}
-
-	// Check if the user's profile is already complete
-	const isComplete = await isUserProfileComplete(session.user.id);
-	if (isComplete) {
-		throw redirect(302, '/dashboard');
-	}
-
-	return {
-		user: session.user
-	};
-};
+import { error, fail } from '@sveltejs/kit';
+import type { Actions } from './$types';
+import { updateUserProfile } from '$lib/supabase';
 
 export const actions: Actions = {
-	submitProfile: async ({ request, locals }) => {
-		const session = await locals.safeGetSession();
+	default: async ({ request, locals }) => {
+		const { session } = await locals.safeGetSession();
 
 		if (!session) {
 			throw error(401, 'Unauthorized');
 		}
 
 		const formData = await request.formData();
-		const profileData = {
-			name: formData.get('name') as string,
-			dob: formData.get('dob') as string,
-			gender: formData.get('gender') as string,
-			experience: formData.get('experience') as string,
-			preferences: JSON.parse(formData.get('preferences') as string),
-		};
+		const preferences: Record<string, string> = {};
+
+		// Collect all form data in the original order
+		for (const [key, value] of formData.entries()) {
+			if (typeof value === 'string') {
+				preferences[key] = value;
+			}
+		}
 
 		try {
-			await submitUserContext(session.user.id, profileData);
-			return { success: true };
+			const updatedProfile = await updateUserProfile(session.user.id, { 
+				preferences,
+				complete: true // Set complete to true
+			});
+			return { success: true, profile: updatedProfile };
 		} catch (err) {
-			console.error('Profile submission error:', err);
-			return { success: false, error: 'An error occurred while saving your profile. Please try again.' };
+			console.error('Error updating user profile:', err);
+			return fail(500, { message: 'Failed to update profile' });
 		}
 	}
 };
