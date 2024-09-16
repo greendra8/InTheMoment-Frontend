@@ -15,7 +15,7 @@
   let unsubscribe: (() => void) | null = null;
   let currentMeditationId: string | null = null;
 
-  let stanceOptions = [
+  let postureOptions = [
     { value: 'The user is sitting down during this session', display: 'Sitting', icon: 'fa-chair' },
     { value: 'The user is lying down during this session', display: 'Lying Down', icon: 'fa-bed' },
     { value: 'The user is on a walk during this session', display: 'Walking', icon: 'fa-walking' }
@@ -24,17 +24,17 @@
     { value: 'The user wants to keep their eyes open during this session', display: 'Open', icon: 'fa-eye' },
     { value: 'The user wants to have their eyes closed during this session', display: 'Closed', icon: 'fa-eye-slash' }
   ];
-  let selectedStance = stanceOptions[0].value;
+  let selectedPosture = postureOptions[0].value;
   let selectedEyes = eyesOptions[1].value;
 
-  let stanceSpring = spring(0);
+  let postureSpring = spring(0);
   let eyesSpring = spring(0);
 
-  let selectedStanceIndex = 0;
+  let selectedPostureIndex = 0;
   let selectedEyesIndex = 1;
 
   $: {
-    selectedStanceIndex = stanceOptions.findIndex(option => option.value === selectedStance);
+    selectedPostureIndex = postureOptions.findIndex(option => option.value === selectedPosture);
   }
 
   $: {
@@ -42,7 +42,7 @@
   }
 
   $: {
-    stanceSpring.set(selectedStanceIndex);
+    postureSpring.set(selectedPostureIndex);
   }
 
   $: {
@@ -96,7 +96,7 @@
 
   function createParametersJSON() {
     const params = {
-      stance: selectedStance,
+      posture: selectedPosture,
       eyes: selectedEyes
     };
     return params;
@@ -181,21 +181,21 @@
 
   <div class="options-container">
     <div class="option-group">
-      <h3>Stance</h3>
-      <div class="sliding-checkbox" style="--option-count: {stanceOptions.length};">
-        <div class="slider-background" style="transform: translateX({100 * selectedStanceIndex}%)"></div>
-        {#each stanceOptions as stance, i}
+      <h3>Posture</h3>
+      <div class="sliding-checkbox" style="--option-count: {postureOptions.length};">
+        <div class="slider-background" style="transform: translateX({100 * selectedPostureIndex}%)"></div>
+        {#each postureOptions as posture, i}
           <label class="option">
             <input
               type="radio"
-              name="stance"
-              value={stance.value}
-              bind:group={selectedStance}
+              name="posture"
+              value={posture.value}
+              bind:group={selectedPosture}
               hidden
             >
-            <div class="option-content" class:selected={i === selectedStanceIndex}>
-              <i class="fas {stance.icon}"></i>
-              <span>{stance.display}</span>
+            <div class="option-content" class:selected={i === selectedPostureIndex}>
+              <i class="fas {posture.icon}"></i>
+              <span>{posture.display}</span>
             </div>
           </label>
         {/each}

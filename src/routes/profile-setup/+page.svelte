@@ -149,7 +149,7 @@
     });
     const result = await response.json();
     if (result.type === 'success') {
-      goto('/dashboard');
+      goto('/meditation'); 
     } else {
       errorMessage = 'An error occurred while saving your profile. Please try again.';
     }
