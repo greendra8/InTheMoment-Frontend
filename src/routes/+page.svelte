@@ -160,8 +160,8 @@
     border: 2px solid #333;
     border-radius: 50px;
     transition: all 0.3s ease;
-    margin: 0 0.5rem;
     font-weight: bold;
+    min-width: 200px;
   }
 
   .button:hover {
@@ -184,6 +184,13 @@
 
   .button.secondary:hover {
     background-color: rgba(0, 0, 0, 0.05);
+  }
+
+  .cta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
   }
 
   @media (max-width: 1024px) {
@@ -235,6 +242,11 @@
 
     .final-cta h2 {
       font-size: 2rem;
+    }
+
+    .button {
+      width: 100%;
+      margin: 0;
     }
   }
 
