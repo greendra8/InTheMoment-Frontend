@@ -1,6 +1,7 @@
 import { error, fail } from '@sveltejs/kit';
 import type { Actions } from './$types';
 import { updateUserProfile } from '$lib/supabase';
+import type { ProfileSetup } from '$lib/stores/profileSetup';
 
 export const actions: Actions = {
 	submit: async ({ request, locals }) => {
@@ -11,10 +12,21 @@ export const actions: Actions = {
 		}
 
 		const formData = await request.formData();
-		const preferences: Record<string, string> = {};
+		const preferences: Partial<ProfileSetup> = {};
 
-		// Collect all form data in the original order
-		for (const [key, value] of formData.entries()) {
+		// Define the expected keys
+		const expectedKeys: (keyof ProfileSetup)[] = [
+			'meditationGoal',
+			'stressLevel',
+			'sleepPattern',
+			'focusDuration',
+			'mentalState',
+			'techUsage'
+		];
+
+		// Process only the expected keys from the form data
+		for (const key of expectedKeys) {
+			const value = formData.get(key);
 			if (typeof value === 'string') {
 				preferences[key] = value;
 			}
