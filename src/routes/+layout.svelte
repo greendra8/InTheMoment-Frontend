@@ -56,7 +56,7 @@
     font-family: 'Roboto', sans-serif;
     line-height: 1.6;
     color: #333;
-    background-color: #f4f4f4;
+    background-color: #e1e1e1;
     margin: 0;
     padding: 0;
   }

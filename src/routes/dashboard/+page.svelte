@@ -88,6 +88,7 @@
   ul {
     list-style-type: none;
     padding: 0;
+    
   }
 
   li {
@@ -96,8 +97,8 @@
     align-items: center; /* Change from stretch to center */
     margin-bottom: 1rem;
     padding: 0.5rem;
-    background-color: #f9f9f9;
     border-radius: 4px;
+    background-color: #e8e8e8;
   }
 
   .meditation-info {
