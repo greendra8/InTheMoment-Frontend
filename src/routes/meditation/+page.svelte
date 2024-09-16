@@ -49,7 +49,6 @@
     eyesSpring.set(selectedEyesIndex);
   }
 
-  console.log('Component initialized');
 
   function getUserLocalTime() {
     const time = new Intl.DateTimeFormat('en-US', {
@@ -57,12 +56,10 @@
       minute: '2-digit',
       hour12: true
     }).format(new Date()).replace(/\s/g, '');
-    console.log('getUserLocalTime called, returning:', time);
     return time;
   }
 
   function handleMeditationStatus(status: string) {
-    console.log('handleMeditationStatus called with status:', status);
     generationStatus = status;
     
     switch (status) {
@@ -102,7 +99,6 @@
       stance: selectedStance,
       eyes: selectedEyes
     };
-    console.log('createParametersJSON called, returning:', params);
     return params;
   }
 
@@ -119,7 +115,6 @@
     formData.set('length', duration.toString());
     formData.set('parameters', JSON.stringify(createParametersJSON()));
 
-    console.log('Form data prepared:', Object.fromEntries(formData));
 
     try {
       const response = await fetch(formElement.action, {
@@ -127,18 +122,14 @@
         body: formData
       });
 
-      console.log('Fetch response received:', response);
 
       const result = await response.json();
-      console.log('Parsed result:', result);
 
       if (result.type === 'success' && result.data) {
         const parsedData = JSON.parse(result.data);
-        console.log('Parsed data:', parsedData);
         const meditationId = parsedData[2]; // Extracting the meditation ID from the third element
         if (typeof meditationId === 'string') {
           currentMeditationId = meditationId;
-          console.log('Subscribing to meditation status updates for ID:', meditationId);
           unsubscribe = subscribeMeditationStatus(meditationId, handleMeditationStatus);
         } else {
           console.error('Invalid meditation ID:', meditationId);
@@ -158,7 +149,6 @@
   }
 
   onDestroy(() => {
-    console.log('Component being destroyed');
     if (unsubscribe) unsubscribe();
   });
 
