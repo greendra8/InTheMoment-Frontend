@@ -210,19 +210,68 @@
   }
 
   @media (max-width: 1024px) {
-    .content-container {
-      padding: 1rem 0.5rem;
+    .nav {
+      /* Adjust width to allow for closer icons */
+      width: min(calc(var(--item-count, 5) * 50px + 40px), calc(100% - 20px));
+      padding: 8px 20px;
+      /* Use space-evenly for even distribution with minimal space */
+      justify-content: space-evenly;
+      /* Remove any existing gap */
+      gap: 0;
+      border-radius: 20px;
+      box-shadow: 0 0px 7px rgba(0,0,0,0.22);
+    }
+
+    .nav-item {
+      /* Remove horizontal padding */
+      padding: 5px 0;
+    }
+
+    .icon-background {
+      /* Keep original icon size */
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: all 0.3s ease;
+      /* Remove inner shadow */
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .nav-item i {
+      font-size: 20px;
+      /* Add transition for color change */
+      transition: color 0.3s ease;
+    }
+
+    /* New styles for active state on mobile */
+    .nav-item.active .icon-background {
+      background-color: #000;
+    }
+
+    .nav-item.active i {
+      color: #fff;
+    }
+
+    /* Remove the existing active indicator */
+    .icon-container::before {
+      display: none;
+      transition: none;
+      transform: none;
     }
   }
 
-  @media (max-width: 600px) {
-    .content-container {
-      padding: 0.5rem;
+  @media (max-width: 360px) {
+    .nav {
+      /* Slightly reduce width for very small screens */
+      width: min(calc(var(--item-count, 5) * 45px + 30px), calc(100% - 20px));
+      padding: 6px 15px;
     }
 
-    main {
-      padding-bottom: 70px;
-    }
+    /* Keep icon sizes the same as above */
   }
 
   .global-container {
