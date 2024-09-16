@@ -49,6 +49,13 @@
     eyesSpring.set(selectedEyesIndex);
   }
 
+  $: isWalking = selectedPosture === postureOptions[2].value;
+
+  $: {
+    if (isWalking) {
+      selectedEyes = eyesOptions[0].value; // Set to "Open" when walking
+    }
+  }
 
   function getUserLocalTime() {
     const time = new Intl.DateTimeFormat('en-US', {
@@ -203,7 +210,7 @@
     </div>
     <div class="option-group">
       <h3>Eyes</h3>
-      <div class="sliding-checkbox" style="--option-count: {eyesOptions.length};">
+      <div class="sliding-checkbox" style="--option-count: {eyesOptions.length}; opacity: {isWalking ? 0.5 : 1};">
         <div class="slider-background" style="transform: translateX({100 * selectedEyesIndex}%)"></div>
         {#each eyesOptions as eye, i}
           <label class="option">
@@ -212,6 +219,7 @@
               name="eyes"
               value={eye.value}
               bind:group={selectedEyes}
+              disabled={isWalking}
               hidden
             >
             <div class="option-content" class:selected={i === selectedEyesIndex}>
@@ -413,6 +421,7 @@
     border-radius: 8px;
     overflow: hidden;
     position: relative;
+    transition: opacity 0.3s ease;
   }
 
   .slider-background {
