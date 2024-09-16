@@ -3,7 +3,6 @@ import type { PageServerLoad, Actions } from './$types';
 import { generateMeditation } from '$lib/pythonApi';
 
 export const load: PageServerLoad = async ({ locals }) => {
-  console.log('PageServerLoad function called');
   const { session } = await locals.safeGetSession();
 
   if (!session) {
@@ -11,7 +10,6 @@ export const load: PageServerLoad = async ({ locals }) => {
     throw redirect(302, '/login');
   }
 
-  console.log('Session found, returning user data');
   return {
     user: session.user,
     session
