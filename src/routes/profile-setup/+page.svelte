@@ -4,6 +4,7 @@
   import { profileSetupStore, updateProfileSetupStore, resetProfileSetupStore } from '$lib/stores/profileSetup';
   import { goto } from '$app/navigation';
   import type { ProfileSetup } from '$lib/stores/profileSetup';
+  import { transition } from '$lib/stores/transition';
 
   let currentQuestion = 0;
   let errorMessage = '';
@@ -100,7 +101,14 @@
 
   function nextQuestion() {
     if (currentQuestion < questions.length - 1) {
-      currentQuestion++;
+      setTimeout(() => {
+        transition.fadeOut();
+        setTimeout(() => {
+          currentQuestion++;
+          transition.setVisible(true);
+          transition.fadeIn();
+        }, 150);
+      }, 300);
     } else {
       submitForm();
     }
@@ -108,7 +116,14 @@
 
   function prevQuestion() {
     if (currentQuestion > 0) {
-      currentQuestion--;
+      setTimeout(() => {
+        transition.fadeOut();
+        setTimeout(() => {
+          currentQuestion--;
+          transition.setVisible(true);
+          transition.fadeIn();
+        }, 200);
+      }, 300);
     }
   }
 
@@ -136,9 +151,9 @@
     }
     if (!questions[currentQuestion].multiple) {
       if (currentQuestion === questions.length - 1) {
-        submitForm();
+        setTimeout(() => submitForm(), 600);
       } else {
-        setTimeout(() => nextQuestion(), 0);
+        nextQuestion();
       }
     }
   }
@@ -151,19 +166,18 @@
     {/each}
     <div class="form-content">
       <div class="form-container">
-        {#if currentQuestion < questions.length}
-          {@const q = questions[currentQuestion]}
-          <div class="question">
-            <h3>{q.question}</h3>
+        {#if $transition.visible}
+          <div class="question" style="opacity: {$transition.opacity}; transition: opacity 0.15s ease;">
+            <h3>{questions[currentQuestion].question}</h3>
             <div class="options-grid">
-              {#each q.options as option}
+              {#each questions[currentQuestion].options as option}
                 <label class="option-label">
                   <input
-                    type={q.multiple ? "checkbox" : "radio"}
-                    name={q.key}
+                    type={questions[currentQuestion].multiple ? "checkbox" : "radio"}
+                    name={`question_${currentQuestion}`}
                     value={option.value}
-                    checked={$profileSetupStore[q.key] === option.value}
-                    on:click={() => handleOptionChange(q.key, option.value)}
+                    checked={$profileSetupStore[questions[currentQuestion].key] === option.value}
+                    on:click={() => handleOptionChange(questions[currentQuestion].key, option.value)}
                   >
                   <span class="option-text">{option.display}</span>
                 </label>
@@ -174,21 +188,23 @@
       </div>
     </div>
 
-    <div class="navigation">
-      <div class="nav-left">
-        {#if currentQuestion > 0}
-          <button type="button" class="back-link" on:click={prevQuestion}>Back</button>
-        {/if}
+    {#if $transition.visible}
+      <div class="navigation" style="opacity: {$transition.opacity}; transition: opacity 0.15s ease;">
+        <div class="nav-left">
+          {#if currentQuestion > 0}
+            <button type="button" class="back-link" on:click={prevQuestion}>Back</button>
+          {/if}
+        </div>
+        <div class="nav-right">
+          <div class="question-counter">{currentQuestion + 1}/{questions.length}</div>
+          {#if questions[currentQuestion].multiple}
+            <button type="button" class="btn primary" on:click={nextQuestion}>
+              {currentQuestion === questions.length - 1 ? 'Submit' : 'Next'}
+            </button>
+          {/if}
+        </div>
       </div>
-      <div class="nav-right">
-        <div class="question-counter">{currentQuestion + 1}/{questions.length}</div>
-        {#if questions[currentQuestion].multiple}
-          <button type="button" class="btn primary" on:click={nextQuestion}>
-            {currentQuestion === questions.length - 1 ? 'Submit' : 'Next'}
-          </button>
-        {/if}
-      </div>
-    </div>
+    {/if}
   </form>
 </div>
 
@@ -203,7 +219,7 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    min-height: 100vh;
+    /* min-height: 100vh; */
     padding: 2rem;
     box-sizing: border-box;
     position: relative;
@@ -218,18 +234,21 @@
 
   .form-container {
     width: 100%;
+    min-height: 300px;
   }
 
   .question {
     text-align: center;
     margin-bottom: 2.5rem;
+    transition: opacity 0.15s ease;
   }
 
   h3 {
-    font-weight: 400;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 600;
     color: #333;
     margin-bottom: 2rem;
-    font-size: 1.5rem;
+    font-size: 1.5rem!important;
   }
 
   .options-grid {
@@ -238,22 +257,6 @@
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   }
 
-  .option-label {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 0.5rem;
-    cursor: pointer;
-    border: 2px solid black;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-    position: relative;
-    text-align: center;
-  }
-
-  .option-label:hover {
-    background-color: rgba(0, 0, 0, 0.05);
-  }
 
   input[type="radio"],
   input[type="checkbox"] {
@@ -276,11 +279,18 @@
     justify-content: center;
     width: 100%;
     text-align: center;
-    transition: color 0.3s ease;
+    transition: all 0.3s ease;
     position: relative;
     z-index: 1;
-    padding: 0.75rem;
+    padding: 1rem 0;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    border: 2px solid black;
     border-radius: 8px;
+  }
+
+  .option-text:hover {
+    background-color: rgba(0, 0, 0, 0.05);
   }
 
   .option-label input:checked + .option-text {
@@ -294,6 +304,7 @@
     align-items: center;
     margin-top: 2rem;
     width: 100%;
+    transition: opacity 0.15s ease;
   }
 
   .nav-left, .nav-right {
@@ -313,15 +324,14 @@
   .back-link {
     background: none;
     border: none;
-    color: #4a90e2;
+    color: #000000;
     cursor: pointer;
     font-size: 1rem;
     padding: 0;
-    text-decoration: underline;
   }
 
   .back-link:hover {
-    color: #3a7bc8;
+    text-decoration: underline;
   }
 
   .btn {
@@ -364,41 +374,41 @@
   @media (max-width: 600px) {
     .profile-setup {
       padding: 1rem;
+      /* min-height: 100vh; */
+      justify-content: flex-start;
+    }
+
+    .form-content {
+      margin-top: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .form-container {
+      min-height: auto;
     }
 
     h3 {
+      font-family: 'Roboto', sans-serif;
       font-size: 1.2rem;
+      margin-bottom: 1rem;
     }
 
     .options-grid {
       grid-template-columns: 1fr;
-    }
-
-    .navigation {
-      flex-direction: row;
-      align-items: center;
-    }
-
-    .nav-left, .nav-right {
-      flex: 0 0 auto;
-    }
-
-    .question-counter {
-      margin-right: 0.5rem;
-    }
-
-    .btn {
-      width: 100%;
-      max-width: 200px;
-      margin: 0.5rem 0;
-    }
-
-    .options-grid {
       gap: 0.5rem;
     }
 
     .option-label {
       margin-bottom: 0.25rem;
+    }
+
+    .navigation {
+      margin-top: 1rem;
+      padding-bottom: 1rem;
+    }
+
+    .btn {
+      padding: 0.5rem 1rem;
     }
   }
 </style>
