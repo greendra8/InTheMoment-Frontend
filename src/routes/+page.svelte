@@ -162,6 +162,7 @@
     transition: all 0.3s ease;
     font-weight: bold;
     min-width: 200px;
+    box-sizing: border-box;
   }
 
   .button:hover {
@@ -246,7 +247,11 @@
 
     .button {
       width: 100%;
-      margin: 0;
+      max-width: 100%; 
+      margin: 0 auto;
+      display: block;
+      min-width: unset; 
+      padding: 1rem 1rem; 
     }
   }
 
