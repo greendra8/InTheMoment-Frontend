@@ -1,38 +1,61 @@
-# create-svelte
+# AI Wellbeing Meditation App
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/main/packages/create-svelte).
+An AI-powered meditation and wellbeing application built with SvelteKit and Supabase.
 
-## Creating a project
+## Features
 
-If you're seeing this, you've probably already done this step. Congrats!
+- Personalized meditation generation
+- User authentication and profiles
+- Interactive audio player with visualizations
+- Dashboard for tracking meditation history
+- Responsive design for mobile and desktop
 
-```bash
-# create a new project in the current directory
-npm create svelte@latest
+## Getting Started
 
-# create a new project in my-app
-npm create svelte@latest my-app
-```
+### Prerequisites
 
-## Developing
+- Node.js (v14 or later)
+- npm or pnpm
+- Supabase account and project
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+### Installation
 
-```bash
-npm run dev
+1. Clone the repository
+2. Install dependencies with `npm install` or `pnpm install`
+3. Set up environment variables in a `.env` file:
+   VITE_SUPABASE_URL=your_supabase_project_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+4. Start the development server with `npm run dev` or `pnpm dev`
+5. Open http://localhost:5173 in your browser
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+## Building for Production
 
-## Building
+To create a production version of the app:
 
-To create a production version of your app:
-
-```bash
 npm run build
-```
+# or
+pnpm build
 
-You can preview the production build with `npm run preview`.
+Preview the production build with:
 
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
+npm run preview
+# or
+pnpm preview
+
+## Deployment
+
+This project is configured to deploy on Vercel. Follow the Vercel deployment documentation for detailed instructions.
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is licensed under the MIT License.
+
+## Acknowledgements
+
+- SvelteKit
+- Supabase
+- Vercel
