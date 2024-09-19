@@ -16,13 +16,13 @@
   let currentMeditationId: string | null = null;
 
   let postureOptions = [
-    { value: 'The user is sitting down during this session', display: 'Sitting', icon: 'fa-chair' },
-    { value: 'The user is lying down during this session', display: 'Lying Down', icon: 'fa-bed' },
-    { value: 'The user is on a walk during this session', display: 'Walking', icon: 'fa-walking' }
+    { value: 'sitting', display: 'Sitting', icon: 'fa-chair' },
+    { value: 'lying', display: 'Lying Down', icon: 'fa-bed' },
+    { value: 'walking', display: 'Walking', icon: 'fa-walking' }
   ];
   let eyesOptions = [
-    { value: 'The user wants to keep their eyes open during this session', display: 'Open', icon: 'fa-eye' },
-    { value: 'The user wants to have their eyes closed during this session', display: 'Closed', icon: 'fa-eye-slash' }
+    { value: 'open', display: 'Open', icon: 'fa-eye' },
+    { value: 'closed', display: 'Closed', icon: 'fa-eye-slash' }
   ];
   let selectedPosture = postureOptions[0].value;
   let selectedEyes = eyesOptions[1].value;
@@ -59,9 +59,9 @@
 
   function getUserLocalTime() {
     const time = new Intl.DateTimeFormat('en-US', {
-      hour: 'numeric',
+      hour: '2-digit',
       minute: '2-digit',
-      hour12: true
+      hour12: false
     }).format(new Date()).replace(/\s/g, '');
     return time;
   }
