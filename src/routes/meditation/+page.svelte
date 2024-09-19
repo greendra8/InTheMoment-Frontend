@@ -270,6 +270,14 @@
 </div>
 
 <style>
+  :global(body) {
+    font-family: 'Lato', sans-serif;
+  }
+
+  h1, h2, h3 {
+    font-family: 'Poppins', sans-serif;
+  }
+
   .meditation-container {
     max-width: 600px;
     margin: 0 auto;

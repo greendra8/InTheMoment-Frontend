@@ -53,7 +53,7 @@
 
 <style>
   :global(body) {
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Lato', sans-serif;
     line-height: 1.6;
     color: #333;
     background-color: #e1e1e1;
@@ -66,7 +66,7 @@
     bottom: 10px;
     left: 50%;
     transform: translateX(-50%);
-    background-color: #fff;
+    background-color: #eaeaea;
     border-radius: 25px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     padding: 10px 0;
@@ -139,6 +139,7 @@
   }
 
   .nav-label {
+    font-family: 'Poppins', sans-serif;
     font-size: 12px;
     text-align: center;
     display: none;

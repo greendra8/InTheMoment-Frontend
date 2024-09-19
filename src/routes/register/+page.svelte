@@ -26,6 +26,7 @@
 
 <style>
   .auth-container {
+    font-family: 'Lato', sans-serif;
     width: 100%;
     max-width: 400px;
     margin: 2rem auto;
@@ -34,6 +35,7 @@
   }
 
   h1 {
+    font-family: 'Poppins', sans-serif;
     text-align: center;
     margin-bottom: 1.5rem;
   }

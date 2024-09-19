@@ -77,11 +77,13 @@
 
 <style>
   .dashboard-container {
+    font-family: 'Lato', sans-serif;
     max-width: 800px;
     margin: 0;
   }
 
   h1, h2, h3 {
+    font-family: 'Poppins', sans-serif;
     margin-bottom: 0.5rem;
   }
 
