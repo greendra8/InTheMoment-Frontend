@@ -53,7 +53,7 @@
 
 <style>
   :global(body) {
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Lato', sans-serif;
     line-height: 1.6;
     color: #333;
     background-color: #e1e1e1;
@@ -66,7 +66,7 @@
     bottom: 10px;
     left: 50%;
     transform: translateX(-50%);
-    background-color: #fff;
+    background-color: #eaeaea;
     border-radius: 25px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     padding: 10px 0;
@@ -139,6 +139,7 @@
   }
 
   .nav-label {
+    font-family: 'Poppins', sans-serif;
     font-size: 12px;
     text-align: center;
     display: none;
@@ -212,13 +213,13 @@
   @media (max-width: 1024px) {
     .nav {
       /* Adjust width to allow for closer icons */
-      width: min(calc(var(--item-count, 5) * 50px + 40px), calc(100% - 20px));
+      width: min(calc(var(--item-count, 5) * 50px + 55px), calc(100% - 20px));
       padding: 8px 20px;
       /* Use space-evenly for even distribution with minimal space */
       justify-content: space-evenly;
       /* Remove any existing gap */
       gap: 0;
-      border-radius: 20px;
+      border-radius: 0.5rem;
       box-shadow: 0 0px 7px rgba(0,0,0,0.22);
     }
 

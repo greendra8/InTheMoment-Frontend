@@ -110,7 +110,7 @@
   }
 
   h1, h2 {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Poppins', sans-serif;
   }
 
   .hero {
