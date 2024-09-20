@@ -20,7 +20,7 @@
     <div class="top-bar">
       <span class="note">InTheMoment.app | Dev Build 0.1.3</span>
     </div>
-    <h2>Recommended</h2>
+    <h1>Recommended</h1>
   </header>
 
   <div class="featured-card-wrapper">
