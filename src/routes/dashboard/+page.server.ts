@@ -1,31 +1,50 @@
-import { error, redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import { getUserMeditations } from '$lib/supabase';
+import sleep from '$lib/assets/3d.png';
+import breath from '$lib/assets/3d2.png';
+import walk from '$lib/assets/3d3.png';
+import commute from '$lib/assets/3d4.png';
+import focus from '$lib/assets/3d5.png';
 
-export const load: PageServerLoad = async ({ locals, url }) => {
-	const { session } = await locals.safeGetSession();
+interface Meditation {
+  id: string;
+  title: string;
+  subtitle: string;
+  icon: string;
+  backgroundImage: string;
+  isFeatured: boolean;
+}
 
-	if (!session) {
-		console.log('No session found, redirecting to login'); // Add this log
-		throw redirect(303, '/login');
-	}
+function createMeditations(): Meditation[] {
+  const meditations = [
+    { id: '1', title: 'Mindful Walking', subtitle: 'Experience the world without bumping into things', icon: 'fa-solid fa-walking', backgroundImage: walk, isFeatured: false },
+    { id: '2', title: 'Mindful Breathing', subtitle: 'Remember to inhale and exhale', icon: 'fa-solid fa-wind', backgroundImage: breath, isFeatured: false },
+    { id: '3', title: 'Mindful Focus', subtitle: 'Relax your mind, not your grip on reality', icon: 'fa-solid fa-brain', backgroundImage: focus, isFeatured: false },
+    { id: '4', title: 'Mindful Commuting', subtitle: 'Find peace in the mundane', icon: 'fa-solid fa-train', backgroundImage: commute, isFeatured: false },
+    { id: '5', title: 'Mindful Sleep', subtitle: 'Guided meditations for sleep', icon: 'fa-solid fa-bed', backgroundImage: sleep, isFeatured: false },
+  ];
 
-	if (!session.user || !session.user.id) {
-		console.error('Session user or user ID is undefined:', session); // Add this log
-		throw error(500, 'Invalid session data');
-	}
+  const randomIndex = Math.floor(Math.random() * meditations.length);
+  meditations[randomIndex].isFeatured = true;
 
-	const page = parseInt(url.searchParams.get('page') || '1');
-	const limit = parseInt(url.searchParams.get('limit') || '10');
+  return meditations;
+}
 
-	try {
-		const meditations = await getUserMeditations(session.user.id, page, limit);
-		return { 
-			meditations,
-			currentPage: page
-		};
-	} catch (err) {
-		console.error('Failed to load meditations:', err);
-		throw error(500, 'Failed to load meditations');
-	}
+export const load: PageServerLoad = async ({ locals }) => {
+  const { session } = await locals.safeGetSession();
+
+  if (!session) {
+    return {
+      status: 302,
+      redirect: '/login'
+    };
+  }
+
+  const meditations = createMeditations();
+  const featuredMeditation = meditations.find(m => m.isFeatured);
+
+  return {
+    meditations,
+    featuredMeditation,
+    user: session.user
+  };
 };
