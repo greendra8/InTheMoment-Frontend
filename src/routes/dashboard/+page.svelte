@@ -379,7 +379,7 @@
   .carousel-item {
     height: 280px;
     background-size: cover;
-    background-position: center;
+    background-position: right;
     border-radius: 1rem;
     position: relative;
     overflow: hidden;
