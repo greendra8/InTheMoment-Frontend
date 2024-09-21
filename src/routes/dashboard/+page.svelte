@@ -61,6 +61,7 @@
     </header>
 
     <div class="featured-card-wrapper">
+      <div class="featured-card-shadow"></div>
       <a href={getMeditationLink(featuredMeditation?.id)} class="featured-card" style="background-image: url('{featuredMeditation?.backgroundImage ?? ''}'); background-color: #e1e1e1">
         <div class="card-content">
           <h2 class="card-title">
@@ -190,9 +191,22 @@
 
   .featured-card-wrapper {
     position: relative;
-    margin-bottom: 2rem;
+    margin-bottom: 2.5rem;
     width: 100%;
     padding-top: 56.25%; /* 16:9 aspect ratio (9 / 16 = 0.5625) */
+  }
+
+  .featured-card-shadow {
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 95%;
+    height: 40px;
+    background: #3c3c69;
+    filter: blur(20px);
+    border-radius: 50%;
+    z-index: 1; /* Place shadow above the wrapper but beneath the card */
   }
 
   .featured-card {
@@ -201,28 +215,15 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: #e1e1e1; /* Placeholder background color */
+    background-color: #e1e1e1;
     background-size: cover;
     background-position: center;
     color: white;
     border-radius: 1rem;
-    overflow: visible;
+    overflow: hidden; /* Changed from visible to hidden */
     text-decoration: none;
     display: block;
-  }
-
-  .featured-card::after {
-    content: '';
-    position: absolute;
-    bottom: -5px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 95%;
-    height: 40px;
-    background: rgb(60, 60, 105);
-    filter: blur(20px);
-    border-radius: 50%;
-    z-index: -1;
+    z-index: 2; /* Ensure card is above the shadow */
   }
 
   .card-content {
