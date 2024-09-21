@@ -80,15 +80,15 @@
     <div bind:this={sliderRef} class="keen-slider">
       {#each meditations as meditation}
         <div class="keen-slider__slide">
-          <div class="carousel-item" 
-               style="background-image: url('{meditation.backgroundImage}')">
+          <a href={getMeditationLink(meditation.id)} class="carousel-item" 
+             style="background-image: url('{meditation.backgroundImage}')">
             <div class="carousel-item-content">
               <h3>{meditation.title}</h3>
             </div>
-            <a href={getMeditationLink(meditation.id)} class="carousel-item-chevron">
+            <div class="carousel-item-chevron">
               <i class="fas fa-chevron-right"></i>
-            </a>
-          </div>
+            </div>
+          </a>
         </div>
       {/each}
     </div>
@@ -383,6 +383,8 @@
     border-radius: 1rem;
     position: relative;
     overflow: hidden;
+    display: block; /* Add this line */
+    text-decoration: none; /* Add this line */
   }
 
   .carousel-item::after {
@@ -422,10 +424,9 @@
     align-items: center;
     justify-content: center;
     transition: transform 0.2s ease-in-out;
-    text-decoration: none;
   }
 
-  .carousel-item-chevron:hover {
+  .carousel-item:hover .carousel-item-chevron {
     transform: scale(1.1);
   }
 
