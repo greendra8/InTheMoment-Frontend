@@ -14,7 +14,7 @@
     isLoading = true;
     error = '';
     try {
-      const newMeditations = await getUserMeditations($page.data.session.user.id, currentPage + 1);
+      const newMeditations = await getUserMeditations($page.data.session?.user.id, currentPage + 1);
       if (newMeditations.length) {
         meditations = [...meditations, ...newMeditations];
         currentPage += 1;
@@ -28,10 +28,10 @@
   }
 </script>
 
-<div class="dashboard-container">
-  <h1>Dashboard</h1>
+<div class="meditations-list-container">
+  <h1>Your Sessions</h1>
 
-  <h2>Your Meditations</h2>
+  <h2>Most Recent</h2>
   {#if meditations.length > 0}
     <ul>
       {#each meditations as meditation (meditation.id)}
@@ -76,7 +76,7 @@
 </div>
 
 <style>
-  .dashboard-container {
+  .meditations-list-container {
     font-family: 'Lato', sans-serif;
     max-width: 800px;
     margin: 0;
@@ -110,7 +110,7 @@
 
   .meditation-info h3 {
     font-size: 1.1rem;
-    margin-bottom: 0.2rem;
+    margin: 0.2rem 0;
   }
 
   .meditation-info p {
@@ -165,7 +165,7 @@
   }
 
   @media (max-width: 600px) {
-    .dashboard-container {
+    .meditations-list-container {
       
     }
 
