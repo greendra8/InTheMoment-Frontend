@@ -25,9 +25,8 @@
         loop: true,
         mode: "snap",
         slides: {
-          perView: 2.5,
+          perView: 2.4,
           spacing: 8,
-          origin: 0.02, // Add this line to create a gap on the left
         },
         breakpoints: {
           '(min-width: 768px)': {
@@ -371,9 +370,8 @@
   }
 
   .keen-slider {
-    margin: 0 -1.5rem;
-    width: calc(100% + 3rem);
-
+    /* margin: 0 -1.5rem;
+    width: calc(100% + 3rem); */
   }
 
   .carousel-item {
