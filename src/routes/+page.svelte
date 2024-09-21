@@ -23,17 +23,17 @@
   
   <section class="features">
     <div class="feature">
-      <span class="icon">🧠</span>
+      <span class="icon"><i class="fas fa-brain"></i></span>
       <h2>Personalised AI Guidance</h2>
       <p>Our advanced AI analyses your preferences, stress levels, and goals to create truly unique meditation experiences</p>
     </div>
     <div class="feature">
-      <span class="icon">🎵</span>
+      <span class="icon"><i class="fas fa-music"></i></span>
       <h2>Immersive Audio</h2>
       <p>Enjoy crystal-clear guided meditations with dynamic soundscapes and soothing visualisations</p>
     </div>
     <div class="feature">
-      <span class="icon">📊</span>
+      <span class="icon"><i class="fas fa-chart-line"></i></span>
       <h2>Progress Tracking</h2>
       <p>Visualise your mindfulness journey with detailed insights and achievement milestones</p>
     </div>
@@ -68,12 +68,12 @@
   <section class="features-highlight">
     <h2>Why Choose In The Moment?</h2>
     <div class="highlight-grid">
-      <div class="highlight-item">✨ Cutting-edge AI technology for truly personalised experiences</div>
-      <div class="highlight-item">🎨 Beautiful, responsive design that works on all your devices</div>
-      <div class="highlight-item">🔒 Secure user profiles and data protection</div>
-      <div class="highlight-item">🌱 Continuous learning algorithm that grows with you</div>
-      <div class="highlight-item">💬 Integration with mood tracking and journaling features</div>
-      <div class="highlight-item">🏆 Gamification elements to keep you motivated</div>
+      <div class="highlight-item"><i class="fas fa-brain"></i> Cutting-edge AI technology for truly personalised experiences</div>
+      <div class="highlight-item"><i class="fas fa-palette"></i> Beautiful, responsive design that works on all your devices</div>
+      <div class="highlight-item"><i class="fas fa-lock"></i> Secure user profiles and data protection</div>
+      <div class="highlight-item"><i class="fas fa-seedling"></i> Continuous learning algorithm that grows with you</div>
+      <div class="highlight-item"><i class="fas fa-comment-dots"></i> Integration with mood tracking and journaling features</div>
+      <div class="highlight-item"><i class="fas fa-trophy"></i> Gamification elements to keep you motivated</div>
     </div>
   </section>
 

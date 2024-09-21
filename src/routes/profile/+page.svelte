@@ -98,7 +98,7 @@
   }
 
   form {
-    background-color: #ffffff;
+    background-color: #f8f8f8; /* Changed from #ffffff to a light gray */
     padding: 1.5rem;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -120,6 +120,7 @@
     border: 1px solid #ccc;
     border-radius: 4px;
     font-size: 1rem;
+    box-sizing: border-box; /* Added to prevent overflow */
   }
 
   .update-button, .logout-button {
@@ -175,6 +176,10 @@
 
     form {
       padding: 1rem;
+    }
+
+    input, select {
+      font-size: 16px; /* Increased font size for better mobile readability */
     }
   }
 </style>
