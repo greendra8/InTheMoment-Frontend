@@ -9,7 +9,7 @@
   export let data: PageData;
 
   let isGenerating = false;
-  let duration = 5;
+  let duration = 15;
   let generationStatus = '';
   let buttonDisabled = false;
   let unsubscribe: (() => void) | null = null;
@@ -239,12 +239,12 @@
         type="range" 
         id="duration" 
         name="duration" 
-        min="1" 
-        max="30" 
+        min="10" 
+        max="45" 
         bind:value={duration} 
       />
-      <div class="slider-progress" style="width: {(duration - 1) / 29 * 100}%"></div>
-      <div class="slider-thumb" style="left: calc({(duration - 1) / 29 * 100}% - 10px)"></div>
+      <div class="slider-progress" style="width: {(duration - 10) / 35 * 100}%"></div>
+      <div class="slider-thumb" style="left: calc({(duration - 10) / 35 * 100}% - 10px)"></div>
     </div>
   </div>
 
