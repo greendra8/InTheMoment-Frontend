@@ -124,7 +124,8 @@
       </div>
     </div>
     <div class="curve-transition bottom-curve">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 100" preserveAspectRatio="none">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 100" preserveAspectRatio="none" style="transform: translateY(5px);">
+        <!-- 5px translation hides 1px black line showing from dark section background -->
         <path fill="#e1e1e1" d="M0,0 C480,100 960,0 1440,0 L1440,100 L0,100 Z"></path>
       </svg>
     </div>
