@@ -27,6 +27,7 @@
         slides: {
           perView: 2.5,
           spacing: 8,
+          origin: 0.02, // Add this line to create a gap on the left
         },
         breakpoints: {
           '(min-width: 768px)': {
@@ -366,6 +367,12 @@
     text-decoration: none;
     color: inherit;
     width: 100%;
+  }
+
+  .keen-slider {
+    margin: 0 -1.5rem;
+    width: calc(100% + 3rem);
+
   }
 
   .carousel-item {
