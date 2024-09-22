@@ -54,9 +54,9 @@
 <div class="container">
   <div class="light-section">
     <header>
-      <div class="top-bar">
+      <!-- <div class="top-bar">
         <span class="note">InTheMoment.app | Dev Build 0.1.3</span>
-      </div>
+      </div> -->
       <h1>Recommended</h1>
     </header>
 
