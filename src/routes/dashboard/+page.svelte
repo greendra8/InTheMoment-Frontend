@@ -22,7 +22,7 @@
         .map(img => new Promise(resolve => { img.onload = img.onerror = resolve; }))
     ).then(() => {
       slider = new KeenSlider(sliderRef, {
-        loop: true,
+        loop: false,
         mode: "snap",
         slides: {
           perView: 2.4,
