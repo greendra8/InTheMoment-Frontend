@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { type Handle, redirect } from '@sveltejs/kit'
 import { sequence } from '@sveltejs/kit/hooks'
+import { dev } from '$app/environment';
 
 const PUBLIC_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
 const PUBLIC_SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -47,6 +48,20 @@ const supabase: Handle = async ({ event, resolve }) => {
     },
   })
 
+  const isNativeApp = event.request.headers.get('X-Native-App') === 'true';
+  
+  if (isNativeApp) {
+    event.cookies.set('is_native_app', 'true', {
+      path: '/',
+      httpOnly: true,
+      secure: !dev,
+      maxAge: 60 * 60 * 24 * 7, // 1 week
+      sameSite: 'lax'
+    });
+  }
+
+  event.locals.isNativeApp = isNativeApp || event.cookies.get('is_native_app') === 'true';
+
   event.locals.safeGetSession = async () => {
     const { data: { session } } = await event.locals.supabase.auth.getSession()
     if (!session) return { session: null, user: null }
@@ -59,8 +74,6 @@ const supabase: Handle = async ({ event, resolve }) => {
 
     return { session: { ...session, user }, user }
   }
-
-  event.locals.isNativeApp = event.request.headers.get('X-Native-App') === 'true';
 
   return resolve(event, {
     filterSerializedResponseHeaders(name) {
