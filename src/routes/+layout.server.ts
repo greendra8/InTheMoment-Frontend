@@ -4,7 +4,12 @@ import { redirect } from '@sveltejs/kit';
 export const load: LayoutServerLoad = async ({ locals, url }) => {
   const { session, user } = await locals.safeGetSession();
 
-  if (!user && (url.pathname.startsWith('/dashboard') || url.pathname.startsWith('/meditation'))) {
+  // Redirect logged-in users from "/" to "/dashboard"
+  if (user && url.pathname === '/') {
+    throw redirect(303, '/dashboard');
+  }
+
+  if (!user && (url.pathname.startsWith('/dashboard') || url.pathname.startsWith('/meditation') || url.pathname.startsWith('/profile') || url.pathname.startsWith('/list'))) {
     throw redirect(303, '/login');
   }
 
