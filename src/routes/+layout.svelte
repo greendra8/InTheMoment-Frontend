@@ -176,7 +176,7 @@
       max-width: none;
       flex-direction: column;
       border-radius: 12px;
-      padding: 10px 0;
+      padding: 10px 3px;
       justify-content: flex-start;
     }
 
