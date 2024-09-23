@@ -29,7 +29,7 @@
 </script>
 
 <div class="meditations-list-container">
-  <h1>Your Sessions</h1>
+  <h1>Your Library</h1>
 
   <h2>Most Recent</h2>
   {#if meditations.length > 0}
