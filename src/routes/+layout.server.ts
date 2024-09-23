@@ -16,7 +16,7 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
   const navItems = user
     ? [
         { href: '/dashboard', label: 'Dashboard', icon: 'fa-home' },
-        { href: '/list', label: 'List', icon: 'fa-list' },
+        { href: '/library', label: 'Library', icon: 'fa-list' },
         { href: '/meditation', label: 'Meditation', icon: 'fa-spa' },
         { href: '/profile', label: 'Profile', icon: 'fa-user' },
       ]
