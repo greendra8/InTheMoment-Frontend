@@ -8,7 +8,7 @@
   $: featuredTitle = featuredMeditation ? featuredMeditation.title.split(' ') : [];
 
   function getMeditationLink(id: string) {
-    return `/list`;
+    return `/library`;
   }
 
   let sliderRef: HTMLElement;
