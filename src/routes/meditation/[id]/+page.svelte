@@ -42,6 +42,13 @@
 
   let isFeedbackFocused = false;
 
+  $: windowHeight = browser ? window.innerHeight : 0;
+  $: contentHeight = windowHeight - 40; // Subtracting the global layout padding
+
+  function handleResize() {
+    windowHeight = window.innerHeight;
+  }
+
   async function handleFeedbackSubmit(event: CustomEvent) {
     const { sessionId, profileId, feedback } = event.detail;
     console.log('Handling feedback submission:', { sessionId, profileId, feedback });
@@ -155,6 +162,10 @@
     window.addEventListener('downloadComplete', handleDownloadComplete as EventListener);
     checkDownloadStatus();
 
+    if (browser) {
+      window.addEventListener('resize', handleResize);
+    }
+
     return () => {
       window.removeEventListener('keydown', handleKeydown);
       // Remove event listeners on component unmount
@@ -165,6 +176,9 @@
       }
       window.removeEventListener('downloadStatusUpdate', handleDownloadStatusUpdate as EventListener);
       window.removeEventListener('downloadComplete', handleDownloadComplete as EventListener);
+      if (browser) {
+        window.removeEventListener('resize', handleResize);
+      }
     };
   });
 
@@ -364,139 +378,161 @@
   $: showFeedbackForm = meditation.listened || !!feedback || isCompletedThisSession;
 </script>
 
-<div class="meditation-container" on:click={resumeAudioContext}>
-  <header>
-    <h2>
-      {meditation.title}
-      {#if meditation.listened}
-      <span class="listened-icon" title="You've listened to this meditation before">
-        <i class="fas fa-check-circle"></i>
-      </span>
-    {/if}
-    </h2>
-    <div class="meditation-info">
-      <span class="info-item">
-        <i class="fas fa-layer-group"></i> {meditation.theme}
-      </span>
-      <span class="info-item">
-        <i class="fas fa-signal"></i> {meditation.difficulty.charAt(0).toUpperCase() + meditation.difficulty.slice(1)}
-      </span>
-      <span class="info-item">
-        <i class="far fa-clock"></i> {meditation.length} minutes
-      </span>
-      <span 
-        id="download-button-{meditation.id}" 
-        class="info-item {isDownloaded ? 'download-status' : 'download-icon'}" 
-        on:click|stopPropagation={isDownloaded ? null : triggerDownload} 
-        title={isDownloaded ? "Meditation downloaded" : "Download meditation"}
-      >
-        <i class="fas {isDownloaded ? 'fa-check-circle' : 'fa-download'}"></i>
-        {isDownloaded ? 'Downloaded' : 'Download'}
-      </span>
-    </div>
-  </header>
-
-  {#if audioUrl}
-    <div class="audio-player">
-      <div 
-        class="canvas-container" 
-        on:click={togglePlayPause} 
-        style="opacity: {canvasOpacity}; filter: blur({canvasBlur}px); transition: opacity 0.2s ease-in, filter 0.1s ease-in;"
-      >
-        <canvas bind:this={canvasElement} width="300" height="300"></canvas>
-        <div class="play-overlay" class:visible={!isPlaying}>
-          <svg viewBox="0 0 24 24" width="48" height="48">
-            <polygon points="5,3 19,12 5,21" fill="white"/>
-          </svg>
-        </div>
-      </div>
-      <audio
-        bind:this={audioElement}
-        crossorigin="anonymous"
-        src={audioUrl}
-        on:timeupdate={updateProgress}
-        on:loadedmetadata={updateProgress}
-        on:play={updatePlayingState}
-        on:pause={updatePlayingState}
-        on:ended={handleAudioEnded}
-      ></audio>
-      <div class="custom-audio-controls">
-        <div 
-          class="progress-container" 
-          on:mousedown={startSeek} 
-          on:mousemove={seeking} 
-          on:mouseup={endSeek} 
-          on:mouseleave={endSeek}
-          on:touchstart={startSeek}
-          on:touchmove={seeking}
-          on:touchend={endSeek}
-          on:touchcancel={endSeek}
-        >
-          <div class="progress-bar" style="width: {(currentTime / duration) * 100}%"></div>
-          <div class="progress-knob" style="left: calc({(currentTime / duration) * 100}% - 8px)"></div>
-        </div>
-        <div class="controls-row">
-          <div class="time-display">
-            {formatTime(currentTime)} / {formatTime(duration)}
-          </div>
-          <div class="volume-control">
-            <i class={`fas fa-${
-              isMuted || volume === 0 ? 'volume-xmark' :
-              volume < 0.2 ? 'volume-off' :
-              volume < 0.5 ? 'volume-low' :
-              'volume-high'
-            }`} on:click={toggleMute}></i>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.01"
-              bind:value={volume}
-              on:input={setVolume}
-              class="volume-slider"
-              style="--volume-percentage: {volume * 100}%"
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  {:else}
-    <p class="no-audio">Audio not available for this meditation. (Audio URL: {audioUrl})</p>
-  {/if}
-
-  {#if showFeedbackForm}
-    {#if isFeedbackVisible}
-      <div class="feedback-section">
-        <h3>Your Feedback</h3>
-        <FeedbackForm 
-          sessionId={meditation.id}
-          profileId={userId}
-          existingFeedback={feedback?.text}
-          on:submit={handleFeedbackSubmit}
-          on:focus={handleFeedbackFocus}
-          on:blur={handleFeedbackBlur}
-        />
-        {#if feedback || isCompletedThisSession}
-          <button class="hide-feedback-button" on:click={toggleFeedbackVisibility}>Hide Feedback</button>
+<div class="meditation-page" style="height: {contentHeight}px;">
+  <div class="meditation-content">
+    <header>
+      <h2>
+        {meditation.title}
+        {#if meditation.listened}
+          <span class="listened-icon" title="You've listened to this meditation before">
+            <i class="fas fa-check-circle"></i>
+          </span>
         {/if}
+      </h2>
+      <div class="meditation-info">
+        <span class="info-item">
+          <i class="fas fa-layer-group"></i> {meditation.theme}
+        </span>
+        <span class="info-item">
+          <i class="fas fa-signal"></i> {meditation.difficulty.charAt(0).toUpperCase() + meditation.difficulty.slice(1)}
+        </span>
+        <span class="info-item">
+          <i class="far fa-clock"></i> {meditation.length} minutes
+        </span>
+        <span 
+          id="download-button-{meditation.id}" 
+          class="info-item {isDownloaded ? 'download-status' : 'download-icon'}" 
+          on:click|stopPropagation={isDownloaded ? null : triggerDownload} 
+          title={isDownloaded ? "Meditation downloaded" : "Download meditation"}
+        >
+          <i class="fas {isDownloaded ? 'fa-check-circle' : 'fa-download'}"></i>
+          {isDownloaded ? 'Downloaded' : 'Download'}
+        </span>
+      </div>
+    </header>
+
+    {#if audioUrl}
+      <div class="audio-player">
+        <div 
+          class="canvas-container" 
+          on:click={togglePlayPause} 
+          style="opacity: {canvasOpacity}; filter: blur({canvasBlur}px); transition: opacity 0.2s ease-in, filter 0.1s ease-in;"
+        >
+          <canvas bind:this={canvasElement} width="300" height="300"></canvas>
+          <div class="play-overlay" class:visible={!isPlaying}>
+            <svg viewBox="0 0 24 24" width="48" height="48">
+              <polygon points="5,3 19,12 5,21" fill="white"/>
+            </svg>
+          </div>
+        </div>
+        <audio
+          bind:this={audioElement}
+          crossorigin="anonymous"
+          src={audioUrl}
+          on:timeupdate={updateProgress}
+          on:loadedmetadata={updateProgress}
+          on:play={updatePlayingState}
+          on:pause={updatePlayingState}
+          on:ended={handleAudioEnded}
+        ></audio>
       </div>
     {:else}
-      <button class="show-feedback-button" on:click={toggleFeedbackVisibility}>
-        {feedback ? 'View/Edit Feedback' : 'Provide Feedback'}
-      </button>
+      <p class="no-audio">Audio not available for this meditation. (Audio URL: {audioUrl})</p>
     {/if}
+
+    <div class="custom-audio-controls">
+      <div 
+        class="progress-container" 
+        on:mousedown={startSeek} 
+        on:mousemove={seeking} 
+        on:mouseup={endSeek} 
+        on:mouseleave={endSeek}
+        on:touchstart={startSeek}
+        on:touchmove={seeking}
+        on:touchend={endSeek}
+        on:touchcancel={endSeek}
+      >
+        <div class="progress-bar" style="width: {(currentTime / duration) * 100}%"></div>
+        <div class="progress-knob" style="left: calc({(currentTime / duration) * 100}% - 8px)"></div>
+      </div>
+      <div class="controls-row">
+        <div class="time-display">
+          {formatTime(currentTime)} / {formatTime(duration)}
+        </div>
+        <div class="volume-control">
+          <i class={`fas fa-${
+            isMuted || volume === 0 ? 'volume-xmark' :
+            volume < 0.2 ? 'volume-off' :
+            volume < 0.5 ? 'volume-low' :
+            'volume-high'
+          }`} on:click={toggleMute}></i>
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.01"
+            bind:value={volume}
+            on:input={setVolume}
+            class="volume-slider"
+            style="--volume-percentage: {volume * 100}%"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {#if showFeedbackForm}
+    <div class="feedback-container">
+      {#if isFeedbackVisible}
+        <div class="feedback-section">
+          <h3>Your Feedback</h3>
+          <FeedbackForm 
+            sessionId={meditation.id}
+            profileId={userId}
+            existingFeedback={feedback?.text}
+            on:submit={handleFeedbackSubmit}
+            on:focus={handleFeedbackFocus}
+            on:blur={handleFeedbackBlur}
+          />
+          {#if feedback || isCompletedThisSession}
+            <button class="hide-feedback-button" on:click={toggleFeedbackVisibility}>Hide Feedback</button>
+          {/if}
+        </div>
+      {:else}
+        <button class="show-feedback-button" on:click={toggleFeedbackVisibility}>
+          {feedback ? 'View/Edit Feedback' : 'Provide Feedback'}
+        </button>
+      {/if}
+    </div>
   {/if}
 </div>
 
 <style>
-  .meditation-container {
-    margin: 0 auto;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+  .meditation-page {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+  }
+
+  .meditation-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    flex-grow: 1;
+    padding: 20px;
   }
 
   header {
     text-align: center;
-    margin-bottom: 1.5rem;
+    margin-bottom: 20px;
+    position: absolute;
+    top: 5px;
+    left: 0;
+    right: 0;
+    padding: 20px;
+    box-sizing: border-box;
   }
 
   h2 {
@@ -537,13 +573,14 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 100%;
+    justify-content: center;
+    flex-grow: 1;
   }
 
   .canvas-container {
     position: relative;
     cursor: pointer;
-    margin-bottom: 1rem;
+    margin-bottom: 20px;
     opacity: 0;
     filter: blur(20px);
     transition: opacity 0.4s ease-in, filter 0.4s ease-in;
@@ -581,6 +618,11 @@
 
   .custom-audio-controls {
     width: 100%;
+    max-width: 400px;
+    position: absolute;
+    bottom: 120px;
+    left: 50%;
+    transform: translateX(-50%);
   }
 
   .progress-container {
@@ -727,6 +769,12 @@
     }
   }
 
+  .feedback-container {
+    width: 100%;
+    padding: 0 20px 20px;
+    box-sizing: border-box;
+  }
+
   .feedback-section {
     margin-top: 2rem;
     padding: 1rem;
@@ -769,5 +817,31 @@
     margin-top: 1rem;
     margin-left: auto;
     margin-right: auto;
+  }
+
+  @media (max-height: 600px) {
+    .meditation-content {
+      justify-content: flex-start;
+    }
+
+    .audio-player {
+      flex-grow: 0;
+    }
+
+    .custom-audio-controls {
+      position: static;
+      transform: none;
+      margin-top: 20px;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .meditation-content {
+      padding: 10px;
+    }
+
+    .custom-audio-controls {
+      max-width: 85%;
+    }
   }
 </style>
