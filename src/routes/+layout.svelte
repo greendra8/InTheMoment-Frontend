@@ -194,7 +194,7 @@
 
     .icon-container::before {
       top: 50%;
-      left: 0;
+      left: -3px;
       transform: translateY(-50%);
       width: 2px;
       height: 35px;
