@@ -6,6 +6,7 @@
   import type { PageData } from './$types';
   import { browser } from '$app/environment';
   import FeedbackForm from '$lib/components/FeedbackForm.svelte';
+  import bg from '$lib/assets/med-bg.png';
 
   export let data: PageData;
   const { meditation, userId, feedback } = data;
@@ -43,7 +44,8 @@
   let isFeedbackFocused = false;
 
   $: windowHeight = browser ? window.innerHeight : 0;
-  $: contentHeight = windowHeight - 40; // Subtracting the global layout padding
+  $: contentHeight = windowHeight; // Subtracting the global layout padding
+
 
   function handleResize() {
     windowHeight = window.innerHeight;
@@ -366,6 +368,7 @@
       
       (window as any).ReactNativeWebView.postMessage(JSON.stringify(message));
     } else {
+      alert('Please install our app to get access to offline sessions');
       console.log('Download functionality is only available in the mobile app');
       // You might want to show a toast or some other notification to the user here
     }
@@ -376,9 +379,27 @@
   }
 
   $: showFeedbackForm = meditation.listened || !!feedback || isCompletedThisSession;
+
 </script>
 
-<div class="meditation-page" style="height: {contentHeight}px;">
+<svelte:head>
+  <style>
+    body {
+      overflow: hidden;
+    }
+    main {
+      padding: 0!important;
+    }
+    .content-container {
+      padding-bottom: 0!important;
+    }
+  </style>
+</svelte:head>
+
+<div class="meditation-page" style="height: {contentHeight}px; --background-image: url({bg});">
+  <div class="back-icon" on:click={() => window.history.back()}>
+    <i class="fas fa-arrow-left"></i>
+  </div>
   <div class="meditation-content">
     <header>
       <h2>
@@ -513,6 +534,9 @@
     flex-direction: column;
     justify-content: space-between;
     overflow: hidden;
+    background-image: var(--background-image);
+    background-size: cover;
+    background-position: center;
   }
 
   .meditation-content {
@@ -528,7 +552,7 @@
     text-align: center;
     margin-bottom: 20px;
     position: absolute;
-    top: 5px;
+    top: 0;
     left: 0;
     right: 0;
     padding: 20px;
@@ -668,7 +692,7 @@
 
   .time-display {
     font-size: 0.8rem;
-    color: #666;
+    color: #e1e1e1a0;
   }
 
   .volume-control {
@@ -681,6 +705,7 @@
     width: 16px;  /* Set a fixed width */
     text-align: center;  /* Center the icon within its container */
     font-size: 16px;  /* Set a consistent font size */
+    color: #d0d0d0;
   }
 
   .volume-slider {
@@ -730,43 +755,9 @@
     font-style: italic;
   }
 
-  /* Add this to your existing styles or in the head of your HTML */
-  @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css');
-
-  /* media query for mobile screens */
-  @media (max-width: 600px) {
-    .custom-audio-controls {
-      width: calc(100% - 20px);
-      max-width: 600px;
-      margin: 0 auto;
-    }
-  }
-
-  .download-icon {
-    cursor: pointer;
-    transition: color 0.3s ease;
-  }
-
-  .download-icon:hover {
-    color: #007AFF;
-  }
-
-  .download-status {
-    color: #4CAF50;
-    cursor: default;
-  }
-
-  @media (max-width: 768px) {
-    
-
-    .progress-knob {
-      width: 16px;
-      height: 16px;
-    }
-
-    .progress-knob:hover {
-      transform: translateY(-50%) scale(1.1);
-    }
+  .back-icon {
+    background-color: blue;
+    display: none;
   }
 
   .feedback-container {
@@ -819,6 +810,32 @@
     margin-right: auto;
   }
 
+  .download-icon {
+    cursor: pointer;
+    transition: color 0.3s ease;
+  }
+
+  .download-icon:hover {
+    color: #007AFF;
+  }
+
+  .download-status {
+    color: #4CAF50;
+    cursor: default;
+  }
+
+
+  @media (max-width: 768px) {
+    .progress-knob {
+      width: 16px;
+      height: 16px;
+    }
+
+    .progress-knob:hover {
+      transform: translateY(-50%) scale(1.1);
+    }
+  }
+
   @media (max-height: 600px) {
     .meditation-content {
       justify-content: flex-start;
@@ -836,6 +853,9 @@
   }
 
   @media (max-width: 600px) {
+    .meditation-page {
+      margin: 0 -30px;
+    }
     .meditation-content {
       padding: 10px;
     }
@@ -843,5 +863,30 @@
     .custom-audio-controls {
       max-width: 85%;
     }
+
+    .back-icon {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    z-index: 1;
   }
+
+  .back-icon i {
+    font-size: 1.2rem;
+      color: #333;
+    }
+
+  .volume-control {
+    display: none;
+  }
+  }
+
 </style>
