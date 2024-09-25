@@ -866,9 +866,9 @@
 
     .back-icon {
     position: absolute;
-    top: 15px;
-    left: 15px;
-    background-color: rgba(255, 255, 255, 0.2);
+    top: 25px;
+    left: 25px;
+    background-color: rgba(255, 255, 255, 0.7);
     border-radius: 50%;
     width: 40px;
     height: 40px;
