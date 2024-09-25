@@ -52,7 +52,7 @@ const ENABLE_CELEBRATION = true;
 const ENABLE_GLOW = true;
 const ENABLE_RIPPLES = true;
 
-export function setupAudioVisualizer(audio: HTMLAudioElement, canvas: HTMLCanvasElement, analyser: AnalyserNode) {
+export function setupAudioVisualizer(audio: HTMLAudioElement, canvas: HTMLCanvasElement, analyser: AnalyserNode, canvasWidth: number, canvasHeight: number) {
   const canvasCtx = canvas.getContext('2d');
   if (!canvasCtx) {
     console.error('Unable to get 2D context');
@@ -64,8 +64,8 @@ export function setupAudioVisualizer(audio: HTMLAudioElement, canvas: HTMLCanvas
   const bufferLength = analyser.frequencyBinCount;
   const dataArray = new Uint8Array(bufferLength);
 
-  const WIDTH = canvas.width;
-  const HEIGHT = canvas.height;
+  const WIDTH = canvasWidth;
+  const HEIGHT = canvasHeight;
   const centerX = WIDTH / 2;
   const centerY = HEIGHT / 2;
   const maxRadius = Math.min(WIDTH, HEIGHT) * MAX_RADIUS_FRACTION;
@@ -227,9 +227,18 @@ export function setupAudioVisualizer(audio: HTMLAudioElement, canvas: HTMLCanvas
     celebrationStartTime = Date.now();
   }
 
+  function updateCanvasSize(newWidth: number, newHeight: number) {
+    WIDTH = newWidth;
+    HEIGHT = newHeight;
+    centerX = WIDTH / 2;
+    centerY = HEIGHT / 2;
+    maxRadius = Math.min(WIDTH, HEIGHT) * MAX_RADIUS_FRACTION;
+  }
+
   draw();
 
   return {
-    startCelebration
+    startCelebration,
+    updateCanvasSize
   };
 }

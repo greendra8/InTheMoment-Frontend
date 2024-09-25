@@ -15,6 +15,9 @@
 
   let audioElement: HTMLAudioElement;
   let canvasElement: HTMLCanvasElement;
+  let canvasContext: CanvasRenderingContext2D | null;
+  let canvasWidth = 300;
+  let canvasHeight = 300;
   let audioContext: AudioContext;
 
   let isPlaying = false;
@@ -49,6 +52,10 @@
 
   function handleResize() {
     windowHeight = window.innerHeight;
+    setupCanvas(); // Recalculate canvas size on resize
+    if (visualizer) {
+      visualizer.updateCanvasSize(canvasWidth, canvasHeight);
+    }
   }
 
   async function handleFeedbackSubmit(event: CustomEvent) {
@@ -123,8 +130,24 @@
     isPlaying = !audioElement.paused;
   }
 
+  function setupCanvas() {
+    if (canvasElement && window) {
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvasElement.getBoundingClientRect();
+      canvasWidth = rect.width;
+      canvasHeight = rect.height;
+      canvasElement.width = canvasWidth * dpr;
+      canvasElement.height = canvasHeight * dpr;
+      canvasContext = canvasElement.getContext('2d');
+      if (canvasContext) {
+        canvasContext.scale(dpr, dpr);
+      }
+    }
+  }
+
   onMount(() => {
     if (audioElement && canvasElement) {
+      setupCanvas(); // Call this before setting up the audio visualizer
       audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       const analyser = audioContext.createAnalyser();
       analyser.fftSize = 1024;
@@ -132,7 +155,7 @@
       source.connect(analyser);
       analyser.connect(audioContext.destination);
       
-      visualizer = setupAudioVisualizer(audioElement, canvasElement, analyser);
+      visualizer = setupAudioVisualizer(audioElement, canvasElement, analyser, canvasWidth, canvasHeight);
       
       // Add event listeners for play and pause events
       audioElement.addEventListener('play', updatePlayingState);
@@ -439,7 +462,10 @@
           on:click={togglePlayPause} 
           style="opacity: {canvasOpacity}; filter: blur({canvasBlur}px); transition: opacity 0.2s ease-in, filter 0.1s ease-in;"
         >
-          <canvas bind:this={canvasElement} width="300" height="300"></canvas>
+          <canvas 
+            bind:this={canvasElement} 
+            style="width: 300px; height: 300px;"
+          ></canvas>
           <div class="play-overlay" class:visible={!isPlaying}>
             <svg viewBox="0 0 24 24" width="48" height="48">
               <polygon points="5,3 19,12 5,21" fill="white"/>
