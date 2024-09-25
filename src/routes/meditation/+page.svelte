@@ -122,15 +122,23 @@
     formData.set('length', duration.toString());
     formData.set('parameters', JSON.stringify(createParametersJSON()));
 
-
     try {
       const response = await fetch(formElement.action, {
         method: 'POST',
         body: formData
       });
 
-
       const result = await response.json();
+
+      // TEMPORARY: Handle direct response when subscription isn't working
+      if (result.status === 'Completed' && result.meditation_id) {
+        console.log('TEMPORARY: Handling direct response');
+        isGenerating = false;
+        buttonDisabled = false;
+        goto(`/meditation/${result.meditation_id}`);
+        return;
+      }
+      // END TEMPORARY
 
       if (result.type === 'success' && result.data) {
         const parsedData = JSON.parse(result.data);
