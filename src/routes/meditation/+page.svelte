@@ -66,6 +66,34 @@
     return time;
   }
 
+  function getStatusMessage(status: string): string {
+    switch (status) {
+      case 'Queued':
+        return 'Your meditation is in the queue...';
+      case 'Fetching':
+        return 'Fetching meditation details...';
+      case 'Scripting':
+        return 'Crafting your personalized meditation script...';
+      case 'Reviewing':
+        return 'Reviewing your meditation script...';
+      case 'Generating':
+      case 'Audio Generation':
+        return 'Generating your meditation audio...';
+      case 'Processing':
+        return 'Processing your meditation...';
+      case 'Uploading':
+        return 'Uploading your meditation...';
+      case 'Saving':
+        return 'Saving your meditation...';
+      case 'Completed':
+        return 'Your meditation is ready!';
+      case 'Failed':
+        return 'Meditation generation failed. Please try again.';
+      default:
+        return 'Generating your meditation...';
+    }
+  }
+
   function handleMeditationStatus(status: string) {
     generationStatus = status;
     
@@ -73,7 +101,9 @@
       case 'Queued':
       case 'Fetching':
       case 'Scripting':
+      case 'Reviewing':
       case 'Generating':
+      case 'Audio Generation':
       case 'Processing':
       case 'Uploading':
       case 'Saving':
@@ -130,16 +160,6 @@
 
       const result = await response.json();
 
-      // TEMPORARY: Handle direct response when subscription isn't working
-      if (result.status === 'Completed' && result.meditation_id) {
-        console.log('TEMPORARY: Handling direct response');
-        isGenerating = false;
-        buttonDisabled = false;
-        goto(`/meditation/${result.meditation_id}`);
-        return;
-      }
-      // END TEMPORARY
-
       if (result.type === 'success' && result.data) {
         const parsedData = JSON.parse(result.data);
         const meditationId = parsedData[2]; // Extracting the meditation ID from the third element
@@ -166,28 +186,6 @@
   onDestroy(() => {
     if (unsubscribe) unsubscribe();
   });
-
-  function getStatusMessage(status: string): string {
-    switch (status) {
-      case 'Queued':
-        return 'Your meditation is in the queue...';
-      case 'Fetching':
-        return 'Fetching meditation details...';
-      case 'Scripting':
-        return 'Crafting your personalized meditation script...';
-      case 'Generating':
-        return 'Generating your meditation audio...';
-      case 'Processing':
-        return 'Processing your meditation...';
-      case 'Uploading':
-        return 'Uploading your meditation...';
-      case 'Saving':
-      case 'Completed':
-        return 'Saving your meditation...';
-      default:
-        return 'Generating your meditation...';
-    }
-  }
 
 </script>
 
