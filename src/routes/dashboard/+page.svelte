@@ -4,7 +4,13 @@
 
   export let data: PageData;
 
-  $: ({ meditations, featuredMeditation, user } = data);
+  // Note: The slider's aspect ratio is based on the relationship between
+  // the container width and the width of individual slide items.
+  // Currently, this ratio is approximately 2.5:1 (container:item).
+  // If the layout or number of visible slides changes, the ratio in
+  // adjustSliderHeight() function should be recalculated accordingly.
+
+  $: ({ meditations, featuredMeditation, user, square } = data);
   $: featuredTitle = featuredMeditation ? featuredMeditation.title.split(' ') : [];
 
   function getMeditationLink(id: string) {
@@ -48,6 +54,10 @@
             spacing: 8,
             origin: 0.054,
           },
+          range: {
+            align: true,
+            max: meditations.length - 2,
+          },
           breakpoints: {
             '(min-width: 768px)': {
               slides: {
@@ -59,15 +69,34 @@
           },
         });
         sliderLoaded = true;
+        
+        // Adjust slider height after initialization for precise sizing
+        adjustSliderHeight();
       });
+
+      // Add resize listener to maintain aspect ratio on window resize
+      window.addEventListener('resize', adjustSliderHeight);
     } catch (error) {
       console.error('Failed to initialize KeenSlider:', error);
     }
 
     return () => {
       if (slider) slider.destroy();
+      window.removeEventListener('resize', adjustSliderHeight);
     };
   });
+
+  // Function to dynamically adjust slider height
+  function adjustSliderHeight() {
+    if (sliderRef) {
+      const containerWidth = sliderRef.offsetWidth;
+      // Set height to containerWidth / 2.5 to maintain the desired aspect ratio
+      // The value 2.5 comes from: (width of container) / (width of icon) ≈ 2.5
+      // This makes each slide item almost square
+      // If we change the layout or number of visible slides, we need to recalculate this value!
+      sliderRef.style.height = `${containerWidth / 2.5}px`;
+    }
+  }
 </script>
 
 <svelte:head>
@@ -104,7 +133,7 @@
       {#each meditations as meditation}
         <div class="keen-slider__slide">
           <a href={getMeditationLink(meditation.id)} class="carousel-item" 
-             style="background-image: url('{meditation.backgroundImage}')">
+             style="background-image: url('{square}')">
             <div class="carousel-item-content">
               <h3>{meditation.title}</h3>
             </div>
@@ -398,6 +427,18 @@
     transition: opacity 0.3s ease-in-out;
     margin: 0 -1.5rem;
     width: calc(100% + 3rem);
+    /* Initial height based on 560px container width (560 / 2.5) */
+    /* This provides an instant height on page load before JavaScript runs */
+    height: 224px;
+  }
+
+  /* Adjust height for smaller screens */
+  @media (max-width: 560px) {
+    .keen-slider {
+      /* Use 40% of viewport width for screens smaller than 560px */
+      /* This maintains a similar aspect ratio on smaller devices */
+      height: 40vw;
+    }
   }
 
   .slider-loaded {
@@ -405,8 +446,7 @@
   }
 
   .carousel-item {
-    height: 0;
-    padding-bottom: 100%; /* This makes the height equal to the width */
+    height: 100%;
     background-size: cover;
     background-position: right;
     border-radius: 1rem;
