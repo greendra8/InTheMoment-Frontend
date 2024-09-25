@@ -13,6 +13,7 @@
 
   let sliderRef: HTMLElement;
   let slider: any;
+  let sliderLoaded = false;
 
   onMount(() => {
     // Ensure images are loaded before initializing the slider
@@ -37,6 +38,7 @@
           },
         },
       });
+      sliderLoaded = true;
     });
 
     return () => {
@@ -76,7 +78,7 @@
       </a>
     </div>
 
-    <div bind:this={sliderRef} class="keen-slider">
+    <div bind:this={sliderRef} class="keen-slider" class:slider-loaded={sliderLoaded}>
       {#each meditations as meditation}
         <div class="keen-slider__slide">
           <a href={getMeditationLink(meditation.id)} class="carousel-item" 
@@ -370,8 +372,12 @@
   }
 
   .keen-slider {
-    /* margin: 0 -1.5rem;
-    width: calc(100% + 3rem); */
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+  }
+
+  .slider-loaded {
+    opacity: 1;
   }
 
   .carousel-item {
