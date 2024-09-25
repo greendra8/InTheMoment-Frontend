@@ -15,31 +15,54 @@
   let slider: any;
   let sliderLoaded = false;
 
-  onMount(() => {
-    // Ensure images are loaded before initializing the slider
-    Promise.all(
-      Array.from(document.images)
-        .filter(img => !img.complete)
-        .map(img => new Promise(resolve => { img.onload = img.onerror = resolve; }))
-    ).then(() => {
-      slider = new KeenSlider(sliderRef, {
-        loop: false,
-        mode: "snap",
-        slides: {
-          perView: 2.4,
-          spacing: 8,
-        },
-        breakpoints: {
-          '(min-width: 768px)': {
-            slides: {
-              perView: 2.5,
-              spacing: 16,
+  function loadKeenSlider(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (typeof KeenSlider !== 'undefined') {
+        resolve();
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/keen-slider@6.8.5/keen-slider.min.js';
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error('Failed to load KeenSlider'));
+      document.head.appendChild(script);
+    });
+  }
+
+  onMount(async () => {
+    try {
+      await loadKeenSlider();
+      
+      // Ensure images are loaded before initializing the slider
+      Promise.all(
+        Array.from(document.images)
+          .filter(img => !img.complete)
+          .map(img => new Promise(resolve => { img.onload = img.onerror = resolve; }))
+      ).then(() => {
+        slider = new KeenSlider(sliderRef, {
+          loop: false,
+          mode: "free",
+          slides: {
+            perView: 2.4,
+            spacing: 8,
+            origin: 0.054,
+          },
+          breakpoints: {
+            '(min-width: 768px)': {
+              slides: {
+                perView: 2.4,
+                spacing: 16,
+                origin: 0.054,
+              },
             },
           },
-        },
+        });
+        sliderLoaded = true;
       });
-      sliderLoaded = true;
-    });
+    } catch (error) {
+      console.error('Failed to initialize KeenSlider:', error);
+    }
 
     return () => {
       if (slider) slider.destroy();
@@ -50,7 +73,6 @@
 <svelte:head>
   <title>Dashboard - Meditation List</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/keen-slider@6.8.5/keen-slider.min.css" />
-  <script src="https://cdn.jsdelivr.net/npm/keen-slider@6.8.5/keen-slider.min.js"></script>
 </svelte:head>
 
 <div class="container">
@@ -373,7 +395,9 @@
 
   .keen-slider {
     opacity: 0;
-    transition: opacity 0.2s ease-in-out;
+    transition: opacity 0.3s ease-in-out;
+    margin: 0 -1.5rem;
+    width: calc(100% + 3rem);
   }
 
   .slider-loaded {
@@ -381,14 +405,15 @@
   }
 
   .carousel-item {
-    height: 280px;
+    height: 0;
+    padding-bottom: 100%; /* This makes the height equal to the width */
     background-size: cover;
     background-position: right;
     border-radius: 1rem;
     position: relative;
     overflow: hidden;
-    display: block; /* Add this line */
-    text-decoration: none; /* Add this line */
+    display: block;
+    text-decoration: none;
   }
 
   .carousel-item::after {
@@ -435,9 +460,6 @@
   }
 
   @media (max-width: 768px) {
-    .carousel-item {
-      height: 220px;
-    }
 
     .carousel-item h3 {
       font-size: 1rem;
