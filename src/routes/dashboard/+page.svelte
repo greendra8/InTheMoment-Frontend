@@ -311,6 +311,10 @@
     z-index: 2; /* Ensure card is above the shadow */
   }
 
+  .featured-card:hover {
+    cursor: pointer;
+  }
+
   .card-content {
     position: absolute;
     bottom: 2rem;
@@ -389,7 +393,8 @@
   }
 
   .meditation-item:hover {
-    background-color: #f5f5f5;
+    background-color: #eaeaea;
+    cursor: pointer;
   }
 
   .meditation-item .content {
