@@ -115,7 +115,24 @@
 
     <div class="featured-card-wrapper">
       <div class="featured-card-shadow"></div>
-      <a href={getMeditationLink(featuredMeditation?.id)} class="featured-card" style="background-image: url('{featuredMeditation?.backgroundImage ?? ''}'); background-color: #e1e1e1">
+      <div 
+        class="featured-card" 
+        style="background-image: url('{featuredMeditation?.backgroundImage ?? ''}'); background-color: #e1e1e1"
+        on:click={() => {
+          if (featuredMeditation?.id) {
+            const link = getMeditationLink(featuredMeditation.id);
+            window.location.href = link;
+          }
+        }}
+        on:keydown={(e) => {
+          if (e.key === 'Enter' && featuredMeditation?.id) {
+            const link = getMeditationLink(featuredMeditation.id);
+            window.location.href = link;
+          }
+        }}
+        tabindex="0"
+        role="button"
+      >
         <div class="card-content">
           <h2 class="card-title">
             <span class="title-word">{featuredTitle[0]}</span>
@@ -126,7 +143,7 @@
         <div class="card-chevron">
           <i class="fas fa-chevron-right"></i>
         </div>
-      </a>
+      </div>
     </div>
 
     <div bind:this={sliderRef} class="keen-slider" class:slider-loaded={sliderLoaded}>
@@ -160,7 +177,21 @@
         <ul class="meditation-list">
           {#each meditations.filter(m => !m.isFeatured) as meditation (meditation.id)}
             <li class="meditation-item">
-              <a href={getMeditationLink(meditation.id)} class="meditation-link">
+              <div 
+                class="meditation-link"
+                on:click={() => {
+                  const link = getMeditationLink(meditation.id);
+                  window.location.href = link;
+                }}
+                on:keydown={(e) => {
+                  if (e.key === 'Enter') {
+                    const link = getMeditationLink(meditation.id);
+                    window.location.href = link;
+                  }
+                }}
+                tabindex="0"
+                role="button"
+              >
                 <div class="icon"><i class={meditation.icon}></i></div>
                 <div class="content">
                   <h3>{meditation.title}</h3>
@@ -169,7 +200,7 @@
                 <div class="toggle">
                   <i class="fas fa-chevron-right"></i>
                 </div>
-              </a>
+              </div>
             </li>
           {/each}
         </ul>
@@ -500,6 +531,20 @@
   }
 
   @media (max-width: 768px) {
+
+    .carousel-item, .featured-card, .meditation-item {
+      transform: scale(1);
+      filter: brightness(1);
+      transition: transform 0.3s ease-in-out, filter 0.3s ease-in-out;
+    }
+
+    .carousel-item:active, .featured-card:active, .meditation-item:active {
+      /* darken the image and scale*/
+      filter: brightness(0.97);
+
+      transform: scale(0.97);
+      transition: transform 0.1s ease-in-out, filter 0.1s ease-in-out;
+    }
 
     .carousel-item h3 {
       font-size: 1rem;
