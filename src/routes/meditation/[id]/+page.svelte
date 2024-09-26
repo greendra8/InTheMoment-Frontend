@@ -148,19 +148,17 @@
   onMount(() => {
     if (audioElement && canvasElement) {
       setupCanvas();
+      // Initialize AudioContext and set up visualizer
       audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       const analyser = audioContext.createAnalyser();
       analyser.fftSize = 1024;
       const source = audioContext.createMediaElementSource(audioElement);
       source.connect(analyser);
       analyser.connect(audioContext.destination);
-      
       visualizer = setupAudioVisualizer(audioElement, canvasElement, analyser, canvasWidth, canvasHeight);
-      
-      // Add event listeners for play and pause events
-      audioElement.addEventListener('play', updatePlayingState);
-      audioElement.addEventListener('pause', updatePlayingState);
-      audioElement.addEventListener('ended', handleAudioEnded);
+      if (visualizer) {
+        visualizer.setStandbyMode(true); // Start in standby mode
+      }
     } else {
       console.error('Audio or Canvas element is missing');
     }
@@ -207,41 +205,29 @@
     };
   });
 
-  function resumeAudioContext() {
-    if (audioContext && audioContext.state === 'suspended') {
-      audioContext.resume().then(() => {
-      });
-    }
-  }
-
   function togglePlayPause() {
     if (audioElement.paused) {
-      if (!audioContext) {
-        setupRealAudio();
+      if (audioContext.state === 'suspended') {
+        // Resume AudioContext if it's suspended (browser autoplay policy)
+        audioContext.resume().then(() => {
+          startPlayback();
+        });
+      } else {
+        startPlayback();
       }
-      audioElement.play().then(() => {
-        isPlaying = true;
-        lastUpdateTime = Date.now();
-      }).catch(error => {
-        console.error('Error playing audio:', error);
-      });
     } else {
       audioElement.pause();
       isPlaying = false;
-      updateProgress(); // Ensure we update the total play time when pausing
+      updateProgress();
+      visualizer?.setStandbyMode(true); // Return to standby mode when paused
     }
   }
 
-  function setupRealAudio() {
-    if (!audioContext) {
-      audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const analyser = audioContext.createAnalyser();
-      analyser.fftSize = 32;
-      const source = audioContext.createMediaElementSource(audioElement);
-      source.connect(analyser);
-      analyser.connect(audioContext.destination);
-      setupAudioVisualizer(audioElement, canvasElement, analyser);
-    }
+  function startPlayback() {
+    audioElement.play();
+    isPlaying = true;
+    lastUpdateTime = Date.now();
+    visualizer?.setStandbyMode(false); // Switch to active mode when playing
   }
 
   function updateProgress() {
@@ -487,51 +473,50 @@
       <p class="no-audio">Audio not available for this meditation. (Audio URL: {audioUrl})</p>
     {/if}
 
-
-    {#if showFeedbackForm}
-    <button class="show-feedback-button" on:click={toggleFeedbackVisibility}>
-      <i class="fas fa-comment-alt"></i>&nbsp;
-      {feedback ? 'Edit Feedback' : 'Add Feedback'}
-    </button>
-    {/if}
-
-
-    <div class="custom-audio-controls">
-      <div 
-        class="progress-container" 
-        on:mousedown={startSeek} 
-        on:mousemove={seeking} 
-        on:mouseup={endSeek} 
-        on:mouseleave={endSeek}
-        on:touchstart={startSeek}
-        on:touchmove={seeking}
-        on:touchend={endSeek}
-        on:touchcancel={endSeek}
-      >
-        <div class="progress-bar" style="width: {(currentTime / duration) * 100}%"></div>
-        <div class="progress-knob" style="left: calc({(currentTime / duration) * 100}% - 8px)"></div>
-      </div>
-      <div class="controls-row">
-        <div class="time-display">
-          {formatTime(currentTime)} / {formatTime(duration)}
+    <div class="controls-wrapper">
+      {#if showFeedbackForm}
+      <button class="show-feedback-button" on:click={toggleFeedbackVisibility}>
+        <i class="fas fa-comment-alt"></i>&nbsp;
+        {feedback ? 'Edit Feedback' : 'Add Feedback'}
+        </button>
+      {/if}
+      <div class="custom-audio-controls">
+        <div 
+          class="progress-container" 
+          on:mousedown={startSeek} 
+          on:mousemove={seeking} 
+          on:mouseup={endSeek} 
+          on:mouseleave={endSeek}
+          on:touchstart={startSeek}
+          on:touchmove={seeking}
+          on:touchend={endSeek}
+          on:touchcancel={endSeek}
+        >
+          <div class="progress-bar" style="width: {(currentTime / duration) * 100}%"></div>
+          <div class="progress-knob" style="left: calc({(currentTime / duration) * 100}% - 8px)"></div>
         </div>
-        <div class="volume-control">
-          <i class={`fas fa-${
-            isMuted || volume === 0 ? 'volume-xmark' :
-            volume < 0.2 ? 'volume-off' :
-            volume < 0.5 ? 'volume-low' :
-            'volume-high'
-          }`} on:click={toggleMute}></i>
-          <input
-            type="range"
-            min="0"
-            max="1"
-            step="0.01"
-            bind:value={volume}
-            on:input={setVolume}
-            class="volume-slider"
-            style="--volume-percentage: {volume * 100}%"
-          />
+        <div class="controls-row">
+          <div class="time-display">
+            {formatTime(currentTime)} / {formatTime(duration)}
+          </div>
+          <div class="volume-control">
+            <i class={`fas fa-${
+              isMuted || volume === 0 ? 'volume-xmark' :
+              volume < 0.2 ? 'volume-off' :
+              volume < 0.5 ? 'volume-low' :
+              'volume-high'
+            }`} on:click={toggleMute}></i>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              bind:value={volume}
+              on:input={setVolume}
+              class="volume-slider"
+              style="--volume-percentage: {volume * 100}%"
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -556,381 +541,357 @@
   {/if}
 </div>
 
-
 <style>
-  .meditation-page {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    overflow: hidden;
-    background-image: var(--background-image);
-    background-size: cover;
-    background-position: center;
-  }
+/* Layout and Structure */
+.controls-wrapper {
+  width: 100%;
+  max-width: 400px;
+  position: absolute;
+  bottom: 7.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
 
-  .meditation-content {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    flex-grow: 1;
-    padding: 20px;
-  }
+.meditation-page {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  background-image: var(--background-image);
+  background-size: cover;
+  background-position: center;
+}
 
-  header {
-    text-align: center;
-    margin-bottom: 20px;
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    padding: 20px;
-    box-sizing: border-box;
-  }
+.meditation-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  flex-grow: 1;
+  padding: 1.25rem;
+}
 
-  h2 {
-    font-size: 1.8rem;
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 0.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+/* Header and Meditation Info */
+header {
+  text-align: center;
+  margin-bottom: 1.25rem;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 1.25rem;
+  box-sizing: border-box;
+}
 
-  .listened-icon {
-    font-size: 1rem;
-    color: #4CAF50;
-    vertical-align: middle;
-    padding-left: 0.5rem;
-    /* move it down a bit */
-    margin-top: 7px;
-  }
+h2 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
-  .meditation-info {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 1rem;
-    font-size: 0.9rem;
-    color: #666;
-  }
+.listened-icon {
+  font-size: 1rem;
+  color: #4CAF50;
+  vertical-align: middle;
+  padding-left: 0.5rem;
+  margin-top: 0.44rem;
+}
 
-  .info-item {
-    display: flex;
-    align-items: center;
-    gap: 0.3rem;
-  }
+.meditation-info {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 0.9rem;
+  color: #666;
+}
 
-  .audio-player {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    flex-grow: 1;
-  }
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
 
-  .canvas-container {
-    position: relative;
-    cursor: pointer;
-    margin-bottom: 20px;
-    opacity: 0;
-    filter: blur(20px);
-    transition: opacity 0.4s ease-in, filter 0.4s ease-in;
-  }
+/* Audio Player and Canvas */
+.audio-player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1;
+}
 
-  canvas {
-    display: block;
-    border-radius: 50%;
-    transition: filter 0.3s ease;
-  }
+.canvas-container {
+  position: relative;
+  cursor: pointer;
+  margin-bottom: 1.25rem;
+  opacity: 0;
+  filter: blur(1.25rem);
+  transition: opacity 0.4s ease-in, filter 0.4s ease-in;
+}
 
-  .play-overlay {
-    filter: drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.25));
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 50%;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
-  }
+canvas {
+  display: block;
+  border-radius: 50%;
+  transition: filter 0.3s ease;
+}
 
-  .play-overlay.visible {
-    opacity: 1;
-  }
+.play-overlay {
+  filter: drop-shadow(0px 0.125rem 0.25rem rgba(0, 0, 0, 0.25));
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
 
-  .custom-audio-controls {
-    width: 100%;
-    max-width: 400px;
-    position: absolute;
-    bottom: 120px;
-    left: 50%;
-    transform: translateX(-50%);
-  }
+.play-overlay.visible {
+  opacity: 1;
+}
 
-  .progress-container {
-    width: 100%;
-    height: 6px;
-    background-color: #d0d0d0;
-    border-radius: 3px;
-    cursor: pointer;
-    position: relative;
-    margin-bottom: 0.5rem;
-  }
+/* Progress Bar and Controls */
+.custom-audio-controls {
+  width: 100%;
+}
 
-  .progress-bar {
-    height: 100%;
-    background-color: #007AFF;
-    border-radius: 3px;
-    position: absolute;
-    top: 0;
-    left: 0;
-  }
+.progress-container {
+  width: 100%;
+  height: 0.375rem;
+  background-color: #d0d0d0;
+  border-radius: 3px;
+  cursor: pointer;
+  position: relative;
+  margin-bottom: 0.5rem;
+}
 
+.progress-bar {
+  height: 100%;
+  background-color: #007AFF;
+  border-radius: 3px;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.progress-knob {
+  width: 0.75rem;
+  height: 0.75rem;
+  background-color: #007AFF;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.2);
+  transition: transform 0.1s ease;
+  cursor: pointer;
+}
+
+.progress-knob::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 1.5rem;
+  height: 3.125rem;
+  border-radius: 50%;
+}
+
+.progress-knob:hover {
+  transform: translateY(-50%) scale(1.2);
+}
+
+.controls-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.time-display {
+  font-size: 0.8rem;
+  color: #e1e1e1a0;
+}
+
+/* Volume Control */
+.volume-control {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.volume-control i {
+  width: 1rem;
+  text-align: center;
+  font-size: 1rem;
+  color: #d0d0d0;
+}
+
+.volume-slider {
+  width: 5rem;
+  -webkit-appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 0.75rem;
+  width: 0.75rem;
+  border-radius: 50%;
+  background: #007AFF;
+  cursor: pointer;
+  margin-top: -0.25rem;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
+}
+
+.volume-slider::-webkit-slider-runnable-track,
+.volume-slider::-moz-range-track {
+  width: 100%;
+  height: 0.25rem;
+  background: linear-gradient(to right, #007AFF var(--volume-percentage), #d0d0d0 var(--volume-percentage));
+  border-radius: 2px;
+}
+
+.volume-slider::-moz-range-thumb {
+  height: 0.75rem;
+  width: 0.75rem;
+  border: none;
+  border-radius: 50%;
+  background: #007AFF;
+  cursor: pointer;
+}
+
+/* Feedback Form */
+.blurred-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(0.125rem);
+  -webkit-backdrop-filter: blur(0.125rem);
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  z-index: 800;
+}
+
+.feedback-container {
+  width: 100%;
+  padding: 0 1.25rem 1.25rem;
+  box-sizing: border-box;
+  position: relative;
+  height: 22rem;
+}
+
+.feedback-section {
+  margin-top: 0;
+  padding: 0 1rem 0.5rem;
+  background-color: #efefef;
+  width: 100%;
+  box-sizing: border-box;
+  position: absolute;
+  bottom: 0;
+  margin-left: -1rem;
+  height: 100%;
+}
+
+.show-feedback-button,
+.hide-feedback-button {
+  margin-bottom: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: #d0d0d0;
+  color: #333;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.show-feedback-button:hover,
+.hide-feedback-button:hover {
+  background-color: #555;
+}
+
+/* Download Button */
+.download-icon {
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.download-icon:hover {
+  color: #007AFF;
+}
+
+.download-status {
+  color: #4CAF50;
+  cursor: default;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
   .progress-knob {
-    width: 12px;
-    height: 12px;
-    background-color: #007AFF;
-    border-radius: 50%;
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    transition: transform 0.1s ease;
-    cursor: pointer;
-  }
-
-  .progress-knob::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 24px;
-    height: 50px;
-    border-radius: 50%;
+    width: 1rem;
+    height: 1rem;
   }
 
   .progress-knob:hover {
-    transform: translateY(-50%) scale(1.2);
+    transform: translateY(-50%) scale(1.1);
+  }
+}
+
+@media (max-height: 600px) {
+  .meditation-content {
+    justify-content: flex-start;
   }
 
-  .controls-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  .audio-player {
+    flex-grow: 0;
   }
 
-  .time-display {
-    font-size: 0.8rem;
-    color: #e1e1e1a0;
+  .custom-audio-controls {
+    position: static;
+    transform: none;
+    margin-top: 1.25rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .meditation-page {
+    margin: 0 -1.875rem;
   }
 
-  .volume-control {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+  .meditation-content {
+    padding: 0.625rem;
   }
 
-  .volume-control i {
-    width: 16px;  /* Set a fixed width */
-    text-align: center;  /* Center the icon within its container */
-    font-size: 16px;  /* Set a consistent font size */
-    color: #d0d0d0;
-  }
-
-  .volume-slider {
-    width: 80px;
-    -webkit-appearance: none;
-    background: transparent;
-    cursor: pointer;
-  }
-
-  .volume-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    height: 12px;
-    width: 12px;
-    border-radius: 50%;
-    background: #007AFF;
-    cursor: pointer;
-    margin-top: -4px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-
-  .volume-slider::-webkit-slider-runnable-track {
-    width: 100%;
-    height: 4px;
-    background: linear-gradient(to right, #007AFF var(--volume-percentage), #d0d0d0 var(--volume-percentage));
-    border-radius: 2px;
-  }
-
-  .volume-slider::-moz-range-thumb {
-    height: 12px;
-    width: 12px;
-    border: none;
-    border-radius: 50%;
-    background: #007AFF;
-    cursor: pointer;
-  }
-
-  .volume-slider::-moz-range-track {
-    width: 100%;
-    height: 4px;
-    background: linear-gradient(to right, #007AFF var(--volume-percentage), #e0e0e0 var(--volume-percentage));
-    border-radius: 2px;
-  }
-
-  .no-audio {
-    text-align: center;
-    color: #666;
-    font-style: italic;
+  .controls-wrapper {
+    max-width: 85%;
   }
 
   .back-icon {
-    background-color: blue;
-    display: none;
-  }
-
-  .blurred-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(2px);
-    -webkit-backdrop-filter: blur(2px);
-    display: flex;
-    justify-content: center;
-    align-items: flex-end;
-    z-index: 800;
-  }
-
-  .feedback-container {
-    width: 100%;
-    padding: 0 20px 20px;
-    box-sizing: border-box;
-    position: relative;
-    height: 380px;
-  }
-
-  .feedback-section {
-    margin-top: 0;
-    padding: 0 1rem 0.5rem;
-    background-color: #efefef;
-    width: 100%;
-    box-sizing: border-box;
     position: absolute;
-    bottom: 0px;
-    margin-left: -1rem;
-    height: 100%;
-  }
-
-  .show-feedback-button {
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-    /* keep in line with the right edge of audio controls */
-    transform: translateX(64%);
-    margin-top: 1rem;
-    padding: 0.5rem 1rem;
-    background-color: #d0d0d0;
-    color: #333;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    position: absolute;
-    bottom: 180px;
-  }
-
-  .show-feedback-button:hover,
-  .hide-feedback-button:hover {
-    background-color: #555;
-  }
-
-
-  .hide-feedback-button {
-    display: block;
-    margin-top: 1rem;
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  .download-icon {
-    cursor: pointer;
-    transition: color 0.3s ease;
-  }
-
-  .download-icon:hover {
-    color: #007AFF;
-  }
-
-  .download-status {
-    color: #4CAF50;
-    cursor: default;
-  }
-
-
-  @media (max-width: 768px) {
-    .progress-knob {
-      width: 16px;
-      height: 16px;
-    }
-
-    .progress-knob:hover {
-      transform: translateY(-50%) scale(1.1);
-    }
-  }
-
-  @media (max-height: 600px) {
-    .meditation-content {
-      justify-content: flex-start;
-    }
-
-    .audio-player {
-      flex-grow: 0;
-    }
-
-    .custom-audio-controls {
-      position: static;
-      transform: none;
-      margin-top: 20px;
-    }
-  }
-
-  @media (max-width: 600px) {
-    .meditation-page {
-      margin: 0 -30px;
-    }
-    .meditation-content {
-      padding: 10px;
-    }
-
-    /* keep feedback button on right, and aligned with audio controls */
-    .show-feedback-button {
-      transform: none;
-      right: 7.5%;
-    }
-
-    .custom-audio-controls {
-      max-width: 85%;
-    }
-
-    .back-icon {
-    position: absolute;
-    top: 25px;
-    left: 25px;
+    top: 1.56rem;
+    left: 1.56rem;
     background-color: rgba(255, 255, 255, 0.7);
     border-radius: 50%;
-    width: 40px;
-    height: 40px;
+    width: 2.5rem;
+    height: 2.5rem;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -940,12 +901,23 @@
 
   .back-icon i {
     font-size: 1.2rem;
-      color: #333;
-    }
+    color: #333;
+  }
 
   .volume-control {
     display: none;
   }
-  }
+}
 
+/* Utility Classes */
+.no-audio {
+  text-align: center;
+  color: #666;
+  font-style: italic;
+}
+
+.back-icon {
+  background-color: blue;
+  display: none;
+}
 </style>
