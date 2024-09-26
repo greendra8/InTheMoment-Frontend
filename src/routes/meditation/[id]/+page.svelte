@@ -809,7 +809,7 @@
     display: flex;
     justify-content: center;
     align-items: flex-end;
-    z-index: 1000;
+    z-index: 800;
   }
 
   .feedback-container {
@@ -817,19 +817,19 @@
     padding: 0 20px 20px;
     box-sizing: border-box;
     position: relative;
+    height: 380px;
   }
 
   .feedback-section {
     margin-top: 0;
     padding: 0 1rem 0.5rem;
     background-color: #efefef;
-    border-radius: 0.5rem;
-    width: 90%;
+    width: 100%;
     box-sizing: border-box;
     position: absolute;
-    bottom: 120px;
-    left: 5%; /* Center the feedback section */
-    right: 5%; /* Center the feedback section */
+    bottom: 0px;
+    margin-left: -1rem;
+    height: 100%;
   }
 
   .show-feedback-button {
