@@ -190,7 +190,6 @@ export async function submitUserContext(userId: string, profileData: any) {
 // Add these new functions to the existing file
 
 export async function getFeedback(sessionId: string, profileId: string) {
-  console.log(`Getting feedback for sessionId: ${sessionId}, profileId: ${profileId}`);
   const { data, error } = await supabaseAdmin
     .from('audio_feedback')
     .select('feedback')
@@ -202,37 +201,35 @@ export async function getFeedback(sessionId: string, profileId: string) {
     console.error('Error fetching feedback:', error);
     throw error;
   }
-  console.log('Fetched feedback:', data);
   return data?.feedback || null;
 }
 
 export async function submitFeedback(sessionId: string, profileId: string, feedback: string) {
-  console.log(`Submitting feedback for sessionId: ${sessionId}, profileId: ${profileId}`);
-  console.log('Feedback content:', feedback);
-  
   try {
-    // First, check if a record already exists
+    // Check if a record already exists
     const { data: existingFeedback, error: checkError } = await supabaseAdmin
       .from('audio_feedback')
       .select('*')
       .eq('session_id', sessionId)
       .eq('profile_id', profileId)
-      .single();
+      .maybeSingle();
 
-    if (checkError && checkError.code !== 'PGRST116') {
+    if (checkError) {
       console.error('Error checking existing feedback:', checkError);
       throw checkError;
     }
+
+    const feedbackData = { 
+      feedback: { text: feedback },
+      modified_at: new Date().toISOString()
+    };
 
     let result;
     if (existingFeedback) {
       // Update existing feedback
       const { data, error } = await supabaseAdmin
         .from('audio_feedback')
-        .update({ 
-          feedback: { text: feedback },
-          modified_at: new Date().toISOString()
-        })
+        .update(feedbackData)
         .eq('session_id', sessionId)
         .eq('profile_id', profileId)
         .select();
@@ -244,10 +241,9 @@ export async function submitFeedback(sessionId: string, profileId: string, feedb
       const { data, error } = await supabaseAdmin
         .from('audio_feedback')
         .insert({ 
+          ...feedbackData,
           session_id: sessionId, 
-          profile_id: profileId, 
-          feedback: { text: feedback },
-          modified_at: new Date().toISOString()
+          profile_id: profileId
         })
         .select();
 
@@ -255,7 +251,7 @@ export async function submitFeedback(sessionId: string, profileId: string, feedb
       result = data;
     }
 
-    console.log('Submitted feedback:', result);
+    console.log('Submitted feedback');
     return result[0];
   } catch (err) {
     console.error('Caught error in submitFeedback:', err);
