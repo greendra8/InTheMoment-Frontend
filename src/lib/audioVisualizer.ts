@@ -81,31 +81,37 @@ export function setupAudioVisualizer(audio: HTMLAudioElement, canvas: HTMLCanvas
   let opacity = 0;
   let blur = INITIAL_BLUR;
   const startTimeFade = Date.now();
+  let isStandbyMode = true;
 
   function draw() {
     requestAnimationFrame(draw);
 
+    // Handle fade-in effect
     const currentTime = Date.now();
     const fadeProgress = Math.min((currentTime - startTimeFade) / FADE_IN_DURATION, 1);
     opacity = fadeProgress;
     blur = blur * (1 - fadeProgress);
 
-    analyser.getByteFrequencyData(dataArray);
-
-    const average = dataArray.reduce((sum, value) => sum + value, 0) / analyser.frequencyBinCount;
+    // Get audio data if not in standby mode
+    let average = 0;
+    if (!isStandbyMode) {
+      analyser.getByteFrequencyData(dataArray);
+      average = dataArray.reduce((sum, value) => sum + value, 0) / bufferLength;
+    }
 
     canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
 
     const baseRadius = maxRadius * BASE_RADIUS_FRACTION;
 
+    // Calculate breathing effect
     let breathingEffect = 0;
     if (ENABLE_BREATHING) {
       breathingEffect = Math.sin((Date.now() - startTime) / BREATHING_PERIOD) * BREATHING_AMPLITUDE;
     }
 
-    let targetRadius;
-    if (audio.paused || average < VOLUME_THRESHOLD) {
-      quietTime += 16; // Assuming 60fps, each frame is about 16ms
+    // Determine if we should be in breathing mode
+    if (isStandbyMode || audio.paused || average < VOLUME_THRESHOLD) {
+      quietTime += 16; // Assuming 60fps
       if (quietTime >= BREATHING_DELAY) {
         isBreathing = true;
       }
@@ -114,17 +120,18 @@ export function setupAudioVisualizer(audio: HTMLAudioElement, canvas: HTMLCanvas
       isBreathing = false;
     }
 
-    if (isBreathing) {
-      targetRadius = baseRadius + breathingEffect;
-    } else {
-      targetRadius = baseRadius + (average / 255) * (maxRadius * 0.4); // Increased reactivity
-    }
+    // Calculate target radius based on mode
+    let targetRadius = isBreathing
+      ? baseRadius + breathingEffect
+      : baseRadius + (average / 255) * (maxRadius * 0.4);
 
+    // Smoothly transition to target radius
     const currentTransitionSpeed = isBreathing ? BREATHING_TRANSITION_SPEED : TRANSITION_SPEED;
-    lastPulseRadius = lastPulseRadius + (targetRadius - lastPulseRadius) * currentTransitionSpeed;
+    lastPulseRadius += (targetRadius - lastPulseRadius) * currentTransitionSpeed;
 
     const pulseRadius = lastPulseRadius;
 
+    // Handle celebration effect
     let celebrationFactor = 0;
     if (ENABLE_CELEBRATION && isCelebrating) {
       const celebrationProgress = (Date.now() - celebrationStartTime) / CELEBRATION_DURATION;
@@ -133,6 +140,7 @@ export function setupAudioVisualizer(audio: HTMLAudioElement, canvas: HTMLCanvas
 
     const celebrationPulseRadius = pulseRadius * (1 + celebrationFactor);
 
+    // Draw main pulse
     const gradient = canvasCtx.createRadialGradient(
       centerX - celebrationPulseRadius * 0.3,
       centerY - celebrationPulseRadius * 0.3,
@@ -150,6 +158,7 @@ export function setupAudioVisualizer(audio: HTMLAudioElement, canvas: HTMLCanvas
     canvasCtx.fillStyle = gradient;
     canvasCtx.fill();
 
+    // Draw highlight
     const highlightGradient = canvasCtx.createRadialGradient(
       centerX - pulseRadius * 0.5,
       centerY - pulseRadius * 0.5,
@@ -167,6 +176,7 @@ export function setupAudioVisualizer(audio: HTMLAudioElement, canvas: HTMLCanvas
     canvasCtx.fillStyle = highlightGradient;
     canvasCtx.fill();
 
+    // Draw glow effect
     if (ENABLE_GLOW) {
       const glowSize = GLOW_SIZE_BASE + average / 4 + (ENABLE_BREATHING ? breathingEffect / 2 : 0);
       const glowGradient = canvasCtx.createRadialGradient(
@@ -187,6 +197,7 @@ export function setupAudioVisualizer(audio: HTMLAudioElement, canvas: HTMLCanvas
       canvasCtx.fill();
     }
 
+    // Draw ripples
     if (ENABLE_RIPPLES) {
       for (let i = 1; i <= RIPPLE_COUNT; i++) {
         let rippleRadius = baseRadius + (i * RIPPLE_BASE_DISTANCE) + Math.sin(Date.now() / (800 - i * 200)) * (3 + average / 30);
@@ -211,25 +222,37 @@ export function setupAudioVisualizer(audio: HTMLAudioElement, canvas: HTMLCanvas
       }
     }
 
+    // End celebration if duration is over
     if (ENABLE_CELEBRATION && isCelebrating && Date.now() - celebrationStartTime > CELEBRATION_DURATION) {
       isCelebrating = false;
     }
 
+    // Apply blur and opacity
     canvasCtx.filter = `blur(${blur}px)`;
     canvasCtx.globalAlpha = opacity;
 
+    // Reset canvas properties
     canvasCtx.filter = 'none';
     canvasCtx.globalAlpha = 1;
   }
 
+  // Start celebration animation
   function startCelebration() {
     isCelebrating = true;
     celebrationStartTime = Date.now();
   }
 
+  // Toggle between standby and active modes
+  function setStandbyMode(standby: boolean) {
+    isStandbyMode = standby;
+  }
+
+  // Start the animation loop
   draw();
 
+  // Return public methods
   return {
-    startCelebration
+    startCelebration,
+    setStandbyMode
   };
 }
