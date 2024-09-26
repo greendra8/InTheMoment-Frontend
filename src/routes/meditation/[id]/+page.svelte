@@ -410,10 +410,6 @@
 
   function toggleFeedbackVisibility() {
     isFeedbackVisible = !isFeedbackVisible;
-    if (!isFeedbackVisible) {
-      // Fade in the canvas when hiding the feedback form
-      fadeInCanvas();
-    }
   }
 
   $: showFeedbackForm = meditation.listened || !!feedback || isCompletedThisSession;
@@ -471,7 +467,7 @@
     </header>
 
     {#if audioUrl}
-      <div class="audio-player" class:hidden={isFeedbackVisible} transition:fade={{ delay: 250, duration: 300 }}>
+      <div class="audio-player" class:hidden={isFeedbackVisible}>
         <div 
           class="canvas-container" 
           on:click={togglePlayPause} 
@@ -506,7 +502,7 @@
       {#if showFeedbackForm}
       <button class="show-feedback-button" on:click={toggleFeedbackVisibility}>
         <i class="fas fa-comment-alt"></i>&nbsp;
-        {feedback ? 'Edit Feedback' : 'Add Feedback'}
+        {feedback || $localFeedback ? 'Edit Feedback' : 'Add Feedback'}
         </button>
       {/if}
       <div class="custom-audio-controls">
@@ -655,7 +651,7 @@ h2 {
   align-items: center;
   justify-content: center;
   flex-grow: 1;
-  transition: opacity 0.3s ease-in-out;
+  transition: opacity 0.5s ease-in-out;
 }
 
 .audio-player.hidden {
@@ -690,7 +686,7 @@ canvas {
   align-items: center;
   border-radius: 50%;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.6s ease;
   pointer-events: none;
 }
 
@@ -793,7 +789,6 @@ canvas {
   box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
 }
 
-.volume-slider::-webkit-slider-runnable-track,
 .volume-slider::-moz-range-track {
   width: 100%;
   height: 0.25rem;
@@ -801,7 +796,16 @@ canvas {
   border-radius: 2px;
 }
 
+.volume-slider::-webkit-slider-runnable-track {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 0.25rem;
+  background: linear-gradient(to right, #007AFF var(--volume-percentage), #d0d0d0 var(--volume-percentage));
+  border-radius: 2px;
+}
+
 .volume-slider::-moz-range-thumb {
+  
   height: 0.75rem;
   width: 0.75rem;
   border: none;
@@ -860,7 +864,7 @@ canvas {
 
 .show-feedback-button:hover,
 .hide-feedback-button:hover {
-  background-color: #555;
+  background-color: #ffffff;
 }
 
 /* Download Button */
@@ -876,6 +880,18 @@ canvas {
 .download-status {
   color: #4CAF50;
   cursor: default;
+}
+
+/* Utility Classes */
+.no-audio {
+  text-align: center;
+  color: #666;
+  font-style: italic;
+}
+
+.back-icon {
+  background-color: blue;
+  display: none;
 }
 
 /* Responsive Design */
@@ -942,17 +958,5 @@ canvas {
   .volume-control {
     display: none;
   }
-}
-
-/* Utility Classes */
-.no-audio {
-  text-align: center;
-  color: #666;
-  font-style: italic;
-}
-
-.back-icon {
-  background-color: blue;
-  display: none;
 }
 </style>
