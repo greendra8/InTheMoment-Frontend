@@ -227,18 +227,9 @@ export function setupAudioVisualizer(audio: HTMLAudioElement, canvas: HTMLCanvas
     celebrationStartTime = Date.now();
   }
 
-  function updateCanvasSize(newWidth: number, newHeight: number) {
-    WIDTH = newWidth;
-    HEIGHT = newHeight;
-    centerX = WIDTH / 2;
-    centerY = HEIGHT / 2;
-    maxRadius = Math.min(WIDTH, HEIGHT) * MAX_RADIUS_FRACTION;
-  }
-
   draw();
 
   return {
-    startCelebration,
-    updateCanvasSize
+    startCelebration
   };
 }
