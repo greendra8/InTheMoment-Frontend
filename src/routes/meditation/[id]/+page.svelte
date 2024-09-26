@@ -145,6 +145,13 @@
     }
   }
 
+  function handleOverlayClick(event: MouseEvent) {
+    // Check if the click was directly on the overlay and not on its children
+    if (event.target === event.currentTarget) {
+      toggleFeedbackVisibility();
+    }
+  }
+
   onMount(() => {
     if (audioElement && canvasElement) {
       setupCanvas();
@@ -523,7 +530,7 @@
   </div>
 
   {#if showFeedbackForm && isFeedbackVisible}
-    <div class="blurred-overlay" transition:fly={{ duration: 300 }}>
+    <div class="blurred-overlay" transition:fly={{ duration: 300 }} on:click={handleOverlayClick}>
       <div class="feedback-container">
         <div class="feedback-section" transition:fly={{ y: 500, duration: 500 }}>
           <FeedbackForm 
