@@ -597,7 +597,7 @@
   width: 100%;
   max-width: 400px;
   position: absolute;
-  bottom: 7.5rem;
+  bottom: 5rem;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -634,7 +634,7 @@ header {
   text-align: center;
   margin-bottom: 1.25rem;
   position: absolute;
-  top: 0;
+  top: 1rem;
   left: 0;
   right: 0;
   padding: 1.25rem;
@@ -891,17 +891,17 @@ canvas {
 .hide-feedback-button {
   margin-bottom: 1rem;
   padding: 0.5rem 1rem;
-  background-color: #d0d0d0;
+  background-color: #f5f5f5;
   color: #333;
   border: none;
-  border-radius: 4px;
+  border-radius: 0.425rem;
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
 
 .show-feedback-button:hover,
 .hide-feedback-button:hover {
-  background-color: #ffffff;
+  background-color: #e5e5e5;
 }
 
 /* Download Button */
@@ -927,7 +927,6 @@ canvas {
 }
 
 .back-icon {
-  background-color: blue;
   display: none;
 }
 
@@ -970,13 +969,14 @@ canvas {
 
   .controls-wrapper {
     max-width: 85%;
+    bottom: 7rem;
   }
 
   .back-icon {
     position: absolute;
     top: 1.56rem;
     left: 1.56rem;
-    background-color: rgba(255, 255, 255, 0.7);
+    background-color: #f5f5f5;
     border-radius: 50%;
     width: 2.5rem;
     height: 2.5rem;
@@ -985,6 +985,10 @@ canvas {
     align-items: center;
     cursor: pointer;
     z-index: 1;
+  }
+
+  .back-icon:hover {
+    background-color: #d3d3d3;
   }
 
   .back-icon i {
