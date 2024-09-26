@@ -53,6 +53,18 @@
 
   let localFeedback = writable(feedback?.text || '');
 
+  // Store the real viewport height, accounting for mobile browser UI
+  let realViewportHeight: number;
+
+  // Function to calculate and set the real viewport height
+  function setRealViewportHeight() {
+    // Get the inner height of the window, which excludes browser UI
+    realViewportHeight = window.innerHeight;
+    // Set a CSS custom property with the real viewport height
+    // This allows us to use it in our CSS for accurate sizing
+    document.documentElement.style.setProperty('--real-viewport-height', `${realViewportHeight}px`);
+  }
+
   function handleResize() {
     windowHeight = window.innerHeight;
     setupCanvas(); // Keep this as it might be useful for other purposes
@@ -197,6 +209,14 @@
       window.addEventListener('resize', handleResize);
     }
 
+    // Set initial real viewport height when the component mounts
+    setRealViewportHeight();
+
+    // Add event listeners for resize and orientation change
+    // This ensures our layout updates when the viewport size changes
+    window.addEventListener('resize', setRealViewportHeight);
+    window.addEventListener('orientationchange', setRealViewportHeight);
+
     return () => {
       window.removeEventListener('keydown', handleKeydown);
       // Remove event listeners on component unmount
@@ -210,6 +230,9 @@
       if (browser) {
         window.removeEventListener('resize', handleResize);
       }
+      // Remove event listeners when the component is destroyed
+      window.removeEventListener('resize', setRealViewportHeight);
+      window.removeEventListener('orientationchange', setRealViewportHeight);
     };
   });
 
@@ -431,7 +454,8 @@
   </style>
 </svelte:head>
 
-<div class="meditation-page" style="height: {contentHeight}px; --background-image: url({bg});">
+<!-- Use the realViewportHeight for the meditation-page div -->
+<div class="meditation-page" style="height: {realViewportHeight}px; --background-image: url({bg});">
   <div class="back-icon" on:click={() => window.history.back()}>
     <i class="fas fa-arrow-left"></i>
   </div>
@@ -589,6 +613,8 @@
   background-image: var(--background-image);
   background-size: cover;
   background-position: center;
+  /* Use the CSS custom property for height, falling back to 100vh if not set */
+  height: var(--real-viewport-height, 100vh);
 }
 
 .meditation-content {
@@ -598,6 +624,9 @@
   align-items: center;
   flex-grow: 1;
   padding: 1.25rem;
+  /* Use the CSS custom property for height, ensuring full coverage of the viewport */
+  height: var(--real-viewport-height, 100vh);
+  box-sizing: border-box;
 }
 
 /* Header and Meditation Info */
@@ -653,6 +682,10 @@ h2 {
   justify-content: center;
   flex-grow: 1;
   transition: opacity 0.5s ease-in-out;
+  /* Position the audio player absolutely in the center of the screen */
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .audio-player.hidden {
