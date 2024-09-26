@@ -1,5 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher, onMount } from 'svelte';
+  import { fade } from 'svelte/transition';
 
   export let sessionId: string;
   export let profileId: string;
@@ -8,6 +9,7 @@
   let feedbackText = '';
   let initialFeedback = '';
   const dispatch = createEventDispatcher();
+  let showConfirmation = false;
 
   $: isSubmitDisabled = feedbackText === initialFeedback;
 
@@ -22,6 +24,10 @@
     console.log('Submitting feedback:', feedbackText);
     dispatch('submit', { sessionId, profileId, feedback: feedbackText });
     initialFeedback = feedbackText;
+    showConfirmation = true;
+    setTimeout(() => {
+      showConfirmation = false;
+    }, 3000); // Hide the confirmation after 3 seconds
   }
 
   function handleFocus() {
@@ -39,7 +45,7 @@
 
 <form on:submit|preventDefault={handleSubmit}>
   <div class="form-header">
-    <h3>Shape Your Next Session</h3>
+    <h3>Shape Your Future Sessions</h3>
     <button type="button" class="close-button" on:click={handleClose}>
       <i class="fas fa-times"></i>
     </button>
@@ -53,7 +59,13 @@
     on:blur={handleBlur}
   ></textarea>
   <div class="button-container">
-    <button type="submit" disabled={isSubmitDisabled}>Personalize Next Session</button>
+    {#if showConfirmation}
+      <div class="confirmation-message" transition:fade={{ duration: 300 }}>
+        <i class="fas fa-check-circle"></i>
+        Feedback saved
+      </div>
+    {/if}
+    <button type="submit" disabled={isSubmitDisabled}>Provide Feedback</button>
   </div>
 </form>
 
@@ -75,6 +87,7 @@
   .close-button {
     background: none;
     border: none;
+    border-radius: 50%;
     cursor: pointer;
     font-size: 1.5rem;
     color: #333;
@@ -106,6 +119,8 @@
   .button-container {
     display: flex;
     justify-content: flex-end;
+    align-items: center;
+    gap: 1rem;
   }
 
   button {
@@ -127,5 +142,11 @@
   button:disabled {
     opacity: 0.3;
     cursor: not-allowed;
+  }
+
+  .confirmation-message {
+    font-size: 0.9rem;
+    color: #4CAF50;
+    font-style: italic;
   }
 </style>

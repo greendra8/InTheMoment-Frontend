@@ -69,6 +69,7 @@
     } catch (error) {
       console.error('Error submitting feedback:', error);
       console.error('Error details:', JSON.stringify(error, null, 2));
+      // Optionally, you could show an error message to the user here
     }
   }
 
@@ -498,6 +499,24 @@
       <p class="no-audio">Audio not available for this meditation. (Audio URL: {audioUrl})</p>
     {/if}
 
+    {#if showFeedbackForm && isFeedbackVisible}
+    <div class="blurred-overlay" transition:fly={{ duration: 300 }} on:click={handleOverlayClick}>
+      <div class="feedback-container">
+        <div class="feedback-section" transition:fly={{ y: 500, duration: 600 }}>
+          <FeedbackForm 
+            sessionId={meditation.id}
+            profileId={userId}
+            existingFeedback={$localFeedback || feedback?.text}
+            on:submit={handleFeedbackSubmit}
+            on:focus={handleFeedbackFocus}
+            on:blur={handleFeedbackBlur}
+            on:close={toggleFeedbackVisibility}
+          />
+        </div>
+      </div>
+    </div>
+  {/if}
+
     <div class="controls-wrapper">
       {#if showFeedbackForm}
       <button class="show-feedback-button" on:click={toggleFeedbackVisibility}>
@@ -546,24 +565,6 @@
       </div>
     </div>
   </div>
-
-  {#if showFeedbackForm && isFeedbackVisible}
-    <div class="blurred-overlay" transition:fly={{ duration: 300 }} on:click={handleOverlayClick}>
-      <div class="feedback-container">
-        <div class="feedback-section" transition:fly={{ y: 500, duration: 500 }}>
-          <FeedbackForm 
-            sessionId={meditation.id}
-            profileId={userId}
-            existingFeedback={$localFeedback || feedback?.text}
-            on:submit={handleFeedbackSubmit}
-            on:focus={handleFeedbackFocus}
-            on:blur={handleFeedbackBlur}
-            on:close={toggleFeedbackVisibility}
-          />
-        </div>
-      </div>
-    </div>
-  {/if}
 </div>
 
 <style>
@@ -836,6 +837,8 @@ canvas {
   box-sizing: border-box;
   position: relative;
   height: 22rem;
+  display: flex;
+  justify-content: center;
 }
 
 .feedback-section {
@@ -843,11 +846,12 @@ canvas {
   padding: 0 1rem 0.5rem;
   background-color: #efefef;
   width: 100%;
+  max-width: 40rem;
   box-sizing: border-box;
   position: absolute;
   bottom: 0;
-  margin-left: -1rem;
   height: 100%;
+  border-radius: 0.5rem 0.5rem 0 0;
 }
 
 .show-feedback-button,
