@@ -7,6 +7,8 @@
   import { browser } from '$app/environment';
   import FeedbackForm from '$lib/components/FeedbackForm.svelte';
   import bg from '$lib/assets/med-bg.png';
+  import { writable } from 'svelte/store';
+  import { fly } from 'svelte/transition';
 
   export let data: PageData;
   const { meditation, userId, feedback } = data;
@@ -42,20 +44,19 @@
 
   let isCompletedThisSession = false;
   let showFeedbackForm = meditation.listened || !!feedback || isCompletedThisSession;
-  let isFeedbackVisible = !feedback; // Initialize to true if no feedback exists
+  let isFeedbackVisible = false; // Initialize to true if no feedback exists
 
   let isFeedbackFocused = false;
 
   $: windowHeight = browser ? window.innerHeight : 0;
   $: contentHeight = windowHeight; // Subtracting the global layout padding
 
+  let localFeedback = writable(feedback?.text || '');
 
   function handleResize() {
     windowHeight = window.innerHeight;
-    setupCanvas(); // Recalculate canvas size on resize
-    if (visualizer) {
-      visualizer.updateCanvasSize(canvasWidth, canvasHeight);
-    }
+    setupCanvas(); // Keep this as it might be useful for other purposes
+    // Remove the call to visualizer.updateCanvasSize
   }
 
   async function handleFeedbackSubmit(event: CustomEvent) {
@@ -64,11 +65,10 @@
     try {
       const result = await submitFeedback(sessionId, profileId, feedback);
       console.log('Feedback submitted successfully:', result);
-      // Optionally, you can update the local state or show a success message
+      localFeedback.set(feedback); // Update local feedback after successful submission
     } catch (error) {
       console.error('Error submitting feedback:', error);
       console.error('Error details:', JSON.stringify(error, null, 2));
-      // Handle error (e.g., show error message to user)
     }
   }
 
@@ -147,7 +147,7 @@
 
   onMount(() => {
     if (audioElement && canvasElement) {
-      setupCanvas(); // Call this before setting up the audio visualizer
+      setupCanvas();
       audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       const analyser = audioContext.createAnalyser();
       analyser.fftSize = 1024;
@@ -487,6 +487,15 @@
       <p class="no-audio">Audio not available for this meditation. (Audio URL: {audioUrl})</p>
     {/if}
 
+
+    {#if showFeedbackForm}
+    <button class="show-feedback-button" on:click={toggleFeedbackVisibility}>
+      <i class="fas fa-comment-alt"></i>&nbsp;
+      {feedback ? 'Edit Feedback' : 'Add Feedback'}
+    </button>
+    {/if}
+
+
     <div class="custom-audio-controls">
       <div 
         class="progress-container" 
@@ -528,31 +537,25 @@
     </div>
   </div>
 
-  {#if showFeedbackForm}
-    <div class="feedback-container">
-      {#if isFeedbackVisible}
-        <div class="feedback-section">
-          <h3>Your Feedback</h3>
+  {#if showFeedbackForm && isFeedbackVisible}
+    <div class="blurred-overlay" transition:fly={{ duration: 300 }}>
+      <div class="feedback-container">
+        <div class="feedback-section" transition:fly={{ y: 500, duration: 500 }}>
           <FeedbackForm 
             sessionId={meditation.id}
             profileId={userId}
-            existingFeedback={feedback?.text}
+            existingFeedback={$localFeedback || feedback?.text}
             on:submit={handleFeedbackSubmit}
             on:focus={handleFeedbackFocus}
             on:blur={handleFeedbackBlur}
+            on:close={toggleFeedbackVisibility}
           />
-          {#if feedback || isCompletedThisSession}
-            <button class="hide-feedback-button" on:click={toggleFeedbackVisibility}>Hide Feedback</button>
-          {/if}
         </div>
-      {:else}
-        <button class="show-feedback-button" on:click={toggleFeedbackVisibility}>
-          {feedback ? 'View/Edit Feedback' : 'Provide Feedback'}
-        </button>
-      {/if}
+      </div>
     </div>
   {/if}
 </div>
+
 
 <style>
   .meditation-page {
@@ -662,10 +665,6 @@
     opacity: 1;
   }
 
-  .play-overlay.visible + canvas {
-    filter: blur(50px);
-  }
-
   .custom-audio-controls {
     width: 100%;
     max-width: 400px;
@@ -704,6 +703,18 @@
     transform: translateY(-50%);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     transition: transform 0.1s ease;
+    cursor: pointer;
+  }
+
+  .progress-knob::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 24px;
+    height: 50px;
+    border-radius: 50%;
   }
 
   .progress-knob:hover {
@@ -786,36 +797,57 @@
     display: none;
   }
 
+  .blurred-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    z-index: 1000;
+  }
+
   .feedback-container {
     width: 100%;
     padding: 0 20px 20px;
     box-sizing: border-box;
+    position: relative;
   }
 
   .feedback-section {
-    margin-top: 2rem;
-    padding: 1rem;
-    background-color: rgb(232, 232, 232);
-    border-radius: 20px;
-    width: 100%;
+    margin-top: 0;
+    padding: 0 1rem 0.5rem;
+    background-color: #efefef;
+    border-radius: 0.5rem;
+    width: 90%;
     box-sizing: border-box;
+    position: absolute;
+    bottom: 120px;
+    left: 5%; /* Center the feedback section */
+    right: 5%; /* Center the feedback section */
   }
 
-  .feedback-section h3 {
-    margin-bottom: 1rem;
-    color: #333;
-  }
-
-  .show-feedback-button,
-  .hide-feedback-button {
+  .show-feedback-button {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    /* keep in line with the right edge of audio controls */
+    transform: translateX(64%);
     margin-top: 1rem;
     padding: 0.5rem 1rem;
-    background-color: #333;
-    color: white;
+    background-color: #d0d0d0;
+    color: #333;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    position: absolute;
+    bottom: 180px;
   }
 
   .show-feedback-button:hover,
@@ -823,11 +855,6 @@
     background-color: #555;
   }
 
-  .show-feedback-button {
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-  }
 
   .hide-feedback-button {
     display: block;
@@ -884,6 +911,12 @@
     }
     .meditation-content {
       padding: 10px;
+    }
+
+    /* keep feedback button on right, and aligned with audio controls */
+    .show-feedback-button {
+      transform: none;
+      right: 7.5%;
     }
 
     .custom-audio-controls {
