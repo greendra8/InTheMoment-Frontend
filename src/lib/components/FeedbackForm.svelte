@@ -39,21 +39,21 @@
 
 <form on:submit|preventDefault={handleSubmit}>
   <div class="form-header">
-    <h3>Your Feedback</h3>
+    <h3>Shape Your Next Session</h3>
     <button type="button" class="close-button" on:click={handleClose}>
       <i class="fas fa-times"></i>
     </button>
   </div>
   <textarea
     bind:value={feedbackText}
-    placeholder="Enter your feedback here..."
+    placeholder="Share your experience and what you'd like to focus on next..."
     rows="4"
     maxlength="500"
     on:focus={handleFocus}
     on:blur={handleBlur}
   ></textarea>
   <div class="button-container">
-    <button type="submit" disabled={isSubmitDisabled}>Send Feedback</button>
+    <button type="submit" disabled={isSubmitDisabled}>Personalize Next Session</button>
   </div>
 </form>
 
