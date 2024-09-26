@@ -8,7 +8,7 @@
   import FeedbackForm from '$lib/components/FeedbackForm.svelte';
   import bg from '$lib/assets/med-bg.png';
   import { writable } from 'svelte/store';
-  import { fly } from 'svelte/transition';
+  import { fly, fade } from 'svelte/transition';
 
   export let data: PageData;
   const { meditation, userId, feedback } = data;
@@ -390,8 +390,30 @@
     }
   }
 
+  function fadeInCanvas() {
+    const startTime = Date.now();
+    const fadeInDuration = 200;
+
+    function updateCanvasStyle() {
+      const currentTime = Date.now();
+      const progress = Math.min((currentTime - startTime) / fadeInDuration, 1);
+      canvasOpacity = progress;
+      canvasBlur = 5 * (1 - progress);
+
+      if (progress < 1) {
+        requestAnimationFrame(updateCanvasStyle);
+      }
+    }
+
+    requestAnimationFrame(updateCanvasStyle);
+  }
+
   function toggleFeedbackVisibility() {
     isFeedbackVisible = !isFeedbackVisible;
+    if (!isFeedbackVisible) {
+      // Fade in the canvas when hiding the feedback form
+      fadeInCanvas();
+    }
   }
 
   $: showFeedbackForm = meditation.listened || !!feedback || isCompletedThisSession;
@@ -449,7 +471,7 @@
     </header>
 
     {#if audioUrl}
-      <div class="audio-player">
+      <div class="audio-player" class:hidden={isFeedbackVisible} transition:fade={{ delay: 250, duration: 300 }}>
         <div 
           class="canvas-container" 
           on:click={togglePlayPause} 
@@ -633,6 +655,12 @@ h2 {
   align-items: center;
   justify-content: center;
   flex-grow: 1;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.audio-player.hidden {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .canvas-container {
