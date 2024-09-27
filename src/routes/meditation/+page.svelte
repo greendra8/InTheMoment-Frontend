@@ -76,7 +76,6 @@
         return 'Crafting your personalized meditation script...';
       case 'Reviewing':
         return 'Reviewing your meditation script...';
-      case 'Generating':
       case 'Audio Generation':
         return 'Generating your meditation audio...';
       case 'Processing':
@@ -90,7 +89,7 @@
       case 'Failed':
         return 'Meditation generation failed. Please try again.';
       default:
-        return 'Generating your meditation...';
+        return 'Starting your generation...';
     }
   }
 
