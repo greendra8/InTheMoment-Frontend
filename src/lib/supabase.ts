@@ -151,7 +151,7 @@ export async function completeMeditation(meditationId: string, userId: string, m
 
 // Helper function to check if user profile is completed
 export async function isUserProfileComplete(userId: string) {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await supabase
     .from('profiles')
     .select('complete')
     .eq('id', userId)
