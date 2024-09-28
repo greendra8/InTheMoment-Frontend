@@ -77,7 +77,16 @@ export async function getMeditation(meditationId: string) {
     .single()
   
   if (error) throw error;
-  return data;
+
+  try {
+    // Generate signed URL for the audio file
+    // The file_path is now in the format [userId]/[meditationId]
+    const signedAudioUrl = await getSignedUrl(data.file_path);
+    return { ...data, signedAudioUrl };
+  } catch (signedUrlError) {
+    console.error('Error generating signed URL:', signedUrlError);
+    throw signedUrlError;
+  }
 }
 
 // Helper function to check meditation status
@@ -186,6 +195,21 @@ export async function submitUserContext(userId: string, profileData: any) {
   }
 
   return data
+}
+
+// Add this new function to generate a signed URL
+async function getSignedUrl(filePath: string) {
+  console.log('Generating signed URL for file path:', filePath);
+  const { data, error } = await supabaseAdmin
+    .storage
+    .from('meditation_audios')
+    .createSignedUrl(filePath, 3600) // URL valid for 1 hour
+
+  if (error) {
+    console.error('Error in getSignedUrl:', error);
+    throw error;
+  }
+  return data.signedUrl;
 }
 
 // Add these new functions to the existing file

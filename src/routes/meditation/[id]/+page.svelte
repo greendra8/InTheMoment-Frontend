@@ -13,7 +13,9 @@
   export let data: PageData;
   const { meditation, userId, feedback } = data;
 
-  const audioUrl = meditation.file_path;
+  // Use a signed URL for the audio file. This URL is temporary and expires after a set time,
+  // providing an additional layer of security against unauthorized access.
+  const audioUrl = meditation.signedAudioUrl;
 
   let audioElement: HTMLAudioElement;
   let canvasElement: HTMLCanvasElement;
@@ -510,14 +512,20 @@
         </div>
         <audio
           bind:this={audioElement}
-          crossorigin="anonymous"
           src={audioUrl}
+          crossorigin="anonymous"
           on:timeupdate={updateProgress}
           on:loadedmetadata={updateProgress}
           on:play={updatePlayingState}
           on:pause={updatePlayingState}
           on:ended={handleAudioEnded}
         ></audio>
+        <!-- 
+          The crossorigin="anonymous" attribute is crucial for security:
+          1. It allows the audio to be played from a different domain (Supabase storage)
+          2. It maintains CORS security restrictions
+          3. It's necessary for the Web Audio API to work with cross-origin resources
+        -->
       </div>
     {:else}
       <p class="no-audio">Audio not available for this meditation. (Audio URL: {audioUrl})</p>
