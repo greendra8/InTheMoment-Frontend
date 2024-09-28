@@ -6,7 +6,7 @@
   import type { PageData } from './$types';
   import { browser } from '$app/environment';
   import FeedbackForm from '$lib/components/FeedbackForm.svelte';
-  import bg from '$lib/assets/med-bg.png';
+  import bg from '$lib/assets/med-bg.webp';
   import { writable } from 'svelte/store';
   import { fly, fade } from 'svelte/transition';
 

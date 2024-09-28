@@ -1,10 +1,10 @@
 import type { PageServerLoad } from './$types';
-import sleep from '$lib/assets/3d.png';
-import breath from '$lib/assets/3d2.png';
-import walk from '$lib/assets/3d3.png';
-import commute from '$lib/assets/3d4.png';
-import focus from '$lib/assets/3d5.png';
-import square from '$lib/assets/square.png';
+import sleep from '$lib/assets/3d.webp';
+import breath from '$lib/assets/3d2.webp';
+import walk from '$lib/assets/3d3.webp';
+import commute from '$lib/assets/3d4.webp';
+import focus from '$lib/assets/3d5.webp';
+import square from '$lib/assets/square.webp';
 
 interface Meditation {
   id: string;
