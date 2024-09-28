@@ -1,12 +1,20 @@
 import type { LayoutServerLoad } from './$types';
 import { redirect } from '@sveltejs/kit';
+import { isUserProfileComplete } from '$lib/supabase';
 
 export const load: LayoutServerLoad = async ({ locals, url }) => {
   const { session, user } = await locals.safeGetSession();
 
-  // Redirect logged-in users from "/" to "/dashboard"
-  if (user && url.pathname === '/') {
-    throw redirect(303, '/dashboard');
+  if (user) {
+    const isComplete = await isUserProfileComplete(user.id);
+    if (!isComplete && url.pathname !== '/profile-setup') {
+      throw redirect(303, '/profile-setup');
+    }
+
+    // Redirect logged-in users from "/" to "/dashboard"
+    if (url.pathname === '/') {
+      throw redirect(303, '/dashboard');
+    }
   }
 
   if (!user && (url.pathname.startsWith('/dashboard') || url.pathname.startsWith('/meditation') || url.pathname.startsWith('/profile') || url.pathname.startsWith('/list'))) {

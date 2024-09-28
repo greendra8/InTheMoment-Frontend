@@ -30,13 +30,6 @@ export const load: LayoutLoad = async ({ data, depends, fetch, url }) => {
     data: { session },
   } = await supabase.auth.getSession()
 
-  if (session) {
-    const isComplete = await isUserProfileComplete(session.user.id)
-    if (!isComplete && url.pathname !== '/profile-setup') {
-      throw redirect(303, '/profile-setup')
-    }
-  }
-
   return { ...data, supabase, session }
 }
 
