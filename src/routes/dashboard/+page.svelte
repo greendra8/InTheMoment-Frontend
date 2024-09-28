@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import type { PageData } from './$types';
+  import { goto } from '$app/navigation';
 
   export let data: PageData;
 
@@ -121,13 +122,13 @@
         on:click={() => {
           if (featuredMeditation?.id) {
             const link = getMeditationLink(featuredMeditation.id);
-            window.location.href = link;
+            goto(link);
           }
         }}
         on:keydown={(e) => {
           if (e.key === 'Enter' && featuredMeditation?.id) {
             const link = getMeditationLink(featuredMeditation.id);
-            window.location.href = link;
+            goto(link);
           }
         }}
         tabindex="0"
@@ -149,15 +150,25 @@
     <div bind:this={sliderRef} class="keen-slider" class:slider-loaded={sliderLoaded}>
       {#each meditations as meditation}
         <div class="keen-slider__slide">
-          <a href={getMeditationLink(meditation.id)} class="carousel-item" 
-             style="background-image: url('{square}')">
+          <div 
+            class="carousel-item" 
+            style="background-image: url('{square}')"
+            on:click={() => goto(getMeditationLink(meditation.id))}
+            on:keydown={(e) => {
+              if (e.key === 'Enter') {
+                goto(getMeditationLink(meditation.id));
+              }
+            }}
+            tabindex="0"
+            role="button"
+          >
             <div class="carousel-item-content">
               <h3>{meditation.title}</h3>
             </div>
             <div class="carousel-item-chevron">
               <i class="fas fa-chevron-right"></i>
             </div>
-          </a>
+          </div>
         </div>
       {/each}
     </div>
@@ -179,14 +190,10 @@
             <li class="meditation-item">
               <div 
                 class="meditation-link"
-                on:click={() => {
-                  const link = getMeditationLink(meditation.id);
-                  window.location.href = link;
-                }}
+                on:click={() => goto(getMeditationLink(meditation.id))}
                 on:keydown={(e) => {
                   if (e.key === 'Enter') {
-                    const link = getMeditationLink(meditation.id);
-                    window.location.href = link;
+                    goto(getMeditationLink(meditation.id));
                   }
                 }}
                 tabindex="0"
