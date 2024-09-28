@@ -79,10 +79,23 @@ export async function getMeditation(meditationId: string) {
   if (error) throw error;
 
   try {
-    // Generate signed URL for the audio file
-    // The file_path is now in the format [userId]/[meditationId]
-    const signedAudioUrl = await getSignedUrl(data.file_path);
-    return { ...data, signedAudioUrl };
+    let signedAudioUrl = data.signed_audio_url;
+    let urlExpiration = data.url_expiration;
+
+    // Check if we need to generate a new signed URL
+    if (!signedAudioUrl || !urlExpiration || new Date(urlExpiration) < new Date(Date.now() + 10 * 60 * 1000)) {
+      // Generate new signed URL
+      signedAudioUrl = await getSignedUrl(data.file_path);
+      urlExpiration = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour from now
+
+      // Update the database with the new URL and expiration
+      await supabaseAdmin
+        .from('audio_sessions')
+        .update({ signed_audio_url: signedAudioUrl, url_expiration: urlExpiration })
+        .eq('id', meditationId);
+    }
+
+    return { ...data, signedAudioUrl, urlExpiration };
   } catch (signedUrlError) {
     console.error('Error generating signed URL:', signedUrlError);
     throw signedUrlError;
@@ -203,7 +216,7 @@ async function getSignedUrl(filePath: string) {
   const { data, error } = await supabaseAdmin
     .storage
     .from('meditation_audios')
-    .createSignedUrl(filePath, 3600) // URL valid for 1 hour
+    .createSignedUrl(filePath, 5400) // URL valid for 90 minutes
 
   if (error) {
     console.error('Error in getSignedUrl:', error);
