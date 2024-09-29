@@ -67,8 +67,10 @@
   }
 
   function getStatusMessage(status: string): string {
+    console.log('status', status);
     switch (status) {
       case 'Queued':
+      case '':
         return 'Your meditation is in the queue...';
       case 'Fetching':
         return 'Fetching meditation details...';
