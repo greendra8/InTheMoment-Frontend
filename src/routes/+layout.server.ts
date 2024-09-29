@@ -1,3 +1,4 @@
+// +layout.server.ts
 import type { LayoutServerLoad } from './$types';
 import { redirect } from '@sveltejs/kit';
 import { isUserProfileComplete } from '$lib/supabase';
@@ -17,7 +18,13 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
     }
   }
 
-  if (!user && (url.pathname.startsWith('/dashboard') || url.pathname.startsWith('/meditation') || url.pathname.startsWith('/profile') || url.pathname.startsWith('/list'))) {
+  if (
+    !user &&
+    (url.pathname.startsWith('/dashboard') ||
+      url.pathname.startsWith('/meditation') ||
+      url.pathname.startsWith('/profile') ||
+      url.pathname.startsWith('/list'))
+  ) {
     throw redirect(303, '/login');
   }
 
@@ -38,5 +45,6 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
     user: user ? { id: user.id, email: user.email } : null,
     navItems,
     isNativeApp: locals.isNativeApp,
+    session, // Add this line
   };
 };

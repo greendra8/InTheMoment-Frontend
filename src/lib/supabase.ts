@@ -1,19 +1,13 @@
-import { createClient } from '@supabase/supabase-js'
-import type { Database } from './database.types'
+import { createClient } from '@supabase/supabase-js';
+import type { Database } from './database.types';
 
-const PUBLIC_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
-const PUBLIC_SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
-const PRIVATE_SUPABASE_SERVICE_ROLE_KEY = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY
-
-export const supabase = createClient<Database>(
-  PUBLIC_SUPABASE_URL,
-  PUBLIC_SUPABASE_ANON_KEY
-)
+const PUBLIC_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const PRIVATE_SUPABASE_SERVICE_ROLE_KEY = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
 
 export const supabaseAdmin = createClient<Database>(
   PUBLIC_SUPABASE_URL,
   PRIVATE_SUPABASE_SERVICE_ROLE_KEY
-)
+);
 
 // Helper function to get user profile
 export async function getUserProfile(userId: string) {
@@ -298,7 +292,7 @@ export async function submitFeedback(sessionId: string, profileId: string, feedb
 }
 
 export function subscribeMeditationStatus(meditationId: string, callback: (status: string) => void) {
-  const channel = supabase
+  const channel = supabaseAdmin
     .channel(`meditation-${meditationId}`)
     .on(
       'postgres_changes',

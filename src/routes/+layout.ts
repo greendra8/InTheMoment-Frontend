@@ -1,13 +1,12 @@
-import { createBrowserClient, createServerClient, isBrowser } from '@supabase/ssr'
-import type { LayoutLoad } from './$types'
-import { redirect } from '@sveltejs/kit'
-import { isUserProfileComplete } from '$lib/supabase'
+// layout.ts
+import { createBrowserClient, createServerClient, isBrowser } from '@supabase/ssr';
+import type { LayoutLoad } from './$types';
 
-const PUBLIC_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
-const PUBLIC_SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
+const PUBLIC_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const PUBLIC_SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 export const load: LayoutLoad = async ({ data, depends, fetch, url }) => {
-  depends('supabase:auth')
+  depends('supabase:auth');
 
   const supabase = isBrowser()
     ? createBrowserClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
@@ -21,18 +20,15 @@ export const load: LayoutLoad = async ({ data, depends, fetch, url }) => {
         },
         cookies: {
           getAll() {
-            return data.cookies
+            return data.cookies;
           },
         },
-      })
+      });
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+  // Set the session on the client
+  if (isBrowser() && data.session) {
+    supabase.auth.setSession(data.session);
+  }
 
-  return { ...data, supabase, session }
-}
-
-// Remove or comment out these lines
-// export const prerender = true
-// export const ssr = false
+  return { ...data, supabase };
+};
