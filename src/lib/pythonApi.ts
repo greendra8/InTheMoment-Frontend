@@ -24,5 +24,3 @@ export async function generateMeditation(accessToken: string, length: number, us
 
   return await response.json();
 }
-
-// Remove the getMeditationStatus function from here
