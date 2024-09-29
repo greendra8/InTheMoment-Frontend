@@ -1,6 +1,5 @@
 // $lib/api.ts
 import { supabase } from '$lib/supabaseClient';
-import type { Database } from './database.types';
 
 // Define your client-side helper functions here
 
@@ -99,7 +98,7 @@ export function subscribeMeditationStatus(meditationId: string, callback: (statu
   // Helper function to mark a meditation as complete
 export async function completeMeditation(meditationId: string, userId: string, minutesCompleted: number) {
     // Check if the meditation was last listened to within the last 12 hours
-    const { data: meditationData, error: meditationError } = await supabaseAdmin
+    const { data: meditationData, error: meditationError } = await supabase
       .from('audio_sessions')
       .select('last_listened')
       .eq('id', meditationId)
@@ -117,7 +116,7 @@ export async function completeMeditation(meditationId: string, userId: string, m
     }
   
     // Meditation was not listened to within the last 12 hours or never listened to, update user's total time
-    const { data: userData, error: userError } = await supabaseAdmin
+    const { data: userData, error: userError } = await supabase
       .from('profiles')
       .select('minutes_listened')
       .eq('id', userId)
@@ -127,7 +126,7 @@ export async function completeMeditation(meditationId: string, userId: string, m
   
     const updatedMinutes = (userData.minutes_listened || 0) + minutesCompleted
   
-    const { error: updateUserError } = await supabaseAdmin
+    const { error: updateUserError } = await supabase
       .from('profiles')
       .update({ minutes_listened: updatedMinutes })
       .eq('id', userId)
@@ -135,8 +134,7 @@ export async function completeMeditation(meditationId: string, userId: string, m
     if (updateUserError) throw updateUserError
   
     // Update last_listened timestamp and listened status for the meditation
-    const { error: updateMeditationError } = await supabaseAdmin
-      .from('audio_sessions')
+    const { error: updateMeditationError } = await supabase
       .update({ 
         last_listened: new Date().toISOString(),
         listened: true
