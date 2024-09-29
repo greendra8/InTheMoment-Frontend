@@ -2,7 +2,8 @@
   import { enhance } from '$app/forms';
   import type { PageData, ActionData } from './$types';
   import { invalidate } from '$app/navigation';
-  import { goto } from '$app/navigation';
+  import { supabase } from '$lib/supabaseClient';
+
 
   export let data: PageData;
   export let form: ActionData;
@@ -10,7 +11,7 @@
   let profile = data.profile;
 
   async function handleLogout() {
-    const { error } = await data.supabase.auth.signOut({ scope: 'local' });
+    const { error } = await supabase.auth.signOut({ scope: 'local' });
     if (!error) {
       await invalidate('supabase:auth');
       window.location.href = '/';
