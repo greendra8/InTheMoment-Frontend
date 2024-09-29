@@ -213,34 +213,36 @@
   </div>
   <div class="meditation-content">
     <header>
-      <h2>
-        {meditation.title}
-        {#if meditation.listened}
-          <span class="listened-icon" title="You've listened to this meditation before">
-            <i class="fas fa-check-circle"></i>
+      <div class="header-content">
+        <h2>
+          {meditation.title}
+          {#if meditation.listened}
+            <span class="listened-icon" title="You've listened to this meditation before">
+              <i class="fas fa-check-circle"></i>
+            </span>
+          {/if}
+        </h2>
+        <div class="meditation-info">
+          <span class="info-item">
+            <i class="fas fa-layer-group"></i> {meditation.theme}
           </span>
-        {/if}
-      </h2>
-      <div class="meditation-info">
-        <span class="info-item">
-          <i class="fas fa-layer-group"></i> {meditation.theme}
-        </span>
-        <span class="info-item">
-          <i class="fas fa-signal"></i>{' '}
-          {meditation.difficulty.charAt(0).toUpperCase() + meditation.difficulty.slice(1)}
-        </span>
-        <span class="info-item">
-          <i class="far fa-clock"></i> {meditation.length} minutes
-        </span>
-        <span
-          id="download-button-{meditation.id}"
-          class="info-item {isDownloaded ? 'download-status' : 'download-icon'}"
-          on:click|stopPropagation={isDownloaded ? null : triggerDownload}
-          title={isDownloaded ? 'Meditation downloaded' : 'Download meditation'}
-        >
-          <i class="fas {isDownloaded ? 'fa-check-circle' : 'fa-download'}"></i>
-          {isDownloaded ? 'Downloaded' : 'Download'}
-        </span>
+          <span class="info-item">
+            <i class="fas fa-signal"></i>{' '}
+            {meditation.difficulty.charAt(0).toUpperCase() + meditation.difficulty.slice(1)}
+          </span>
+          <span class="info-item">
+            <i class="far fa-clock"></i> {meditation.length} minutes
+          </span>
+          <span
+            id="download-button-{meditation.id}"
+            class="info-item {isDownloaded ? 'download-status' : 'download-icon'}"
+            on:click|stopPropagation={isDownloaded ? null : triggerDownload}
+            title={isDownloaded ? 'Meditation downloaded' : 'Download meditation'}
+          >
+            <i class="fas {isDownloaded ? 'fa-check-circle' : 'fa-download'}"></i>
+            {isDownloaded ? 'Downloaded' : 'Download'}
+          </span>
+        </div>
       </div>
     </header>
 
@@ -288,8 +290,6 @@
 </div>
 
 <style>
-  /* Full styles for the main component */
-
   /* Layout and Structure */
   .meditation-page {
     display: flex;
@@ -323,6 +323,12 @@
     right: 0;
     padding: 1.25rem;
     box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+  }
+
+  .header-content {
+    max-width: 500px;
   }
 
   h2 {
