@@ -96,24 +96,6 @@ export async function getMeditation(meditationId: string) {
   }
 }
 
-// Helper function to check meditation status
-export async function getMeditationStatus(meditationId: string) {
-  console.log('Checking meditation status for:', meditationId);
-  const { data, error } = await supabaseAdmin
-    .from('audio_sessions')
-    .select('generation_status')
-    .eq('id', meditationId)
-    .single();
-
-  if (error) {
-    console.error('Error in getMeditationStatus:', error);
-    throw error;
-  }
-
-  return data;
-}
-
-
 // Helper function to check if user profile is completed
 export async function isUserProfileComplete(userId: string) {
   const { data, error } = await supabaseAdmin
@@ -131,27 +113,6 @@ export async function isUserProfileComplete(userId: string) {
   return data?.complete || false
 }
 
-// Helper function to submit user context
-export async function submitUserContext(userId: string, profileData: any) {
-  const { data, error } = await supabaseAdmin
-    .from('profiles')
-    .update({
-      name: profileData.name,
-      dob: profileData.dob,
-      gender: profileData.gender,
-      preferences: profileData.preferences,
-      complete: true,
-      experience: profileData.experience
-    })
-    .eq('id', userId)
-
-  if (error) {
-    console.error('Error updating user profile:', error)
-    throw error
-  }
-
-  return data
-}
 
 // Add this new function to generate a signed URL
 async function getSignedUrl(filePath: string) {
