@@ -2,78 +2,79 @@
   import { onMount } from 'svelte';
   import type { PageData } from './$types';
   import { goto } from '$app/navigation';
+  import 'keen-slider/keen-slider.min.css';
 
+  // Export the data passed to the component
   export let data: PageData;
 
-  // Note: The slider's aspect ratio is based on the relationship between
-  // the container width and the width of individual slide items.
-  // Currently, this ratio is approximately 2.5:1 (container:item).
-  // If the layout or number of visible slides changes, the ratio in
-  // adjustSliderHeight() function should be recalculated accordingly.
+  // Destructure data into individual variables reactively
+  $: ({ meditations, featuredMeditation, square } = data);
 
-  $: ({ meditations, featuredMeditation, user, square } = data);
+  // Split the featured meditation title into words
   $: featuredTitle = featuredMeditation ? featuredMeditation.title.split(' ') : [];
 
+  // Function to generate the link to a specific meditation
   function getMeditationLink(id: string) {
     return `/library`;
   }
 
+  // Reference to the slider DOM element
   let sliderRef: HTMLElement;
   let slider: any;
   let sliderLoaded = false;
 
-  function loadKeenSlider(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if (typeof KeenSlider !== 'undefined') {
-        resolve();
-        return;
-      }
-
-      const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/keen-slider@6.8.5/keen-slider.min.js';
-      script.onload = () => resolve();
-      script.onerror = () => reject(new Error('Failed to load KeenSlider'));
-      document.head.appendChild(script);
-    });
+  // Function to dynamically adjust slider height based on its width
+  function adjustSliderHeight() {
+    if (sliderRef) {
+      const containerWidth = sliderRef.offsetWidth;
+      sliderRef.style.height = `${containerWidth / 2.5}px`;
+    }
   }
 
   onMount(async () => {
     try {
-      await loadKeenSlider();
-      
-      // Ensure images are loaded before initializing the slider
-      Promise.all(
+      // Dynamically import KeenSlider in the browser
+      const { default: KeenSlider } = await import('keen-slider');
+
+      // Ensure all images are loaded before initializing the slider
+      await Promise.all(
         Array.from(document.images)
           .filter(img => !img.complete)
-          .map(img => new Promise(resolve => { img.onload = img.onerror = resolve; }))
-      ).then(() => {
-        slider = new KeenSlider(sliderRef, {
-          loop: false,
-          mode: "free",
-          slides: {
-            perView: 2.4,
-            spacing: 8,
-            origin: 0.054,
-          },
-          range: {
-            align: true,
-            max: meditations.length - 2,
-          },
-          breakpoints: {
-            '(min-width: 768px)': {
-              slides: {
-                perView: 2.4,
-                spacing: 16,
-                origin: 0.054,
-              },
-            },
-          },
-        });
-        sliderLoaded = true;
-        
-        // Adjust slider height after initialization for precise sizing
-        adjustSliderHeight();
+          .map(
+            img =>
+              new Promise(resolve => {
+                img.onload = img.onerror = resolve;
+              })
+          )
+      );
+
+      // Initialize the KeenSlider
+      slider = new KeenSlider(sliderRef, {
+        loop: false,
+        mode: 'free',
+        slides: {
+          perView: 2.4,
+          spacing: 8,
+          origin: 0.054
+        },
+        range: {
+          align: true,
+          max: meditations.length - 2
+        },
+        breakpoints: {
+          '(min-width: 768px)': {
+            slides: {
+              perView: 2.4,
+              spacing: 16,
+              origin: 0.054
+            }
+          }
+        }
       });
+      sliderLoaded = true;
+
+      // Adjust slider height after initialization
+      adjustSliderHeight();
 
       // Add resize listener to maintain aspect ratio on window resize
       window.addEventListener('resize', adjustSliderHeight);
@@ -81,43 +82,28 @@
       console.error('Failed to initialize KeenSlider:', error);
     }
 
+    // Cleanup function when the component is destroyed
     return () => {
       if (slider) slider.destroy();
       window.removeEventListener('resize', adjustSliderHeight);
     };
   });
-
-  // Function to dynamically adjust slider height
-  function adjustSliderHeight() {
-    if (sliderRef) {
-      const containerWidth = sliderRef.offsetWidth;
-      // Set height to containerWidth / 2.5 to maintain the desired aspect ratio
-      // The value 2.5 comes from: (width of container) / (width of icon) ≈ 2.5
-      // This makes each slide item almost square
-      // If we change the layout or number of visible slides, we need to recalculate this value!
-      sliderRef.style.height = `${containerWidth / 2.5}px`;
-    }
-  }
 </script>
 
 <svelte:head>
   <title>Dashboard - Meditation List</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/keen-slider@6.8.5/keen-slider.min.css" />
 </svelte:head>
 
 <div class="container">
   <div class="light-section">
     <header>
-      <!-- <div class="top-bar">
-        <span class="note">InTheMoment.app | Dev Build 0.1.3</span>
-      </div> -->
       <h1>Recommended</h1>
     </header>
 
     <div class="featured-card-wrapper">
       <div class="featured-card-shadow"></div>
-      <div 
-        class="featured-card" 
+      <div
+        class="featured-card"
         style="background-image: url('{featuredMeditation?.backgroundImage ?? ''}'); background-color: #e1e1e1"
         on:click={() => {
           if (featuredMeditation?.id) {
@@ -125,7 +111,7 @@
             goto(link);
           }
         }}
-        on:keydown={(e) => {
+        on:keydown={e => {
           if (e.key === 'Enter' && featuredMeditation?.id) {
             const link = getMeditationLink(featuredMeditation.id);
             goto(link);
@@ -136,6 +122,7 @@
       >
         <div class="card-content">
           <h2 class="card-title">
+            <!-- Display the first two words of the featured meditation title -->
             <span class="title-word">{featuredTitle[0]}</span>
             <span class="title-word">{featuredTitle[1]}</span>
           </h2>
@@ -147,14 +134,15 @@
       </div>
     </div>
 
+    <!-- Keen Slider for meditations -->
     <div bind:this={sliderRef} class="keen-slider" class:slider-loaded={sliderLoaded}>
       {#each meditations as meditation}
         <div class="keen-slider__slide">
-          <div 
-            class="carousel-item" 
+          <div
+            class="carousel-item"
             style="background-image: url('{square}')"
             on:click={() => goto(getMeditationLink(meditation.id))}
-            on:keydown={(e) => {
+            on:keydown={e => {
               if (e.key === 'Enter') {
                 goto(getMeditationLink(meditation.id));
               }
@@ -176,8 +164,12 @@
 
   <div class="dark-section">
     <div class="curve-transition top-curve">
+      <!-- SVG curve transition -->
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 100" preserveAspectRatio="none">
-        <path fill="#e1e1e1" d="M0,100 C480,0 960,100 1440,100 L1440,0 L0,0 Z"></path>
+        <path
+          fill="#e1e1e1"
+          d="M0,100 C480,0 960,100 1440,100 L1440,0 L0,0 Z"
+        ></path>
       </svg>
     </div>
     <div class="dark-content">
@@ -188,10 +180,10 @@
         <ul class="meditation-list">
           {#each meditations.filter(m => !m.isFeatured) as meditation (meditation.id)}
             <li class="meditation-item">
-              <div 
+              <div
                 class="meditation-link"
                 on:click={() => goto(getMeditationLink(meditation.id))}
-                on:keydown={(e) => {
+                on:keydown={e => {
                   if (e.key === 'Enter') {
                     goto(getMeditationLink(meditation.id));
                   }
@@ -214,26 +206,38 @@
       </div>
     </div>
     <div class="curve-transition bottom-curve">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 100" preserveAspectRatio="none" style="transform: translateY(5px);">
+      <!-- SVG curve transition -->
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 1440 100"
+        preserveAspectRatio="none"
+        style="transform: translateY(5px);"
+      >
         <!-- 5px translation hides 1px black line showing from dark section background -->
-        <path fill="#e1e1e1" d="M0,0 C480,100 960,0 1440,0 L1440,100 L0,100 Z"></path>
+        <path
+          fill="#e1e1e1"
+          d="M0,0 C480,100 960,0 1440,0 L1440,100 L0,100 Z"
+        ></path>
       </svg>
     </div>
   </div>
 </div>
 
 <style>
+  /* Container styling */
   .container {
     font-family: 'Lato', Arial, sans-serif;
     overflow: hidden;
     margin: 0 -1.5rem;
   }
 
+  /* Light section styling */
   .light-section {
     background-color: #e1e1e1;
     padding: 0 1.5rem;
   }
 
+  /* Curve transition styling */
   .curve-transition {
     display: block;
     width: 100%;
@@ -254,6 +258,7 @@
     margin-top: -1px; /* Removes tiny gap between curve and dark section */
   }
 
+  /* Dark section styling */
   .dark-section {
     background-color: #333333;
     color: #FFFFFF;
@@ -266,13 +271,7 @@
     padding: 0 1.5rem 2rem; /* Added bottom padding */
   }
 
-  .top-bar {
-    font-size: 0.8rem;
-    color: #AAAAAA;
-    margin-bottom: 0.5rem;
-    font-weight: 300;
-  }
-
+  /* Header styling */
   h1 {
     font-family: 'Poppins', Arial, sans-serif;
     font-weight: 600;
@@ -281,11 +280,12 @@
     margin-bottom: 1rem;
   }
 
+  /* Featured card styling */
   .featured-card-wrapper {
     position: relative;
     margin-bottom: 2.5rem;
     width: 100%;
-    padding-top: 56.25%; /* 16:9 aspect ratio (9 / 16 = 0.5625) */
+    padding-top: 56.25%; /* 16:9 aspect ratio */
   }
 
   .featured-card-shadow {
@@ -312,13 +312,10 @@
     background-position: center;
     color: white;
     border-radius: 1rem;
-    overflow: hidden; /* Changed from visible to hidden */
+    overflow: hidden;
     text-decoration: none;
     display: block;
     z-index: 2; /* Ensure card is above the shadow */
-  }
-
-  .featured-card:hover {
     cursor: pointer;
   }
 
@@ -373,6 +370,7 @@
     transform: scale(1.2);
   }
 
+  /* Section title styling */
   .section-title {
     font-family: 'Poppins', Arial, sans-serif;
     font-weight: 600;
@@ -382,6 +380,7 @@
     margin-top: 0;
   }
 
+  /* Meditation list styling */
   .meditation-list {
     list-style-type: none;
     padding: 0;
@@ -465,21 +464,19 @@
     width: 100%;
   }
 
+  /* Keen Slider styling */
   .keen-slider {
     opacity: 0;
     transition: opacity 0.3s ease-in-out;
     margin: 0 -1.5rem;
     width: calc(100% + 3rem);
-    /* Initial height based on 560px container width (560 / 2.5) */
-    /* This provides an instant height on page load before JavaScript runs */
+    /* Initial height based on container width */
     height: 224px;
   }
 
   /* Adjust height for smaller screens */
   @media (max-width: 560px) {
     .keen-slider {
-      /* Use 40% of viewport width for screens smaller than 560px */
-      /* This maintains a similar aspect ratio on smaller devices */
       height: 40vw;
     }
   }
@@ -497,6 +494,7 @@
     overflow: hidden;
     display: block;
     text-decoration: none;
+    cursor: pointer;
   }
 
   .carousel-item::after {
@@ -506,7 +504,11 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, rgba(155, 171, 183, 0.6) 100%);
+    background: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.6) 0%,
+      rgba(155, 171, 183, 0.6) 100%
+    );
   }
 
   .carousel-item-content {
@@ -542,18 +544,20 @@
     transform: scale(1.1);
   }
 
+  /* Mobile styling */
   @media (max-width: 768px) {
-
-    .carousel-item, .featured-card, .meditation-item {
+    .carousel-item,
+    .featured-card,
+    .meditation-item {
       transform: scale(1);
       filter: brightness(1);
       transition: transform 0.3s ease-in-out, filter 0.3s ease-in-out;
     }
 
-    .carousel-item:active, .featured-card:active, .meditation-item:active {
-      /* darken the image and scale*/
+    .carousel-item:active,
+    .featured-card:active,
+    .meditation-item:active {
       filter: brightness(0.97);
-
       transform: scale(0.97);
       transition: transform 0.1s ease-in-out, filter 0.1s ease-in-out;
     }

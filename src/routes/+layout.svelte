@@ -1,18 +1,27 @@
+<!-- +layout.svelte -->
 <script lang="ts">
   import '../app.css';
   import { invalidate } from '$app/navigation';
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
   import { appContext } from '$lib/stores/appContext';
+  import { supabase } from '$lib/supabaseClient';
+  import { session as sessionStore } from '$lib/stores/session';
+  import { get } from 'svelte/store';
 
   export let data;
-  $: ({ session, supabase, navItems, isNativeApp } = data);
+  $: ({ navItems, isNativeApp } = data);
+
+  // Update the session store with the initial session
+  sessionStore.set(data.session);
 
   $: appContext.setIsNativeApp(isNativeApp);
 
   onMount(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange((_, newSession) => {
-      if (newSession?.expires_at !== session?.expires_at) {
+      const currentSession = get(sessionStore);
+      if (newSession?.expires_at !== currentSession?.expires_at) {
+        sessionStore.set(newSession);
         invalidate('supabase:auth');
       }
     });

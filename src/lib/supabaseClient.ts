@@ -1,12 +1,11 @@
-import { createClient } from '@supabase/supabase-js'
-import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public'
+// $lib/supabaseClient.ts
+import { createClient } from '@supabase/supabase-js';
+import type { Database } from './database.types';
 
-export const supabase = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
-  auth: {
-    cookieOptions: {
-      // DEVELOPMENT ONLY: This allows cookies to be set over HTTP for local development.
-      // IMPORTANT: For production, remove this option to ensure cookies are always secure.
-      secure: window.location.protocol === "https:"
-    }
-  }
-})
+const PUBLIC_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const PUBLIC_SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+export const supabase = createClient<Database>(
+  PUBLIC_SUPABASE_URL,
+  PUBLIC_SUPABASE_ANON_KEY
+);

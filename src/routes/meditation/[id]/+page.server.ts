@@ -1,16 +1,18 @@
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import { getMeditation, getFeedback } from '$lib/supabase';
+import { getMeditation, getFeedback } from '$lib/server/supabase';
+import { session as sessionStore } from '$lib/stores/session';
+import { get } from 'svelte/store';
 
-export const load: PageServerLoad = async ({ params, locals }) => {
-  const session = await locals.supabase.auth.getSession();
+export const load: PageServerLoad = async ({ params}) => {
+  const session = get(sessionStore);
 
-  if (!session.data.session) {
+  if (!session) {
     console.log('No session found, throwing 401 error');
     throw error(401, 'Unauthorized');
   }
 
-  const userId = session.data.session.user.id;
+  const userId = session.user.id;
   const meditationId = params.id;
 
   if (!meditationId || meditationId.includes('.')) {

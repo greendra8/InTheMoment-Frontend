@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { subscribeMeditationStatus } from '$lib/supabase';
+  import { subscribeMeditationStatus } from '$lib/api';
   import type { ActionData, PageData } from './$types';
   import { onDestroy } from 'svelte';
   import { spring } from 'svelte/motion';

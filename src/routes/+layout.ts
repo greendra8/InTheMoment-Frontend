@@ -1,34 +1,20 @@
-// layout.ts
-import { createBrowserClient, createServerClient, isBrowser } from '@supabase/ssr';
+// +layout.ts
+import { supabase } from '$lib/supabaseClient';
 import type { LayoutLoad } from './$types';
+import { isBrowser } from '@supabase/ssr';
 
-const PUBLIC_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const PUBLIC_SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-export const load: LayoutLoad = async ({ data, depends, fetch, url }) => {
+export const load: LayoutLoad = async ({ data, depends, fetch }) => {
   depends('supabase:auth');
 
-  const supabase = isBrowser()
-    ? createBrowserClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
-        global: {
-          fetch,
-        },
-      })
-    : createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
-        global: {
-          fetch,
-        },
-        cookies: {
-          getAll() {
-            return data.cookies;
-          },
-        },
-      });
-
-  // Set the session on the client
   if (isBrowser() && data.session) {
-    supabase.auth.setSession(data.session);
+    const {
+      data: { session: currentSession },
+    } = await supabase.auth.getSession();
+
+    if (data.session.expires_at !== currentSession?.expires_at) {
+      supabase.auth.setSession(data.session);
+    }
   }
 
-  return { ...data, supabase };
+  return { ...data };
 };

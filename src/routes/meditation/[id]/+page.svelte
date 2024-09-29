@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import { page } from '$app/stores';
-  import { completeMeditation, submitFeedback } from '$lib/supabase';
+  import { completeMeditation, submitFeedback } from '$lib/api';
   import type { PageData } from './$types';
   import { browser } from '$app/environment';
   import FeedbackForm from '$lib/components/FeedbackForm.svelte';

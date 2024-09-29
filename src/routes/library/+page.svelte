@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { getUserMeditations } from '$lib/supabase';
+  import { getUserMeditations } from '$lib/api';
   import type { PageData } from './$types';
   import { page } from '$app/stores';
 
@@ -14,7 +14,8 @@
     isLoading = true;
     error = '';
     try {
-      const newMeditations = await getUserMeditations($page.data.session?.user.id, currentPage + 1);
+      const newMeditations = await getUserMeditations(currentPage + 1);
+      console.log('newMeditations', newMeditations);
       if (newMeditations.length) {
         meditations = [...meditations, ...newMeditations];
         currentPage += 1;

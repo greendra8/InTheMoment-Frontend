@@ -1,7 +1,7 @@
 // +layout.server.ts
 import type { LayoutServerLoad } from './$types';
 import { redirect } from '@sveltejs/kit';
-import { isUserProfileComplete } from '$lib/supabase';
+import { isUserProfileComplete } from '$lib/server/supabase';
 
 export const load: LayoutServerLoad = async ({ locals, url }) => {
   const { session, user } = await locals.safeGetSession();
