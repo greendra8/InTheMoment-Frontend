@@ -1,18 +1,27 @@
+<!-- +layout.svelte -->
 <script lang="ts">
   import '../app.css';
   import { invalidate } from '$app/navigation';
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
   import { appContext } from '$lib/stores/appContext';
+  import { supabase } from '$lib/supabaseClient';
+  import { session as sessionStore } from '$lib/stores/session';
+  import { get } from 'svelte/store';
 
   export let data;
-  $: ({ session, supabase, navItems, isNativeApp } = data);
+  $: ({ navItems, isNativeApp } = data);
+
+  // Update the session store with the initial session
+  sessionStore.set(data.session);
 
   $: appContext.setIsNativeApp(isNativeApp);
 
   onMount(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange((_, newSession) => {
-      if (newSession?.expires_at !== session?.expires_at) {
+      const currentSession = get(sessionStore);
+      if (newSession?.expires_at !== currentSession?.expires_at) {
+        sessionStore.set(newSession);
         invalidate('supabase:auth');
       }
     });
@@ -157,7 +166,7 @@
   }
 
   main.native-app {
-    padding-bottom: 100px;
+    /* padding-bottom: 100px; */
   }
 
   .content-container {
@@ -176,7 +185,7 @@
       max-width: none;
       flex-direction: column;
       border-radius: 12px;
-      padding: 10px 0;
+      padding: 10px 3px;
       justify-content: flex-start;
     }
 
@@ -194,7 +203,7 @@
 
     .icon-container::before {
       top: 50%;
-      left: 0;
+      left: -3px;
       transform: translateY(-50%);
       width: 2px;
       height: 35px;

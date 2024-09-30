@@ -72,8 +72,6 @@
       <div class="highlight-item"><i class="fas fa-palette"></i> Beautiful, responsive design that works on all your devices</div>
       <div class="highlight-item"><i class="fas fa-lock"></i> Secure user profiles and data protection</div>
       <div class="highlight-item"><i class="fas fa-seedling"></i> Continuous learning algorithm that grows with you</div>
-      <div class="highlight-item"><i class="fas fa-comment-dots"></i> Integration with mood tracking and journaling features</div>
-      <div class="highlight-item"><i class="fas fa-trophy"></i> Gamification elements to keep you motivated</div>
     </div>
   </section>
 

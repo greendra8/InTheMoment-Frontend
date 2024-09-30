@@ -1,1 +1,0 @@
-export type Database = any; // Replace with actual types when available

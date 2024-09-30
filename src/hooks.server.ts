@@ -1,12 +1,14 @@
-import { createServerClient } from '@supabase/ssr'
-import { type Handle, redirect } from '@sveltejs/kit'
-import { sequence } from '@sveltejs/kit/hooks'
+// hooks.server.ts
+import { createServerClient } from '@supabase/ssr';
+import { type Handle, redirect } from '@sveltejs/kit';
+import { sequence } from '@sveltejs/kit/hooks';
+import { dev } from '$app/environment';
 
-const PUBLIC_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
-const PUBLIC_SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
+const PUBLIC_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const PUBLIC_SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!PUBLIC_SUPABASE_URL || !PUBLIC_SUPABASE_ANON_KEY) {
-  throw new Error('Missing Supabase environment variables')
+  throw new Error('Missing Supabase environment variables');
 }
 
 const supabase: Handle = async ({ event, resolve }) => {
@@ -26,7 +28,7 @@ const supabase: Handle = async ({ event, resolve }) => {
               user: {
                 id: decodedPayload.sub,
                 email: decodedPayload.email,
-              }
+              },
             });
           }
         }
@@ -35,46 +37,68 @@ const supabase: Handle = async ({ event, resolve }) => {
       set: (key, value, options) => {
         event.cookies.set(key, value, {
           ...options,
-          secure: event.url.protocol === "https:"
-        })
+          secure: event.url.protocol === 'https:',
+        });
       },
       remove: (key, options) => {
         event.cookies.delete(key, {
           ...options,
-          secure: event.url.protocol === "https:"
-        })
+          secure: event.url.protocol === 'https:',
+        });
       },
     },
-  })
+  });
 
-  event.locals.safeGetSession = async () => {
-    const { data: { session } } = await event.locals.supabase.auth.getSession()
-    if (!session) return { session: null, user: null }
+  const isNativeApp = event.request.headers.get('X-Native-App') === 'true';
 
-    const { data: { user }, error } = await event.locals.supabase.auth.getUser()
-    if (error) {
-      console.error('JWT validation failed:', error);
-      return { session: null, user: null }
-    }
-
-    return { session: { ...session, user }, user }
+  if (isNativeApp) {
+    event.cookies.set('is_native_app', 'true', {
+      path: '/',
+      httpOnly: true,
+      secure: !dev,
+      maxAge: 60 * 60 * 24 * 7, // 1 week
+      sameSite: 'lax',
+    });
   }
 
-  event.locals.isNativeApp = event.request.headers.get('X-Native-App') === 'true';
+  event.locals.isNativeApp = isNativeApp || event.cookies.get('is_native_app') === 'true';
+
+  event.locals.safeGetSession = async () => {
+    const {
+      data: { session },
+    } = await event.locals.supabase.auth.getSession();
+    if (!session) return { session: null, user: null };
+
+    const {
+      data: { user },
+      error,
+    } = await event.locals.supabase.auth.getUser();
+    if (error) {
+      console.error('JWT validation failed:', error);
+      return { session: null, user: null };
+    }
+
+    return { session: { ...session, user }, user };
+  };
 
   return resolve(event, {
     filterSerializedResponseHeaders(name) {
-      return name === 'content-range' || name === 'x-supabase-api-version'
+      return name === 'content-range' || name === 'x-supabase-api-version';
     },
-  })
-}
+  });
+};
 
 const authGuard: Handle = async ({ event, resolve }) => {
   const { session, user } = await event.locals.safeGetSession();
   event.locals.session = session;
   event.locals.user = user;
 
-  if (!session && (event.url.pathname.startsWith('/private') || event.url.pathname.startsWith('/dashboard') || event.url.pathname.startsWith('/meditation'))) {
+  if (
+    !session &&
+    (event.url.pathname.startsWith('/private') ||
+      event.url.pathname.startsWith('/dashboard') ||
+      event.url.pathname.startsWith('/meditation'))
+  ) {
     throw redirect(303, '/login');
   }
 
@@ -83,6 +107,6 @@ const authGuard: Handle = async ({ event, resolve }) => {
   }
 
   return resolve(event);
-}
+};
 
-export const handle: Handle = sequence(supabase, authGuard)
+export const handle: Handle = sequence(supabase, authGuard);

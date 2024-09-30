@@ -1,6 +1,6 @@
 import { error, fail } from '@sveltejs/kit';
 import type { Actions } from './$types';
-import { updateUserProfile } from '$lib/supabase';
+import { updateUserProfile } from '$lib/server/supabase';
 import type { ProfileSetup } from '$lib/stores/profileSetup';
 
 export const actions: Actions = {

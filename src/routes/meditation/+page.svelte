@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { subscribeMeditationStatus } from '$lib/supabase';
+  import { subscribeMeditationStatus } from '$lib/api';
   import type { ActionData, PageData } from './$types';
   import { onDestroy } from 'svelte';
   import { spring } from 'svelte/motion';
@@ -66,6 +66,35 @@
     return time;
   }
 
+  function getStatusMessage(status: string): string {
+    console.log('status', status);
+    switch (status) {
+      case 'Queued':
+      case '':
+        return 'Your meditation is in the queue...';
+      case 'Fetching':
+        return 'Fetching meditation details...';
+      case 'Scripting':
+        return 'Crafting your personalized meditation script...';
+      case 'Reviewing':
+        return 'Reviewing your meditation script...';
+      case 'Audio Generation':
+        return 'Generating your meditation audio...';
+      case 'Processing':
+        return 'Processing your meditation...';
+      case 'Uploading':
+        return 'Uploading your meditation...';
+      case 'Saving':
+        return 'Saving your meditation...';
+      case 'Completed':
+        return 'Your meditation is ready!';
+      case 'Failed':
+        return 'Meditation generation failed. Please try again.';
+      default:
+        return 'Starting your generation...';
+    }
+  }
+
   function handleMeditationStatus(status: string) {
     generationStatus = status;
     
@@ -73,7 +102,9 @@
       case 'Queued':
       case 'Fetching':
       case 'Scripting':
+      case 'Reviewing':
       case 'Generating':
+      case 'Audio Generation':
       case 'Processing':
       case 'Uploading':
       case 'Saving':
@@ -122,13 +153,11 @@
     formData.set('length', duration.toString());
     formData.set('parameters', JSON.stringify(createParametersJSON()));
 
-
     try {
       const response = await fetch(formElement.action, {
         method: 'POST',
         body: formData
       });
-
 
       const result = await response.json();
 
@@ -158,28 +187,6 @@
   onDestroy(() => {
     if (unsubscribe) unsubscribe();
   });
-
-  function getStatusMessage(status: string): string {
-    switch (status) {
-      case 'Queued':
-        return 'Your meditation is in the queue...';
-      case 'Fetching':
-        return 'Fetching meditation details...';
-      case 'Scripting':
-        return 'Crafting your personalized meditation script...';
-      case 'Generating':
-        return 'Generating your meditation audio...';
-      case 'Processing':
-        return 'Processing your meditation...';
-      case 'Uploading':
-        return 'Uploading your meditation...';
-      case 'Saving':
-      case 'Completed':
-        return 'Saving your meditation...';
-      default:
-        return 'Generating your meditation...';
-    }
-  }
 
 </script>
 

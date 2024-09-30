@@ -1,35 +1,44 @@
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import { getMeditation, getFeedback } from '$lib/supabase';
+import { getMeditation, getFeedback } from '$lib/server/supabase';
+import { session as sessionStore } from '$lib/stores/session';
+import { get } from 'svelte/store';
 
-export const load: PageServerLoad = async ({ params, locals }) => {
-  console.log('Starting load function for meditation page');
-  const session = await locals.supabase.auth.getSession()
+export const load: PageServerLoad = async ({ params}) => {
+  const session = get(sessionStore);
 
-  if (!session.data.session) {
+  if (!session) {
     console.log('No session found, throwing 401 error');
     throw error(401, 'Unauthorized');
   }
 
-  const userId = session.data.session.user.id;
+  const userId = session.user.id;
   const meditationId = params.id;
-  console.log(`UserId: ${userId}, MeditationId: ${meditationId}`);
+
+  if (!meditationId || meditationId.includes('.')) {
+    console.log(`Invalid meditation ID: ${meditationId}`);
+    throw error(404, 'Invalid meditation ID');
+  }
 
   try {
-    console.log('Fetching meditation data');
     const meditation = await getMeditation(meditationId);
     if (!meditation) {
       console.log('Meditation not found, throwing 404 error');
       throw error(404, 'Meditation not found');
     }
 
-    console.log('Fetching feedback data');
     const feedback = await getFeedback(meditationId, userId);
-    console.log('Feedback data:', feedback);
 
-    return { meditation, userId, feedback: feedback || null };
+    return { 
+      meditation,
+      userId, 
+      feedback: feedback || null
+    };
   } catch (err) {
     console.error('Error in load function:', err);
+    if (err instanceof Error && 'status' in err && err.status === 404) {
+      throw error(404, 'Meditation not found');
+    }
     throw error(500, 'Failed to load meditation');
   }
 };

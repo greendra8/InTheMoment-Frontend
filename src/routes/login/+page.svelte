@@ -60,7 +60,7 @@
   button {
     width: 100%;
     padding: 0.75rem;
-    background-color: #4CAF50;
+    background-color: #0e0e0e;
     color: white;
     border: none;
     border-radius: 4px;
@@ -69,7 +69,7 @@
   }
 
   button:hover {
-    background-color: #45a049;
+    background-color: #000000;
   }
 
   .error {
@@ -83,8 +83,7 @@
   }
 
   a {
-    color: #4CAF50;
-    text-decoration: none;
+    color: #000000;
   }
 
   a:hover {
