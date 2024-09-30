@@ -2,8 +2,9 @@ import { error, redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import { generateMeditation } from '$lib/pythonApi';
 
+
 export const load: PageServerLoad = async ({ locals }) => {
-  const { session } = await locals.safeGetSession();
+  const { session } = locals;
 
   if (!session) {
     console.log('No session found, redirecting to login');
@@ -19,12 +20,14 @@ export const load: PageServerLoad = async ({ locals }) => {
 export const actions: Actions = {
   generateMeditation: async ({ request, locals }) => {
     console.log('generateMeditation action called');
-    const { session } = await locals.safeGetSession();
+    const { session } = locals;
 
     if (!session) {
       console.error('No session found in generateMeditation action');
       throw error(401, 'Unauthorized');
     }
+
+    console.log('Session in generateMeditation action:', session);
 
     const data = await request.formData();
     const userLocalTime = data.get('userLocalTime') as string;

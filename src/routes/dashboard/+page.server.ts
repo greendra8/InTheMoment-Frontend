@@ -31,7 +31,7 @@ function createMeditations(): Meditation[] {
 }
 
 export const load: PageServerLoad = async ({ locals }) => {
-  const { session } = await locals.safeGetSession();
+  const { session } = locals;
 
   if (!session) {
     return {
@@ -46,7 +46,7 @@ export const load: PageServerLoad = async ({ locals }) => {
   return {
     meditations,
     featuredMeditation,
-    user: session.user,
+    user: session?.user,
     square
   };
 };

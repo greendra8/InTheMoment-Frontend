@@ -21,30 +21,6 @@ export async function getUserProfile(userId: string) {
   return data;
 }
 
-// Helper function to update user profile
-export async function updateUserProfile(userId: string, data: { preferences: Record<string, string>, complete: boolean }) {
-  console.log('Updating user profile for userId:', userId);
-  console.log('Data to update:', data);
-
-  const { data: updatedProfile, error } = await supabaseAdmin
-    .from('profiles')
-    .upsert({ 
-      id: userId,
-      ...data,
-      updated_at: new Date().toISOString()
-    })
-    .select()
-    .single();
-
-  if (error) {
-    console.error('Error updating profile:', error);
-    throw error;
-  }
-
-  console.log('Profile updated successfully:', updatedProfile);
-  return updatedProfile;
-}
-
 // Helper function to get user's meditations
 export async function getUserMeditations(userId: string, page: number = 1, limit: number = 10) {
   const start = (page - 1) * limit

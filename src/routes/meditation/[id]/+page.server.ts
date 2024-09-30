@@ -1,11 +1,10 @@
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { getMeditation, getFeedback } from '$lib/server/supabase';
-import { session as sessionStore } from '$lib/stores/session';
-import { get } from 'svelte/store';
 
-export const load: PageServerLoad = async ({ params}) => {
-  const session = get(sessionStore);
+
+export const load: PageServerLoad = async ({ params, locals }) => {
+  const { session } = locals;
 
   if (!session) {
     console.log('No session found, throwing 401 error');

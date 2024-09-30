@@ -5,7 +5,7 @@ import type { ProfileSetup } from '$lib/stores/profileSetup';
 
 export const actions: Actions = {
 	submit: async ({ request, locals }) => {
-		const { session } = await locals.safeGetSession();
+		const { session } = locals;
 
 		if (!session) {
 			throw error(401, 'Unauthorized');

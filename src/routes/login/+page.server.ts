@@ -1,7 +1,6 @@
 import { AuthApiError } from '@supabase/supabase-js';
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions } from './$types';
-import { session as sessionStore } from '$lib/stores/session';
 
 export const actions: Actions = {
   default: async ({ request, locals }) => {
@@ -24,9 +23,6 @@ export const actions: Actions = {
       }
       return fail(500, { message: 'Server error. Please try again later.' });
     }
-    
-    // Set the session in the store
-    sessionStore.set(data.session);
     
     throw redirect(303, '/dashboard');
   }
