@@ -15,7 +15,7 @@ const supabase: Handle = async ({ event, resolve }) => {
   event.locals.supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
     cookies: {
       get: (key) => {
-        if (key.endsWith('-auth-token')) {
+        if (key.endsWith('-auth-token')) { // This is true for native webview app
           const accessToken = event.cookies.get('sb-access-token');
           const refreshToken = event.cookies.get('sb-refresh-token');
           if (accessToken && refreshToken) {
@@ -108,5 +108,4 @@ const authGuard: Handle = async ({ event, resolve }) => {
 
   return resolve(event);
 };
-
 export const handle: Handle = sequence(supabase, authGuard);

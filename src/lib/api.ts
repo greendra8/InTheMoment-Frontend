@@ -147,4 +147,26 @@ export async function completeMeditation(meditationId: string, userId: string, m
   }
   
 
-// Similarly, define other client-side functions
+// Helper function to update user profile
+export async function updateUserProfile(userId: string, data: { preferences: Record<string, string>, complete: boolean }) {
+  console.log('Updating user profile for userId:', userId);
+  console.log('Data to update:', data);
+
+  const { data: updatedProfile, error } = await supabase
+    .from('profiles')
+    .upsert({ 
+      id: userId,
+      ...data,
+      updated_at: new Date().toISOString()
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating profile:', error);
+    throw error;
+  }
+
+  console.log('Profile updated successfully:', updatedProfile);
+  return updatedProfile;
+}

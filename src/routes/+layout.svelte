@@ -10,10 +10,10 @@
   import { get } from 'svelte/store';
 
   export let data;
-  $: ({ navItems, isNativeApp } = data);
+  $: ({ navItems, isNativeApp, session } = data);
 
   // Update the session store with the initial session
-  sessionStore.set(data.session);
+  sessionStore.set(session);
 
   $: appContext.setIsNativeApp(isNativeApp);
 
@@ -31,7 +31,6 @@
 
   $: isHomePage = $page.url.pathname === '/';
 </script>
-
 {#if !$appContext.isNativeApp}
 <nav class="nav">
   {#each navItems as item}

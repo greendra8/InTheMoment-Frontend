@@ -1,9 +1,12 @@
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { getUserProfile } from '$lib/server/supabase';
+import { updateUserProfile } from '$lib/api';
+import { fail } from '@sveltejs/kit';
+import type { Actions } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
-	const { session } = await locals.safeGetSession();
+	const { session } = locals;
 
 	if (!session) {
 		throw error(401, 'Unauthorized');
@@ -19,7 +22,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 export const actions: Actions = {
 	updateProfile: async ({ request, locals }) => {
-		const { session } = await locals.safeGetSession();
+		const { session } = locals;
 
 		if (!session) {
 			throw error(401, 'Unauthorized');
@@ -27,10 +30,10 @@ export const actions: Actions = {
 
 		const formData = await request.formData();
 		const name = formData.get('name') as string;
-		const experienceLevel = formData.get('experienceLevel') as string;
+		const experience = formData.get('experience') as string;
 
 		try {
-			const updatedProfile = await updateUserProfile(session.user.id, { name, experience: experienceLevel });
+			const updatedProfile = await updateUserProfile(session.user.id, { name, experience: experience });
       return { success: true, profile: updatedProfile };
 		} catch (err) {
 			console.error('Error updating user profile:', err);

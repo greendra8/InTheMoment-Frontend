@@ -38,11 +38,11 @@
     <form method="POST" action="?/updateProfile" use:enhance={updateProfile}>
       <div class="form-group">
         <label for="name">Name:</label>
-        <input type="text" id="name" name="name" value={profile.full_name ?? ''} required>
+        <input type="text" id="name" name="name" value={profile.name ?? ''} required>
       </div>
       <div class="form-group">
-        <label for="experienceLevel">Experience Level:</label>
-        <select id="experienceLevel" name="experienceLevel" value={profile.experience ?? 'beginner'} required>
+        <label for="experience">Experience Level:</label>
+        <select id="experience" name="experience" value={profile.experience ?? 'beginner'} required>
           <option value="beginner">Beginner</option>
           <option value="intermediate">Intermediate</option>
           <option value="advanced">Advanced</option>

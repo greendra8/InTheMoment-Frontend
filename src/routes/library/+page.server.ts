@@ -2,8 +2,9 @@ import { error, redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { getUserMeditations } from '$lib/server/supabase';
 
+
 export const load: PageServerLoad = async ({ locals, url }) => {
-	const { session } = await locals.safeGetSession();
+	const { session } = locals;
 
 	if (!session) {
 		console.log('No session found, redirecting to login'); // Add this log
