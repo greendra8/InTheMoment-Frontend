@@ -13,7 +13,7 @@
     isLoading = true;
     error = '';
     try {
-      const newMeditations = await getUserMeditations(currentPage + 1);
+      const newMeditations = await getUserMeditations(data.session.user.id,currentPage + 1);
       console.log('newMeditations', newMeditations);
       if (newMeditations.length) {
         meditations = [...meditations, ...newMeditations];

@@ -23,7 +23,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		const meditations = await getUserMeditations(session.user.id, page, limit);
 		return { 
 			meditations,
-			currentPage: page
+			currentPage: page,
+			session // Pass session to page.svelte via prop
 		};
 	} catch (err) {
 		console.error('Failed to load meditations:', err);
