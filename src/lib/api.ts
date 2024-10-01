@@ -18,6 +18,7 @@ export async function getUserMeditations(userId: string, page: number = 1, limit
 
 export function subscribeMeditationStatus(meditationId: string, callback: (status: string) => void) {
     let isSubscribed = false;
+    let timeoutId: NodeJS.Timeout;
 
     // Fetch the current status immediately
     supabase
@@ -51,9 +52,18 @@ export function subscribeMeditationStatus(meditationId: string, callback: (statu
             isSubscribed = status === 'SUBSCRIBED';
         });
 
+    // Set a timeout to unsubscribe after 5 minutes (300000 milliseconds)
+    timeoutId = setTimeout(() => {
+        if (isSubscribed) {
+            isSubscribed = false;
+            supabase.removeChannel(channel);
+        }
+    }, 300000);
+
     return () => {
         isSubscribed = false;
         supabase.removeChannel(channel);
+        clearTimeout(timeoutId);
     };
 }
 
