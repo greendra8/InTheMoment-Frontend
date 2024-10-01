@@ -1,12 +1,20 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { subscribeMeditationStatus } from '$lib/api';
-  import type { ActionData, PageData } from './$types';
+  import type { PageData } from './$types';
   import { onDestroy } from 'svelte';
   import { spring } from 'svelte/motion';
 
-  export let form: ActionData;
   export let data: PageData;
+
+  interface CustomActionData {
+    type: 'success' | 'error';
+    status?: number;
+    data?: string;
+    message?: string;
+  }
+
+  let form: CustomActionData | null = null;
 
   let isGenerating = false;
   let duration = 15;
@@ -109,6 +117,7 @@
       case 'Uploading':
       case 'Saving':
         isGenerating = true;
+        buttonDisabled = true;
         break;
       case 'Completed':
         isGenerating = false;
@@ -124,11 +133,11 @@
         isGenerating = false;
         buttonDisabled = false;
         if (unsubscribe) unsubscribe();
-        form = { success: false, error: 'Meditation generation failed. Please try again.' };
+        form = { type: 'error', message: 'Meditation generation failed. Please try again.' };
         break;
       default:
-        isGenerating = false;
-        buttonDisabled = false;
+        isGenerating = true;
+        buttonDisabled = true;
     }
   }
 
@@ -143,15 +152,18 @@
   let formElement: HTMLFormElement;
 
   async function handleFormSubmit(event: Event) {
-    console.log('handleFormSubmit called');
+    console.log('Client: handleFormSubmit called');
     event.preventDefault();
     buttonDisabled = true;
     isGenerating = true;
+    generationStatus = 'Queued'; // Set initial status
 
     const formData = new FormData(formElement);
     formData.set('userLocalTime', getUserLocalTime());
     formData.set('length', duration.toString());
     formData.set('parameters', JSON.stringify(createParametersJSON()));
+
+    console.log('Client: Form data:', Object.fromEntries(formData));
 
     try {
       const response = await fetch(formElement.action, {
@@ -159,28 +171,36 @@
         body: formData
       });
 
-      const result = await response.json();
+      console.log('Client: Response status:', response.status);
+
+      const result: CustomActionData = await response.json();
+      console.log('Client: Result:', JSON.stringify(result, null, 2));
 
       if (result.type === 'success' && result.data) {
-        const parsedData = JSON.parse(result.data);
-        const meditationId = parsedData[2]; // Extracting the meditation ID from the third element
+        let parsedData;
+        try {
+          parsedData = JSON.parse(result.data);
+        } catch (e) {
+          console.error('Failed to parse result.data:', e);
+          throw new Error('Invalid data format');
+        }
+
+        const meditationId = parsedData[3]; // The meditation ID is the fourth element in the array
         if (typeof meditationId === 'string') {
+          console.log('Client: Valid meditation ID:', meditationId);
           currentMeditationId = meditationId;
           unsubscribe = subscribeMeditationStatus(meditationId, handleMeditationStatus);
         } else {
-          console.error('Invalid meditation ID:', meditationId);
+          throw new Error('Invalid server response. We might be offline.'); // Invalid meditation ID
         }
       } else {
-        console.error('Unsuccessful result:', result);
-        isGenerating = false;
-        buttonDisabled = false;
-        form = { success: false, error: result.error || 'An error occurred' };
+        throw new Error(result.message || 'Failed to generate meditation');
       }
-    } catch (error) {
-      console.error('Error in handleFormSubmit:', error);
+    } catch (error: unknown) {
+      console.error('Client: Error in handleFormSubmit:', error);
+      form = { type: 'error', message: error instanceof Error ? error.message : 'An unexpected error occurred' };
       isGenerating = false;
       buttonDisabled = false;
-      form = { success: false, error: 'An unexpected error occurred' };
     }
   }
 
@@ -271,8 +291,8 @@
     </div>
   {/if}
 
-  {#if form?.error}
-    <p class="error">{form.error}</p>
+  {#if form?.type === 'error'}
+    <p class="error">{form.message}</p>
   {/if}
 </div>
 

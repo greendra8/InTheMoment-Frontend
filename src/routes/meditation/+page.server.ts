@@ -1,7 +1,6 @@
-import { error, redirect } from '@sveltejs/kit';
+import { json, error, redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import { generateMeditation } from '$lib/pythonApi';
-
 
 export const load: PageServerLoad = async ({ locals }) => {
   const { session } = locals;
@@ -12,42 +11,49 @@ export const load: PageServerLoad = async ({ locals }) => {
   }
 
   return {
-    user: session.user,
     session
   };
 };
 
 export const actions: Actions = {
   generateMeditation: async ({ request, locals }) => {
-    console.log('generateMeditation action called');
     const { session } = locals;
 
     if (!session) {
-      console.error('No session found in generateMeditation action');
       throw error(401, 'Unauthorized');
     }
-
-    console.log('Session in generateMeditation action:', session);
 
     const data = await request.formData();
     const userLocalTime = data.get('userLocalTime') as string;
     const length = parseInt(data.get('length') as string);
     const parameters = JSON.parse(data.get('parameters') as string);
 
-    console.log('Received form data:', {
-      userLocalTime,
-      length,
-      parameters
-    });
+    console.log('Server: Received form data:', { userLocalTime, length, parameters });
 
     try {
-      console.log('Calling generateMeditation function');
-      const result = await generateMeditation(session.access_token, length, userLocalTime, parameters);
-      console.log('Meditation generation result:', result);
-      return { success: true, meditation_id: result.meditation_id };
+      console.log('Server: Calling generateMeditation');
+      const result = await generateMeditation(
+        session.access_token,
+        length,
+        userLocalTime,
+        parameters
+      );
+
+      console.log('Server: Result from generateMeditation:', JSON.stringify(result, null, 2));
+
+      // Ensure we're returning a plain object
+      return {
+        type: 'success',
+        data: {
+          meditation_id: result.data.meditation_id
+        }
+      };
     } catch (err) {
-      console.error('Meditation generation error:', err);
-      return { success: false, error: 'An error occurred while generating the meditation. Please try again.' };
+      console.error('Server: Meditation generation error:', err);
+      return {
+        type: 'error',
+        message: 'An error occurred while generating the meditation. Please try again.'
+      };
     }
   }
 };

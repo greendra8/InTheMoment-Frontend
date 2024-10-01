@@ -22,5 +22,14 @@ export async function generateMeditation(accessToken: string, length: number, us
     throw new Error(`Failed to generate meditation: ${response.statusText}`);
   }
 
-  return await response.json();
+  const result = await response.json();
+  
+  // Ensure the result is a plain object
+  return {
+    type: 'success',
+    data: {
+      meditation_id: result.meditation_id,
+      // Add any other properties you expect from the Python API
+    }
+  };
 }
