@@ -3,10 +3,11 @@ import { supabase } from '$lib/supabaseClient';
 
 // Define your client-side helper functions here
 
-export async function getUserMeditations(page: number = 1, limit: number = 10) {
+export async function getUserMeditations(userId: string, page: number = 1, limit: number = 10) {
   const { data, error } = await supabase
     .from('audio_sessions')
     .select('*')
+    .eq('user_id', userId)
     .eq('generation_status', 'Completed')
     .order('created_at', { ascending: false })
     .range((page - 1) * limit, page * limit - 1);
@@ -16,30 +17,47 @@ export async function getUserMeditations(page: number = 1, limit: number = 10) {
 }
 
 export function subscribeMeditationStatus(meditationId: string, callback: (status: string) => void) {
-    const channel = supabase
-      .channel(`meditation-${meditationId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'audio_sessions',
-          filter: `id=eq.${meditationId}`
-        },
-        (payload) => {
-          if (payload.new && payload.new.generation_status) {
-            callback(payload.new.generation_status);
-          }
-        }
-      )
-      .subscribe();
-  
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }
+    let isSubscribed = false;
 
-  export async function submitFeedback(sessionId: string, profileId: string, feedback: string) {
+    // Fetch the current status immediately
+    supabase
+        .from('audio_sessions')
+        .select('generation_status')
+        .eq('id', meditationId)
+        .single()
+        .then(({ data, error }) => {
+            if (!error && data && isSubscribed) {
+                callback(data.generation_status);
+            }
+        });
+
+    const channel = supabase
+        .channel(`meditation-${meditationId}`)
+        .on(
+            'postgres_changes',
+            {
+                event: 'UPDATE',
+                schema: 'public',
+                table: 'audio_sessions',
+                filter: `id=eq.${meditationId}`
+            },
+            (payload) => {
+                if (payload.new && payload.new.generation_status) {
+                    callback(payload.new.generation_status);
+                }
+            }
+        )
+        .subscribe((status) => {
+            isSubscribed = status === 'SUBSCRIBED';
+        });
+
+    return () => {
+        isSubscribed = false;
+        supabase.removeChannel(channel);
+    };
+}
+
+export async function submitFeedback(sessionId: string, profileId: string, feedback: string) {
     try {
       // Check if a record already exists
       const { data: existingFeedback, error: checkError } = await supabase
@@ -135,6 +153,7 @@ export async function completeMeditation(meditationId: string, userId: string, m
   
     // Update last_listened timestamp and listened status for the meditation
     const { error: updateMeditationError } = await supabase
+      .from('audio_sessions')
       .update({ 
         last_listened: new Date().toISOString(),
         listened: true
