@@ -5,7 +5,14 @@ import type { Database } from './database.types';
 const PUBLIC_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const PUBLIC_SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+const options = {
+  auth: {
+    autoRefreshToken: false,
+  },
+};
+
 export const supabase = createClient<Database>(
   PUBLIC_SUPABASE_URL,
-  PUBLIC_SUPABASE_ANON_KEY
+  PUBLIC_SUPABASE_ANON_KEY,
+  options
 );
