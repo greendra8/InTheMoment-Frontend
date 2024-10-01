@@ -13,7 +13,7 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
     }
 
     // Redirect logged-in users from "/" to "/dashboard"
-    if (url.pathname === '/') {
+    if (url.pathname === '/' || url.pathname === "/login" || url.pathname === "/register") {
       throw redirect(303, '/dashboard');
     }
   }
