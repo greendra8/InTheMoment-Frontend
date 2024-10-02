@@ -142,7 +142,8 @@
           metadata: {
             id: meditation.id,
             title: meditation.title,
-            duration: meditation.length * 60,
+            // duration: meditation.length * 60,
+            duration: meditation.length_ms / 1000,
             theme: meditation.theme,
             difficulty: meditation.difficulty,
             audio_data: meditation.audio_data,
@@ -250,7 +251,7 @@
       bind:this={audioPlayerComponent}
       {audioUrl}
       meditationId={meditation.id}
-      duration={meditation.length * 60}
+      duration={meditation.length_ms / 1000}
       {userId}
       {isFeedbackVisible}
       {sendCompletionRequest}
