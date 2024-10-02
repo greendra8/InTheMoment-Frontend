@@ -83,7 +83,7 @@
   async function sendCompletionRequest() {
     if (isCompletedThisSession) return;
 
-    const minutesAwarded = Math.floor(meditation.length);
+    const minutesAwarded = meditation.length;
 
     try {
       await completeMeditation(meditation.id, userId, minutesAwarded);
@@ -142,7 +142,6 @@
           metadata: {
             id: meditation.id,
             title: meditation.title,
-            // duration: meditation.length * 60,
             duration: meditation.length_ms / 1000,
             theme: meditation.theme,
             difficulty: meditation.difficulty,
