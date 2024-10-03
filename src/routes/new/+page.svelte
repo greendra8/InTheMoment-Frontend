@@ -1,11 +1,16 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
+  import { page } from '$app/stores';
   import { subscribeMeditationStatus } from '$lib/api';
   import type { PageData } from './$types';
-  import { onDestroy } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import { spring } from 'svelte/motion';
 
   export let data: PageData;
+
+  let activeTab: 'custom' | 'lesson' = data.initialTab;
+  let selectedPlaylist = data.selectedPlaylist ? data.selectedPlaylist.id : '';
+  let selectedLesson = '';
 
   interface CustomActionData {
     type: 'success' | 'error';
@@ -40,8 +45,6 @@
 
   let selectedPostureIndex = 0;
   let selectedEyesIndex = 1;
-
-  let selectedPlaylist = '';
 
   $: {
     selectedPostureIndex = postureOptions.findIndex(option => option.value === selectedPosture);
@@ -144,10 +147,13 @@
   }
 
   function createParametersJSON() {
-    const params = {
+    const params: any = {
       posture: selectedPosture,
       eyes: selectedEyes
     };
+    if (activeTab === 'lesson') {
+      params.playlist_id = selectedPlaylist;
+    }
     return params;
   }
 
@@ -164,7 +170,9 @@
     formData.set('userLocalTime', getUserLocalTime());
     formData.set('length', duration.toString());
     formData.set('parameters', JSON.stringify(createParametersJSON()));
-    formData.set('playlist_id', selectedPlaylist);
+    if (activeTab === 'lesson') {
+      formData.set('playlist_id', selectedPlaylist);
+    }
 
     console.log('Client: Form data:', Object.fromEntries(formData));
 
@@ -215,6 +223,25 @@
 
 <div class="meditation-container">
   <h1>New Meditation</h1>
+
+  <div class="tabs">
+    <button class:active={activeTab === 'custom'} on:click={() => activeTab = 'custom'}>Custom Session</button>
+    <button class:active={activeTab === 'lesson'} on:click={() => activeTab = 'lesson'}>Lesson</button>
+  </div>
+
+  {#if activeTab === 'lesson'}
+    <div class="playlist-selector">
+      <label for="playlist-select">Select a playlist:</label>
+      <div class="select-wrapper">
+        <select id="playlist-select" bind:value={selectedPlaylist}>
+          <option value="">Choose a playlist</option>
+          {#each data.playlists as playlist}
+            <option value={playlist.id}>{playlist.playlist_name}</option>
+          {/each}
+        </select>
+      </div>
+    </div>
+  {/if}
 
   <div class="options-container">
     <div class="option-group">
@@ -278,22 +305,14 @@
     </div>
   </div>
 
-  <div class="playlist-selector">
-    <h3>Playlist</h3>
-    <select bind:value={selectedPlaylist}>
-      <option value="">No specific playlist</option>
-      {#each data.playlists as playlist}
-        <option value={playlist.id}>{playlist.playlist_name}</option>
-      {/each}
-    </select>
-  </div>
-
   <form bind:this={formElement} method="POST" action="?/generateMeditation" on:submit={handleFormSubmit}>
     <input type="hidden" name="userLocalTime" value={getUserLocalTime()} />
     <input type="hidden" name="length" value={duration} />
     <input type="hidden" name="parameters" value={JSON.stringify(createParametersJSON())} />
-    <input type="hidden" name="playlist_id" value={selectedPlaylist} />
-    <button type="submit" class="generate-btn" disabled={buttonDisabled}>
+    {#if activeTab === 'lesson'}
+      <input type="hidden" name="playlist_id" value={selectedPlaylist} />
+    {/if}
+    <button type="submit" class="generate-btn" disabled={buttonDisabled || (activeTab === 'lesson' && !selectedPlaylist)}>
       <i class="fas fa-paper-plane"></i>
       <span>Generate Meditation</span>
     </button>
@@ -514,17 +533,68 @@
     font-size: 0.8rem;
   }
 
+  .tabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .tabs button {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: none;
+    background-color: #f0f0f0;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    font-size: 1rem;
+    font-weight: 500;
+  }
+
+  .tabs button.active {
+    background-color: #333;
+    color: white;
+  }
+
   .playlist-selector {
     margin-bottom: 2rem;
     text-align: left;
   }
 
+  .playlist-selector label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+  }
+
+  .select-wrapper {
+    position: relative;
+  }
+
+  .select-wrapper::after {
+    content: '\25BC';
+    position: absolute;
+    top: 50%;
+    right: 1rem;
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+
   .playlist-selector select {
     width: 100%;
-    padding: 0.5rem;
+    padding: 0.75rem 1rem;
     border: 1px solid #ccc;
     border-radius: 4px;
     background-color: white;
     font-size: 1rem;
+    appearance: none;
+    cursor: pointer;
+  }
+
+  .playlist-selector select:focus {
+    outline: none;
+    border-color: #333;
+    box-shadow: 0 0 0 2px rgba(51, 51, 51, 0.2);
   }
 </style>
