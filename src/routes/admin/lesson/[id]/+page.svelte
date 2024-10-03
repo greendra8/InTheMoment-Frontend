@@ -31,8 +31,8 @@
 
 <div class="lesson-edit">
   <h1><i class="fas fa-edit"></i> Edit Lesson</h1>
-  <a href="/admin/category/{lesson.category_id}" class="back-link">
-    <i class="fas fa-arrow-left"></i> Back to Category
+  <a href="/admin/playlist/{lesson.playlist_id}" class="back-link">
+    <i class="fas fa-arrow-left"></i> Back to Playlist
   </a>
 
   <form 
@@ -79,7 +79,7 @@
     use:enhance={() => {
       return async ({ result }) => {
         if (result.type === 'success') {
-          goto(`/admin/category/${lesson.category_id}`);
+          goto(`/admin/playlist/${lesson.playlist_id}`);
         }
       };
     }}

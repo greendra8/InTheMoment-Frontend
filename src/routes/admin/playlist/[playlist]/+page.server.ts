@@ -3,32 +3,32 @@ import type { PageServerLoad, Actions } from './$types';
 import { supabaseAdmin } from '$lib/server/supabase';
 
 export const load: PageServerLoad = async ({ params }) => {
-  const { category } = params;
+  const { playlist } = params;
 
   try {
-    const { data: categoryData, error: categoryError } = await supabaseAdmin
-      .from('lesson_categories')
+    const { data: playlistData, error: playlistError } = await supabaseAdmin
+      .from('lesson_playlists')
       .select('*')
-      .eq('id', category)
+      .eq('id', playlist)
       .single();
 
-    if (categoryError) throw categoryError;
+    if (playlistError) throw playlistError;
 
     const { data: lessons, error: lessonsError } = await supabaseAdmin
       .from('lesson_content')
       .select('id, lesson_number, lesson_title')
-      .eq('category_id', category)
+      .eq('playlist_id', playlist)
       .order('lesson_number');
 
     if (lessonsError) throw lessonsError;
 
     return {
-      category: categoryData,
+      playlist: playlistData,
       lessons
     };
   } catch (err) {
-    console.error('Error fetching category and lessons:', err);
-    throw error(500, 'Error fetching category and lessons');
+    console.error('Error fetching playlist and lessons:', err);
+    throw error(500, 'Error fetching playlist and lessons');
   }
 };
 
@@ -36,7 +36,7 @@ export const actions: Actions = {
   addLesson: async ({ request, params }) => {
     const formData = await request.formData();
     const lessonTitle = formData.get('lessonTitle') as string;
-    const { category } = params;
+    const { playlist } = params;
 
     if (!lessonTitle) {
       return { success: false, error: 'Lesson title is required' };
@@ -46,7 +46,7 @@ export const actions: Actions = {
       const { data: existingLessons, error: countError } = await supabaseAdmin
         .from('lesson_content')
         .select('lesson_number')
-        .eq('category_id', category)
+        .eq('playlist_id', playlist)
         .order('lesson_number', { ascending: false })
         .limit(1);
 
@@ -56,7 +56,7 @@ export const actions: Actions = {
 
       const { data, error: insertError } = await supabaseAdmin
         .from('lesson_content')
-        .insert({ category_id: category, lesson_number: newLessonNumber, lesson_title: lessonTitle, lesson_content: '' })
+        .insert({ playlist_id: playlist, lesson_number: newLessonNumber, lesson_title: lessonTitle, lesson_content: '' })
         .select()
         .single();
 
@@ -69,53 +69,53 @@ export const actions: Actions = {
     }
   },
 
-  updateCategory: async ({ request, params }) => {
-    const { category } = params;
+  updatePlaylist: async ({ request, params }) => {
+    const { playlist } = params;
     const formData = await request.formData();
-    const categoryName = formData.get('categoryName') as string;
-    const categoryOrder = parseInt(formData.get('categoryOrder') as string);
-    const categoryDescription = formData.get('categoryDescription') as string;
+    const playlistName = formData.get('playlistName') as string;
+    const playlistOrder = parseInt(formData.get('playlistOrder') as string);
+    const playlistDescription = formData.get('playlistDescription') as string;
 
-    if (!categoryName || isNaN(categoryOrder)) {
-      return { success: false, error: 'Category name and order are required' };
+    if (!playlistName || isNaN(playlistOrder)) {
+      return { success: false, error: 'Playlist name and order are required' };
     }
 
     try {
       const { data, error: updateError } = await supabaseAdmin
-        .from('lesson_categories')
+        .from('lesson_playlists')
         .update({ 
-          category_name: categoryName, 
-          category_order: categoryOrder,
-          category_description: categoryDescription 
+          playlist_name: playlistName, 
+          playlist_order: playlistOrder,
+          playlist_description: playlistDescription 
         })
-        .eq('id', category)
+        .eq('id', playlist)
         .select()
         .single();
 
       if (updateError) throw updateError;
 
-      return { success: true, category: data };
+      return { success: true, playlist: data };
     } catch (err) {
-      console.error('Error updating category:', err);
-      return { success: false, error: 'Failed to update category' };
+      console.error('Error updating playlist:', err);
+      return { success: false, error: 'Failed to update playlist' };
     }
   },
 
-  deleteCategory: async ({ params }) => {
-    const { category } = params;
+  deletePlaylist: async ({ params }) => {
+    const { playlist } = params;
 
     try {
       const { error: deleteError } = await supabaseAdmin
-        .from('lesson_categories')
+        .from('lesson_playlists')
         .delete()
-        .eq('id', category);
+        .eq('id', playlist);
 
       if (deleteError) throw deleteError;
 
       return { success: true };
     } catch (err) {
-      console.error('Error deleting category:', err);
-      return { success: false, error: 'Failed to delete category' };
+      console.error('Error deleting playlist:', err);
+      return { success: false, error: 'Failed to delete playlist' };
     }
   }
 };

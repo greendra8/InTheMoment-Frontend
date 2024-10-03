@@ -6,10 +6,10 @@
   export let data: PageData;
   export let form;
 
-  let newCategory = '';
+  let newPlaylist = '';
 
-  function handleAddCategory() {
-    newCategory = '';
+  function handleAddPlaylist() {
+    newPlaylist = '';
   }
 </script>
 
@@ -20,22 +20,22 @@
 <div class="admin-dashboard">
   <h1><i class="fas fa-cogs"></i> Admin Dashboard</h1>
 
-  <div class="category-list">
-    <h2><i class="fas fa-list"></i> Categories</h2>
-    {#each data.categories as category}
-      <div class="category-item">
-        <a href="/admin/category/{category.id}">
-          <i class="fas fa-folder"></i> {category.category_order}. {category.category_name}
+  <div class="playlist-list">
+    <h2><i class="fas fa-list"></i> Playlists</h2>
+    {#each data.playlists as playlist}
+      <div class="playlist-item">
+        <a href="/admin/playlist/{playlist.id}">
+          <i class="fas fa-folder"></i> {playlist.playlist_order}. {playlist.playlist_name}
         </a>
-        <form method="POST" action="?/deleteCategory" use:enhance={() => {
+        <form method="POST" action="?/deletePlaylist" use:enhance={() => {
           return async ({ result }) => {
             if (result.type === 'success') {
               await invalidateAll();
             }
           };
         }}>
-          <input type="hidden" name="categoryId" value={category.id} />
-          <button type="submit" class="delete-btn" title="Delete Category">
+          <input type="hidden" name="playlistId" value={playlist.id} />
+          <button type="submit" class="delete-btn" title="Delete Playlist">
             <i class="fas fa-trash"></i>
           </button>
         </form>
@@ -43,19 +43,19 @@
     {/each}
   </div>
 
-  <div class="add-category">
-    <h3><i class="fas fa-plus-circle"></i> Add New Category</h3>
-    <form method="POST" action="?/addCategory" use:enhance={() => {
+  <div class="add-playlist">
+    <h3><i class="fas fa-plus-circle"></i> Add New Playlist</h3>
+    <form method="POST" action="?/addPlaylist" use:enhance={() => {
       return async ({ result }) => {
         if (result.type === 'success') {
-          handleAddCategory();
+          handleAddPlaylist();
           await invalidateAll();
         }
       };
     }}>
       <div class="input-group">
-        <input name="category" bind:value={newCategory} placeholder="Enter new category name" required />
-        <button type="submit">Add Category</button>
+        <input name="playlist" bind:value={newPlaylist} placeholder="Enter new playlist name" required />
+        <button type="submit">Add Playlist</button>
       </div>
     </form>
   </div>
@@ -76,11 +76,11 @@
     margin-bottom: 20px;
   }
 
-  .category-list {
+  .playlist-list {
     margin-bottom: 30px;
   }
 
-  .category-item {
+  .playlist-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -90,7 +90,7 @@
     overflow: hidden;
   }
 
-  .category-item a {
+  .playlist-item a {
     padding: 10px;
     text-decoration: none;
     color: #333;
@@ -98,7 +98,7 @@
     transition: background-color 0.3s;
   }
 
-  .category-item:hover {
+  .playlist-item:hover {
     background-color: #c5c5c5;
   }
 

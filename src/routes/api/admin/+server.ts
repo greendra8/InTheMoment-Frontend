@@ -5,11 +5,11 @@ import { supabaseAdmin } from '$lib/server/supabase';
 export const POST: RequestHandler = async ({ request, url }) => {
   const path = url.pathname.split('/').pop();
 
-  if (path === 'category') {
-    const { category } = await request.json();
+  if (path === 'playlist') {
+    const { playlist } = await request.json();
     const { data, error } = await supabaseAdmin
       .from('lesson_content')
-      .insert({ category, lesson_number: 1, lesson_title: 'Introduction', lesson_content: 'Welcome to this new category' })
+      .insert({ playlist, lesson_number: 1, lesson_title: 'Introduction', lesson_content: 'Welcome to this new playlist' })
       .select()
       .single();
 
@@ -18,10 +18,10 @@ export const POST: RequestHandler = async ({ request, url }) => {
   }
 
   if (path === 'lesson') {
-    const { category, lessonTitle, lessonNumber } = await request.json();
+    const { playlist, lessonTitle, lessonNumber } = await request.json();
     const { data, error } = await supabaseAdmin
       .from('lesson_content')
-      .insert({ category, lesson_number: lessonNumber, lesson_title: lessonTitle, lesson_content: '' })
+      .insert({ playlist, lesson_number: lessonNumber, lesson_title: lessonTitle, lesson_content: '' })
       .select()
       .single();
 
@@ -53,11 +53,11 @@ export const DELETE: RequestHandler = async ({ params, url }) => {
 
   let error;
 
-  if (type === 'category') {
+  if (type === 'playlist') {
     ({ error } = await supabaseAdmin
       .from('lesson_content')
       .delete()
-      .eq('category', value));
+      .eq('playlist', value));
   } else if (type === 'lesson') {
     ({ error } = await supabaseAdmin
       .from('lesson_content')

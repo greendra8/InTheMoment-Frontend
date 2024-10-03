@@ -5,17 +5,17 @@
 </script>
 
 <svelte:head>
-  <title>Course Categories</title>
+  <title>Course Playlists</title>
 </svelte:head>
 
-<div class="categories-page">
-  <h1>Course Categories</h1>
+<div class="playlists-page">
+  <h1>Course Playlists</h1>
 
-  {#each data.categories as category (category.id)}
-    <div class="category">
-      <h2>{category.category_name}</h2>
+  {#each data.playlists as playlist (playlist.id)}
+    <div class="playlist">
+      <h2>{playlist.playlist_name}</h2>
       <ul class="lesson-list">
-        {#each category.lessons as lesson (lesson.id)}
+        {#each playlist.lessons as lesson (lesson.id)}
           <li>
             <a href="/lesson/{lesson.id}">
               <div class="lesson-info">
@@ -38,7 +38,7 @@
 </div>
 
 <style>
-  .categories-page {
+  .playlists-page {
     font-family: 'Lato', sans-serif;
     max-width: 800px;
     margin: 0 auto;
@@ -50,7 +50,7 @@
     margin-bottom: 0.5rem;
   }
 
-  .category {
+  .playlist {
     margin-bottom: 1.5rem;
   }
 

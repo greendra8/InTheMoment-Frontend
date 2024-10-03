@@ -7,10 +7,10 @@
   export let form;
 
   let newLessonTitle = '';
-  let editingCategory = false;
-  let categoryName = data.category.category_name;
-  let categoryOrder = data.category.category_order;
-  let categoryDescription = data.category.category_description || '';
+  let editingPlaylist = false;
+  let playlistName = data.playlist.playlist_name;
+  let playlistOrder = data.playlist.playlist_order;
+  let playlistDescription = data.playlist.playlist_description || '';
 
   function goToLesson(lessonId: number) {
     goto(`/admin/lesson/${lessonId}`);
@@ -20,49 +20,49 @@
     newLessonTitle = '';
   }
 
-  function toggleEditCategory() {
-    editingCategory = !editingCategory;
-    if (!editingCategory) {
-      categoryName = data.category.category_name;
-      categoryOrder = data.category.category_order;
-      categoryDescription = data.category.category_description || '';
+  function toggleEditPlaylist() {
+    editingPlaylist = !editingPlaylist;
+    if (!editingPlaylist) {
+      playlistName = data.playlist.playlist_name;
+      playlistOrder = data.playlist.playlist_order;
+      playlistDescription = data.playlist.playlist_description || '';
     }
   }
 </script>
 
 <svelte:head>
-  <title>Admin - {data.category.category_name}</title>
+  <title>Admin - {data.playlist.playlist_name}</title>
 </svelte:head>
 
-<div class="category-page">
+<div class="playlist-page">
   <h2>
     <i class="fas fa-folder-open"></i> 
-    {#if editingCategory}
-      <form method="POST" action="?/updateCategory" use:enhance={() => {
+    {#if editingPlaylist}
+      <form method="POST" action="?/updatePlaylist" use:enhance={() => {
         return async ({ result }) => {
           if (result.type === 'success') {
-            editingCategory = false;
+            editingPlaylist = false;
             await invalidateAll();
           }
         };
       }}>
-        <input name="categoryName" bind:value={categoryName} required />
-        <input name="categoryOrder" type="number" bind:value={categoryOrder} required />
-        <textarea name="categoryDescription" bind:value={categoryDescription} placeholder="Category description"></textarea>
+        <input name="playlistName" bind:value={playlistName} required />
+        <input name="playlistOrder" type="number" bind:value={playlistOrder} required />
+        <textarea name="playlistDescription" bind:value={playlistDescription} placeholder="Playlist description"></textarea>
         <button type="submit">Save</button>
-        <button type="button" on:click={toggleEditCategory}>Cancel</button>
+        <button type="button" on:click={toggleEditPlaylist}>Cancel</button>
       </form>
     {:else}
-      {data.category.category_name}
-      {#if data.category.category_description}
-        <p class="category-description">{data.category.category_description}</p>
+      {data.playlist.playlist_name}
+      {#if data.playlist.playlist_description}
+        <p class="playlist-description">{data.playlist.playlist_description}</p>
       {/if}
-      <button on:click={toggleEditCategory} class="edit-button"><i class="fas fa-edit"></i> Edit</button>
+      <button on:click={toggleEditPlaylist} class="edit-button"><i class="fas fa-edit"></i> Edit</button>
     {/if}
   </h2>
   
 
-  <a href="/admin" class="back-link"><i class="fas fa-arrow-left"></i> Back to Categories</a>
+  <a href="/admin" class="back-link"><i class="fas fa-arrow-left"></i> Back to Playlists</a>
 
   <div class="lesson-list">
     <h2><i class="fas fa-book"></i> Lessons</h2>
@@ -92,8 +92,8 @@
     </form>
   </div>
 
-  <div class="delete-category">
-    <form method="POST" action="?/deleteCategory" use:enhance={() => {
+  <div class="delete-playlist">
+    <form method="POST" action="?/deletePlaylist" use:enhance={() => {
       return async ({ result }) => {
         if (result.type === 'success') {
           goto('/admin');
@@ -101,11 +101,11 @@
       };
     }}>
       <button type="submit" class="delete-btn" on:click|preventDefault={() => {
-        if (confirm(`Are you sure you want to delete the category "${data.category.category_name}" and all its lessons?`)) {
-          const form = document.querySelector('form[action="?/deleteCategory"]');
+        if (confirm(`Are you sure you want to delete the playlist "${data.playlist.playlist_name}" and all its lessons?`)) {
+          const form = document.querySelector('form[action="?/deletePlaylist"]');
           form?.requestSubmit();
         }
-      }}><i class="fas fa-trash"></i> Delete Category</button>
+      }}><i class="fas fa-trash"></i> Delete Playlist</button>
     </form>
   </div>
 
@@ -115,7 +115,7 @@
 </div>
 
 <style>
-  .category-page {
+  .playlist-page {
     max-width: 800px;
     margin: 0 auto;
     padding: 20px;
@@ -221,7 +221,7 @@
     padding: 5px 10px;
   }
 
-  .category-description {
+  .playlist-description {
     margin-bottom: 20px;
     font-size: 0.8rem;
     font-weight: 400;

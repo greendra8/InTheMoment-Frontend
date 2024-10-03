@@ -41,7 +41,7 @@
   let selectedPostureIndex = 0;
   let selectedEyesIndex = 1;
 
-  let selectedCategory = '';
+  let selectedPlaylist = '';
 
   $: {
     selectedPostureIndex = postureOptions.findIndex(option => option.value === selectedPosture);
@@ -164,7 +164,7 @@
     formData.set('userLocalTime', getUserLocalTime());
     formData.set('length', duration.toString());
     formData.set('parameters', JSON.stringify(createParametersJSON()));
-    formData.set('category_id', selectedCategory);
+    formData.set('playlist_id', selectedPlaylist);
 
     console.log('Client: Form data:', Object.fromEntries(formData));
 
@@ -278,12 +278,12 @@
     </div>
   </div>
 
-  <div class="category-selector">
-    <h3>Category</h3>
-    <select bind:value={selectedCategory}>
-      <option value="">No specific category</option>
-      {#each data.categories as category}
-        <option value={category.id}>{category.category_name}</option>
+  <div class="playlist-selector">
+    <h3>Playlist</h3>
+    <select bind:value={selectedPlaylist}>
+      <option value="">No specific playlist</option>
+      {#each data.playlists as playlist}
+        <option value={playlist.id}>{playlist.playlist_name}</option>
       {/each}
     </select>
   </div>
@@ -292,7 +292,7 @@
     <input type="hidden" name="userLocalTime" value={getUserLocalTime()} />
     <input type="hidden" name="length" value={duration} />
     <input type="hidden" name="parameters" value={JSON.stringify(createParametersJSON())} />
-    <input type="hidden" name="category_id" value={selectedCategory} />
+    <input type="hidden" name="playlist_id" value={selectedPlaylist} />
     <button type="submit" class="generate-btn" disabled={buttonDisabled}>
       <i class="fas fa-paper-plane"></i>
       <span>Generate Meditation</span>
@@ -514,12 +514,12 @@
     font-size: 0.8rem;
   }
 
-  .category-selector {
+  .playlist-selector {
     margin-bottom: 2rem;
     text-align: left;
   }
 
-  .category-selector select {
+  .playlist-selector select {
     width: 100%;
     padding: 0.5rem;
     border: 1px solid #ccc;

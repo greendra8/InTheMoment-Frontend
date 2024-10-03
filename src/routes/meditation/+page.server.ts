@@ -13,21 +13,21 @@ export const load: PageServerLoad = async ({ locals }) => {
 	}
 
 	try {
-		const { data: categories, error: categoriesError } = await supabaseAdmin
-			.from('lesson_categories')
-			.select('id, category_name')
-			.order('category_order');
+		const { data: playlists, error: playlistsError } = await supabaseAdmin
+			.from('lesson_playlists')
+			.select('id, playlist_name')
+			.order('playlist_order');
 
-		if (categoriesError) throw categoriesError;
+		if (playlistsError) throw playlistsError;
 
 
 		return {
 			session,
-			categories
+			playlists
 		};
 	} catch (err) {
-		console.error('Error fetching categories:', err);
-		throw error(500, 'Error fetching categories');
+		console.error('Error fetching playlists:', err);
+		throw error(500, 'Error fetching playlists');
 	}
 };
 
@@ -43,9 +43,9 @@ export const actions: Actions = {
 		const userLocalTime = data.get('userLocalTime') as string;
 		const length = parseInt(data.get('length') as string);
 		const parameters = JSON.parse(data.get('parameters') as string);
-		const category_id = parseInt(data.get('category_id') as string);
+		const playlist_id = parseInt(data.get('playlist_id') as string);
 
-		console.log('Server: Received form data:', { userLocalTime, length, parameters, category_id });
+		console.log('Server: Received form data:', { userLocalTime, length, parameters, playlist_id });
 
 		try {
 			console.log('Server: Calling generateMeditation');
@@ -54,7 +54,7 @@ export const actions: Actions = {
 				length,
 				userLocalTime,
 				parameters,
-				category_id
+				playlist_id
 			);
 
 			console.log('Server: Result from generateMeditation:', JSON.stringify(result, null, 2));

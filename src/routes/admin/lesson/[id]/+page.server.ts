@@ -8,7 +8,7 @@ export const load: PageServerLoad = async ({ params }) => {
   try {
     const { data: lesson, error: lessonError } = await supabaseAdmin
       .from('lesson_content')
-      .select('*, lesson_categories!inner(id, category_name)')
+      .select('*, lesson_playlists!inner(id, playlist_name)')
       .eq('id', id)
       .single();
 
@@ -21,8 +21,8 @@ export const load: PageServerLoad = async ({ params }) => {
     return {
       lesson: {
         ...lesson,
-        category_id: lesson.lesson_categories.id,
-        category_name: lesson.lesson_categories.category_name
+        playlist_id: lesson.lesson_playlists.id,
+        playlist_name: lesson.lesson_playlists.playlist_name
       }
     };
   } catch (err) {
@@ -44,7 +44,7 @@ export const actions: Actions = {
         .from('lesson_content')
         .update({ lesson_number: lessonNumber, lesson_title: lessonTitle, lesson_content: lessonContent })
         .eq('id', id)
-        .select('*, lesson_categories!inner(category_name)')
+        .select('*, lesson_playlists!inner(playlist_name)')
         .single();
 
       if (updateError) throw updateError;
@@ -53,7 +53,7 @@ export const actions: Actions = {
         success: true, 
         lesson: {
           ...data,
-          category_name: data.lesson_categories.category_name
+          playlist_name: data.lesson_playlists.playlist_name
         }
       };
     } catch (err) {
@@ -68,7 +68,7 @@ export const actions: Actions = {
     try {
       const { data: lesson, error: fetchError } = await supabaseAdmin
         .from('lesson_content')
-        .select('category_id')
+        .select('playlist_id')
         .eq('id', id)
         .single();
 

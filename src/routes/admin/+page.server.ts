@@ -4,76 +4,76 @@ import { supabaseAdmin } from '$lib/server/supabase';
 
 export const load: PageServerLoad = async () => {
   try {
-    const { data: categories, error: categoriesError } = await supabaseAdmin
-      .from('lesson_categories')
-      .select('id, category_name, category_order')
-      .order('category_order');
+    const { data: playlists, error: playlistsError } = await supabaseAdmin
+      .from('lesson_playlists')
+      .select('id, playlist_name, playlist_order')
+      .order('playlist_order');
 
-    if (categoriesError) throw categoriesError;
+    if (playlistsError) throw playlistsError;
 
     return {
-      categories
+      playlists
     };
   } catch (err) {
-    console.error('Error fetching categories:', err);
-    throw error(500, 'Error fetching categories');
+    console.error('Error fetching playlists:', err);
+    throw error(500, 'Error fetching playlists');
   }
 };
 
 export const actions: Actions = {
-  addCategory: async ({ request }) => {
+  addPlaylist: async ({ request }) => {
     const formData = await request.formData();
-    const categoryName = formData.get('category') as string;
+    const playlistName = formData.get('playlist') as string;
 
-    if (!categoryName) {
-      return { success: false, error: 'Category name is required' };
+    if (!playlistName) {
+      return { success: false, error: 'Playlist name is required' };
     }
 
     try {
-      const { data: maxOrderCategory } = await supabaseAdmin
-        .from('lesson_categories')
-        .select('category_order')
-        .order('category_order', { ascending: false })
+      const { data: maxOrderPlaylist } = await supabaseAdmin
+        .from('lesson_playlists')
+        .select('playlist_order')
+        .order('playlist_order', { ascending: false })
         .limit(1)
         .single();
 
-      const newOrder = maxOrderCategory ? maxOrderCategory.category_order + 1 : 1;
+      const newOrder = maxOrderPlaylist ? maxOrderPlaylist.playlist_order + 1 : 1;
 
       const { data, error: insertError } = await supabaseAdmin
-        .from('lesson_categories')
-        .insert({ category_name: categoryName, category_order: newOrder })
+        .from('lesson_playlists')
+        .insert({ playlist_name: playlistName, playlist_order: newOrder })
         .select()
         .single();
 
       if (insertError) throw insertError;
 
-      return { success: true, category: data };
+      return { success: true, playlist: data };
     } catch (err) {
-      console.error('Error adding category:', err);
-      return { success: false, error: 'Failed to add category' };
+      console.error('Error adding playlist:', err);
+      return { success: false, error: 'Failed to add playlist' };
     }
   },
 
-  deleteCategory: async ({ request }) => {
+  deletePlaylist: async ({ request }) => {
     const formData = await request.formData();
-    const categoryId = formData.get('categoryId') as string;
+    const playlistId = formData.get('playlistId') as string;
 
-    if (!categoryId) {
-      return { success: false, error: 'Category ID is required' };
+    if (!playlistId) {
+      return { success: false, error: 'Playlist ID is required' };
     }
 
     try {
       const { error: deleteError } = await supabaseAdmin
-        .from('lesson_categories')
+        .from('lesson_playlists')
         .delete()
-        .eq('id', categoryId);
+        .eq('id', playlistId);
 
       if (deleteError) throw deleteError;
 
       return { success: true };
     } catch (err) {
-      console.error('Error deleting category:', err);
-      return { success: false, error: 'Failed to delete category' };
+      console.error('Error deleting playlist:', err);
+      return { success: false, error: 'Failed to delete playlist' };
     }
   }
 };
