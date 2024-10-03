@@ -97,7 +97,13 @@ const authGuard: Handle = async ({ event, resolve }) => {
     !session &&
     (event.url.pathname.startsWith('/private') ||
       event.url.pathname.startsWith('/dashboard') ||
-      event.url.pathname.startsWith('/meditation'))
+      event.url.pathname.startsWith('/playlists') ||
+      event.url.pathname.startsWith('/new') ||
+      event.url.pathname.startsWith('/profile') ||
+      event.url.pathname.startsWith('/list') ||
+      event.url.pathname.startsWith('/meditation/') ||
+      event.url.pathname.startsWith('/admin')
+    )
   ) {
     throw redirect(303, '/login');
   }

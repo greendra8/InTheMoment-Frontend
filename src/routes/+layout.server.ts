@@ -27,6 +27,9 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
     !session?.user &&
     (url.pathname.startsWith('/dashboard') ||
       url.pathname.startsWith('/meditation') ||
+      url.pathname.startsWith('/playlists') ||
+      url.pathname.startsWith('/new') ||
+      url.pathname.startsWith('/admin') ||
       url.pathname.startsWith('/profile') ||
       url.pathname.startsWith('/list'))
   ) {
@@ -36,8 +39,9 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
   const navItems = session?.user
     ? [
         { href: '/dashboard', label: 'Dashboard', icon: 'fa-home' },
+        { href: '/new', label: 'New', icon: 'fa-plus' },
         { href: '/library', label: 'Library', icon: 'fa-list' },
-        { href: '/meditation', label: 'Meditation', icon: 'fa-spa' },
+        { href: '/playlists', label: 'Playlists', icon: 'fa-music' },
         { href: '/profile', label: 'Profile', icon: 'fa-user' },
         ...(isAdmin ? [{ href: '/admin', label: 'Admin', icon: 'fa-cog' }] : []),
       ]
