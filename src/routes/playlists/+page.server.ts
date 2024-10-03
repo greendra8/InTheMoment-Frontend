@@ -11,24 +11,11 @@ export const load: PageServerLoad = async () => {
 
     if (playlistsError) throw playlistsError;
 
-    const { data: lessons, error: lessonsError } = await supabaseAdmin
-      .from('lesson_content')
-      .select('id, lesson_number, lesson_title, playlist_id')
-      .order('lesson_number');
-
-    if (lessonsError) throw lessonsError;
-
-    // Group lessons by playlist
-    const playlistsWithLessons = playlists.map(playlist => ({
-      ...playlist,
-      lessons: lessons.filter(lesson => lesson.playlist_id === playlist.id)
-    }));
-
     return {
-      playlists: playlistsWithLessons
+      playlists
     };
   } catch (err) {
-    console.error('Error fetching playlists and lessons:', err);
-    throw error(500, 'Error fetching playlists and lessons');
+    console.error('Error fetching playlists:', err);
+    throw error(500, 'Error fetching playlists');
   }
 };

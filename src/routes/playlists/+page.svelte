@@ -1,115 +1,183 @@
 <script lang="ts">
   import type { PageData } from './$types';
+  import { goto } from '$app/navigation';
 
   export let data: PageData;
+
+  function getRandomGrey() {
+    const greys = [
+      { bg: '#4A4A4A', text: '#FFFFFF' },
+      { bg: '#616161', text: '#FFFFFF' },
+      { bg: '#757575', text: '#FFFFFF' },
+      { bg: '#9E9E9E', text: '#FFFFFF' },
+      { bg: '#BDBDBD', text: '#FFFFFF' },
+    ];
+    return greys[Math.floor(Math.random() * greys.length)];
+  }
 </script>
 
 <svelte:head>
-  <title>Course Playlists</title>
+  <title>Playlists</title>
 </svelte:head>
 
 <div class="playlists-page">
-  <h1>Course Playlists</h1>
+  <h1>Playlists</h1>
 
-  {#each data.playlists as playlist (playlist.id)}
-    <div class="playlist">
-      <h2>{playlist.playlist_name}</h2>
-      <ul class="lesson-list">
-        {#each playlist.lessons as lesson (lesson.id)}
-          <li>
-            <a href="/lesson/{lesson.id}">
-              <div class="lesson-info">
-                <h3>{lesson.lesson_title}</h3>
-                <p>Lesson {lesson.lesson_number}</p>
-              </div>
-              <div class="create-button">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="12" y1="5" x2="12" y2="19"></line>
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
-                Create
-              </div>
-            </a>
-          </li>
-        {/each}
-      </ul>
-    </div>
-  {/each}
+  <div class="playlist-grid">
+    {#each data.playlists as playlist, index (playlist.id)}
+      {@const colors = getRandomGrey()}
+      <div 
+        class="playlist-card"
+        class:full-width={index === 0}
+        style="--card-bg-color: {colors.bg}; --card-text-color: {colors.text};"
+        on:click={() => goto(`/playlists/${playlist.id}`)}
+        on:keydown={(e) => {
+          if (e.key === 'Enter') goto(`/playlists/${playlist.id}`);
+        }}
+        tabindex="0"
+        role="button"
+      >
+        <div class="playlist-icon">
+          <i class="fas fa-play-circle"></i>
+        </div>
+        <h2>{playlist.playlist_name}</h2>
+        <div class="playlist-arrow">
+          <i class="fas fa-arrow-right"></i>
+        </div>
+      </div>
+    {/each}
+  </div>
 </div>
 
 <style>
   .playlists-page {
-    font-family: 'Lato', sans-serif;
-    max-width: 800px;
+    max-width: 1200px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 2rem 1rem;
   }
 
-  h1, h2, h3 {
+  h1 {
     font-family: 'Poppins', sans-serif;
-    margin-bottom: 0.5rem;
-  }
-
-  .playlist {
+    font-weight: 600;
+    color: #333;
     margin-bottom: 1.5rem;
   }
 
-  .lesson-list {
-    list-style-type: none;
-    padding: 0;
+  .playlist-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
   }
 
-  .lesson-list li {
+  .playlist-card {
+    background-color: var(--card-bg-color);
+    color: var(--card-text-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .playlist-card.full-width {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-rows: auto auto;
+    gap: 0.5rem;
+    padding: 1rem 1.5rem;
+    align-items: center;
+  }
+
+  .full-width .playlist-icon {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    font-size: 2.5rem;
+    margin-right: 1rem;
+  }
+
+  .full-width h2 {
+    grid-column: 2;
+    grid-row: 1 / 3;
+    font-size: 1.3rem;
+    align-self: center;
+  }
+
+  .full-width .playlist-arrow {
+    grid-column: 3;
+    grid-row: 1 / 3;
+    font-size: 1.3rem;
+    justify-self: end;
+    align-self: center;
+  }
+
+  .playlist-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .playlist-icon {
+    font-size: 2rem;
     margin-bottom: 0.5rem;
   }
 
-  .lesson-list a {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    text-decoration: none;
-    color: #333;
-    background-color: #f0f0f0;
-    padding: 0.5rem;
-    border-radius: 5px;
-    transition: background-color 0.3s;
+  .playlist-card h2 {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin: 0;
+    line-height: 1.2;
   }
 
-  .lesson-list a:hover {
-    background-color: #e0e0e0;
-  }
-
-  .lesson-info {
-    flex-grow: 1;
-  }
-
-  .lesson-info h3 {
+  .playlist-arrow {
+    position: absolute;
+    bottom: 1rem;
+    right: 1rem;
     font-size: 1rem;
-    margin: 0;
+    opacity: 0;
+    transition: all 0.3s ease;
   }
 
-  .lesson-info p {
-    font-size: 0.8rem;
-    color: #666;
-    margin: 0;
+  .full-width .playlist-arrow {
+    position: static;
+    opacity: 1;
   }
 
-  .create-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.2rem 0.4rem;
-    background-color: #4CAF50;
-    color: white;
-    border-radius: 3px;
-    font-size: 0.8rem;
-    min-width: 60px;
-    white-space: nowrap;
+  .playlist-card:hover .playlist-arrow {
+    opacity: 1;
+    transform: translateX(5px);
   }
 
-  .create-button svg {
-    margin-right: 0.2rem;
-    width: 14px;
-    height: 14px;
+  @media (max-width: 768px) {
+    .playlist-grid {
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+
+    .playlist-card {
+      padding: 1rem;
+    }
+
+    .playlist-card.full-width {
+      padding: 0.75rem 1rem;
+    }
+
+    .full-width .playlist-icon {
+      font-size: 2rem;
+    }
+
+    .full-width h2 {
+      font-size: 1.1rem;
+    }
+
+    .playlist-icon {
+      font-size: 1.5rem;
+    }
+
+    .playlist-card h2 {
+      font-size: 1rem;
+    }
   }
 </style>
