@@ -2,7 +2,7 @@ const PYTHON_SERVER_URL = import.meta.env.DEV
   ? 'http://localhost:8080'
   : 'https://api.inthemoment.app';
 
-export async function generateMeditation(accessToken: string, length: number, userLocalTime: string, parameters: any) {
+export async function generateMeditation(accessToken: string, length: number, userLocalTime: string, parameters: any, category_id: number) {
   const response = await fetch(`${PYTHON_SERVER_URL}/generate_meditation`, {
     method: 'POST',
     headers: {
@@ -12,7 +12,8 @@ export async function generateMeditation(accessToken: string, length: number, us
     body: JSON.stringify({ 
       length,
       userLocalTime,
-      parameters
+      parameters,
+      category_id
     }),
   });
 
@@ -24,7 +25,6 @@ export async function generateMeditation(accessToken: string, length: number, us
 
   const result = await response.json();
   
-  // Ensure the result is a plain object
   return {
     type: 'success',
     data: {

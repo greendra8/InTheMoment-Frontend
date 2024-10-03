@@ -41,6 +41,8 @@
   let selectedPostureIndex = 0;
   let selectedEyesIndex = 1;
 
+  let selectedCategory = '';
+
   $: {
     selectedPostureIndex = postureOptions.findIndex(option => option.value === selectedPosture);
   }
@@ -162,6 +164,7 @@
     formData.set('userLocalTime', getUserLocalTime());
     formData.set('length', duration.toString());
     formData.set('parameters', JSON.stringify(createParametersJSON()));
+    formData.set('category_id', selectedCategory);
 
     console.log('Client: Form data:', Object.fromEntries(formData));
 
@@ -275,10 +278,21 @@
     </div>
   </div>
 
+  <div class="category-selector">
+    <h3>Category</h3>
+    <select bind:value={selectedCategory}>
+      <option value="">No specific category</option>
+      {#each data.categories as category}
+        <option value={category.id}>{category.category_name}</option>
+      {/each}
+    </select>
+  </div>
+
   <form bind:this={formElement} method="POST" action="?/generateMeditation" on:submit={handleFormSubmit}>
     <input type="hidden" name="userLocalTime" value={getUserLocalTime()} />
     <input type="hidden" name="length" value={duration} />
     <input type="hidden" name="parameters" value={JSON.stringify(createParametersJSON())} />
+    <input type="hidden" name="category_id" value={selectedCategory} />
     <button type="submit" class="generate-btn" disabled={buttonDisabled}>
       <i class="fas fa-paper-plane"></i>
       <span>Generate Meditation</span>
@@ -498,5 +512,19 @@
 
   .option span {
     font-size: 0.8rem;
+  }
+
+  .category-selector {
+    margin-bottom: 2rem;
+    text-align: left;
+  }
+
+  .category-selector select {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: white;
+    font-size: 1rem;
   }
 </style>
