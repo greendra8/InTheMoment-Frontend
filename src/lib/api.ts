@@ -20,17 +20,19 @@ export function subscribeMeditationStatus(meditationId: string, callback: (statu
     let isSubscribed = false;
     let timeoutId: NodeJS.Timeout;
 
-    // Fetch the current status immediately
-    supabase
-        .from('audio_sessions')
-        .select('generation_status')
-        .eq('id', meditationId)
-        .single()
-        .then(({ data, error }) => {
-            if (!error && data && isSubscribed) {
-                callback(data.generation_status);
-            }
-        });
+    // Fetch the current status after 2 seconds
+    setTimeout(() => {
+        supabase
+            .from('audio_sessions')
+            .select('generation_status')
+            .eq('id', meditationId)
+            .single()
+            .then(({ data, error }) => {
+                if (!error && data && isSubscribed) {
+                    callback(data.generation_status);
+                }
+            });
+    }, 2000);
 
     const channel = supabase
         .channel(`meditation-${meditationId}`)
