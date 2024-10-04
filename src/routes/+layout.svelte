@@ -18,11 +18,13 @@
   $: appContext.setIsNativeApp(isNativeApp);
 
   onMount(() => {
-    const { data: authListener } = supabase.auth.onAuthStateChange((_, newSession) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, newSession) => {
       const currentSession = get(sessionStore);
       if (newSession?.expires_at !== currentSession?.expires_at) {
         sessionStore.set(newSession);
-        invalidate('supabase:auth');
+        // invalidate('supabase:auth'); // this line causes token spam! never uncomment it!
+      } else {
+        console.log('No session update needed');
       }
     });
 
