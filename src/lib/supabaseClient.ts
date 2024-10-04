@@ -7,7 +7,7 @@ const PUBLIC_SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 const options = {
   auth: {
-    autoRefreshToken: false,
+    autoRefreshToken: true,
   },
 };
 
