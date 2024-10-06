@@ -449,7 +449,7 @@
     height: 100%;
     object-fit: cover;
     border-bottom-left-radius: 0.5rem;
-    opacity: 0.8;
+    opacity: 0.9;
     display: block;
   }
 
