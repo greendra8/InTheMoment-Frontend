@@ -35,7 +35,6 @@ export async function getUserMeditations(userId: string, page: number = 1, limit
     .order('created_at', { ascending: false })
   
   if (error) throw error;
-  console.log('User meditations:', data);
   return data;
 }
 
