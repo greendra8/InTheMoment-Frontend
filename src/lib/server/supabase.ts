@@ -28,13 +28,14 @@ export async function getUserMeditations(userId: string, page: number = 1, limit
 
   const { data, error } = await supabaseAdmin
     .from('audio_sessions')
-    .select('*')
+    .select('*, lesson_playlists(playlist_name)')
     .eq('user_id', userId)
     .eq('generation_status', 'Completed')
     .range(start, end)
     .order('created_at', { ascending: false })
   
   if (error) throw error;
+  console.log('User meditations:', data);
   return data;
 }
 
@@ -42,7 +43,7 @@ export async function getUserMeditations(userId: string, page: number = 1, limit
 export async function getMeditation(meditationId: string) {
   const { data, error } = await supabaseAdmin
     .from('audio_sessions')
-    .select('*')
+    .select('*, lesson_playlists(playlist_name)')
     .eq('id', meditationId)
     .single()
   
