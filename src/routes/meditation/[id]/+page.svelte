@@ -199,6 +199,7 @@
       padding: 0 !important;
     }
     .content-container {
+      padding-top: 0 !important;
       padding-bottom: 0 !important;
     }
   </style>
@@ -235,9 +236,9 @@
             <i class="fas fa-signal"></i>{' '}
             {meditation.difficulty.charAt(0).toUpperCase() + meditation.difficulty.slice(1)}
           </span>
-          <span class="info-item">
+          <!-- <span class="info-item">
             <i class="far fa-clock"></i> {meditation.length} minutes
-          </span>
+          </span> -->
           <span
             id="download-button-{meditation.id}"
             class="info-item {isDownloaded ? 'download-status' : 'download-icon'}"
