@@ -478,12 +478,12 @@
     .back-icon {
       display: block;
       position: absolute;
-      top: 1.56rem;
-      left: 1.56rem;
+      top: 1rem;
+      left: 1rem;
       background-color: #f5f5f5;
       border-radius: 50%;
-      width: 2.5rem;
-      height: 2.5rem;
+      width: 2rem;
+      height: 2rem;
       display: flex;
       justify-content: center;
       align-items: center;
