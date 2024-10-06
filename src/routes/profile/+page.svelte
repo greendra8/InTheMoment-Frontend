@@ -67,13 +67,6 @@
 </div>
 
 <style>
-  .profile-container {
-    font-family: 'Lato', sans-serif;
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 2rem 1rem;
-  }
-
   h1 {
     font-family: 'Poppins', sans-serif;
     color: #333;
@@ -171,9 +164,6 @@
   }
 
   @media (max-width: 600px) {
-    .profile-container {
-      padding: 1rem;
-    }
 
     form {
       padding: 1rem;

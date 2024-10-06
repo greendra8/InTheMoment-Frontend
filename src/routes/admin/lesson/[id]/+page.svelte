@@ -98,12 +98,6 @@
 </div>
 
 <style>
-  .lesson-edit {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px;
-  }
-
   h1 {
     margin-bottom: 20px;
   }

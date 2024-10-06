@@ -69,13 +69,6 @@
 </div>
 
 <style>
-  .playlist-page {
-    font-family: 'Lato', sans-serif;
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px;
-  }
-
   h1, h2, h3 {
     font-family: 'Poppins', sans-serif;
     margin-bottom: 0.5rem;

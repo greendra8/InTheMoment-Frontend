@@ -115,12 +115,6 @@
 </div>
 
 <style>
-  .playlist-page {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px;
-  }
-
   h1, h2, h3 {
     margin-bottom: 20px;
   }

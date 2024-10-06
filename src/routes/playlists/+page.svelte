@@ -50,12 +50,6 @@
 </div>
 
 <style>
-  .playlists-page {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem 1rem;
-  }
-
   h1 {
     font-family: 'Poppins', sans-serif;
     font-weight: 600;
