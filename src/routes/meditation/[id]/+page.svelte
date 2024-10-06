@@ -210,7 +210,7 @@
   style="height: {realViewportHeight}px; --background-image: url({bg});"
 >
   <div class="back-icon" on:click={() => window.history.back()}>
-    <i class="fas fa-arrow-left"></i>
+    <i class="fas fa-arrow-left"></i> &nbsp; Back
   </div>
   <div class="meditation-content">
     <header>
@@ -491,21 +491,25 @@
     .back-icon {
       display: block;
       position: absolute;
-      top: 1rem;
-      left: 1rem;
+      top: 1.3rem;
+      left: 1.5rem;
       background-color: #f5f5f5;
-      border-radius: 50%;
-      width: 2rem;
+      border-radius: 1rem;
       height: 2rem;
+      padding: 0 0.8rem;
+      color: #333;
       display: flex;
       justify-content: center;
       align-items: center;
       cursor: pointer;
       z-index: 1;
+      /* drop shadow */
+      box-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.08);
+      opacity: 0.8;
     }
 
     .back-icon:hover {
-      background-color: #d3d3d3;
+      opacity: 1;
     }
 
     .back-icon i {
