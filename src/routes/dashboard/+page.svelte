@@ -31,6 +31,7 @@
     }
   }
 
+
   onMount(async () => {
     try {
       // Dynamically import KeenSlider in the browser
@@ -100,6 +101,33 @@
       <h1>Recommended</h1>
     </header>
 
+    <!-- Recent Sessions Section -->
+    <section class="quick-access-section">
+      <!-- <h2 class="section-subtitle">Recents:</h2> -->
+      <div class="quick-access-grid">
+        {#each meditations?.slice(0, 4) ?? [] as meditation}
+          <button
+            class="quick-access-button"
+            on:click={() => goto(getMeditationLink(meditation.id))}
+            on:keydown={e => {
+              if (e.key === 'Enter') {
+                goto(getMeditationLink(meditation.id));
+              }
+            }}
+            tabindex="0"
+            role="button"
+          >
+            <div class="button-image">
+              <img src="{square}" alt="{meditation.title}" />
+            </div>
+            <div class="button-title">
+              <span>{meditation.title}</span>
+            </div>
+          </button>
+        {/each}
+      </div>
+    </section>
+
     <div class="featured-card-wrapper">
       <div class="featured-card-shadow"></div>
       <div
@@ -133,6 +161,7 @@
         </div>
       </div>
     </div>
+
 
     <!-- Keen Slider for meditations -->
     <div bind:this={sliderRef} class="keen-slider" class:slider-loaded={sliderLoaded}>
@@ -368,6 +397,70 @@
 
   .featured-card:hover .card-chevron {
     transform: scale(1.2);
+  }
+
+  /* Quick Access Buttons Section Styling */
+  .quick-access-section {
+    margin-bottom: 2.2rem;
+  }
+
+  .section-subtitle {
+    font-family: 'Poppins', Arial, sans-serif;
+    font-weight: 600;
+    color: #333333;
+    margin-bottom: 1rem;
+  }
+
+  .quick-access-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+
+  .quick-access-button {
+    display: flex;
+    align-items: stretch;
+    background-color: #303030;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    color: white;
+    text-align: left;
+    height: 70px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    /* overflow: hidden; */
+    padding: 0;
+  }
+
+  .quick-access-button:active {
+    background-color: #303030;
+    transform: translateY(-2px);
+  }
+
+  .button-image {
+    flex: 0 0 auto;
+    width: 70px;
+    height: 100%;
+  }
+
+  .button-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-bottom-left-radius: 0.5rem;
+    opacity: 0.8;
+    display: block;
+  }
+
+  .button-title {
+    flex: 1;
+    font-family: 'Poppins', Arial, sans-serif;
+    font-weight: 600;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    padding: 0 0.5rem;
   }
 
   /* Section title styling */
