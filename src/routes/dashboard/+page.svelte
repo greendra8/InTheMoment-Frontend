@@ -433,11 +433,6 @@
     padding: 0;
   }
 
-  .quick-access-button:active {
-    background-color: #303030;
-    transform: translateY(-2px);
-  }
-
   .button-image {
     flex: 0 0 auto;
     width: 70px;
@@ -641,7 +636,8 @@
   @media (max-width: 768px) {
     .carousel-item,
     .featured-card,
-    .meditation-item {
+    .meditation-item,
+    .quick-access-button {
       transform: scale(1);
       filter: brightness(1);
       transition: transform 0.3s ease-in-out, filter 0.3s ease-in-out;
@@ -649,7 +645,8 @@
 
     .carousel-item:active,
     .featured-card:active,
-    .meditation-item:active {
+    .meditation-item:active,
+    .quick-access-button:active {
       filter: brightness(0.97);
       transform: scale(0.97);
       transition: transform 0.1s ease-in-out, filter 0.1s ease-in-out;
