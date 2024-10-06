@@ -39,7 +39,7 @@
           <div class="meditation-info">
             {#if meditation.status === 'processing'}
               <h3>Processing Meditation...</h3>
-              <p>Theme: {meditation.theme || 'N/A'}</p>
+              <p>{meditation.lesson_playlists ? `Playlist: ${meditation.lesson_playlists.playlist_name}` : `Theme: ${meditation.theme || 'N/A'}`}</p>
               <p>Length: {meditation.length || 'N/A'} min</p>
             {:else}
               <h3>
@@ -48,7 +48,7 @@
                   <i style="font-size:12px; vertical-align: middle; margin-top: -3px;color: #4caf50;" class="fas fa-check-circle"></i>
                 {/if}
               </h3>
-              <p>Theme: {meditation.theme || 'N/A'}</p>
+              <p>{meditation.lesson_playlists ? `Playlist: ${meditation.lesson_playlists.playlist_name}` : `Theme: ${meditation.theme || 'N/A'}`}</p>
               <p>Length: {meditation.length || 'N/A'} min</p>
             {/if}
           </div>

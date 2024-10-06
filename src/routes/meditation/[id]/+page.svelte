@@ -224,7 +224,12 @@
         </h2>
         <div class="meditation-info">
           <span class="info-item">
-            <i class="fas fa-layer-group"></i> {meditation.theme}
+            <i class="fas fa-layer-group"></i> 
+            {#if meditation.lesson_playlists}
+              <a href="/playlists/{meditation.playlist_id}">{meditation.lesson_playlists.playlist_name}</a>
+            {:else}
+              {meditation.theme}
+            {/if}
           </span>
           <span class="info-item">
             <i class="fas fa-signal"></i>{' '}
@@ -317,10 +322,9 @@
   header {
     text-align: center;
     margin-bottom: 1.25rem;
+    margin: 0 0.25rem;
     position: absolute;
-    top: 1rem;
-    left: 0;
-    right: 0;
+    top: 1.5rem;
     padding: 1.25rem;
     box-sizing: border-box;
     display: flex;
@@ -332,7 +336,7 @@
   }
 
   h2 {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
     font-weight: 600;
     color: #333;
     margin-bottom: 0.5rem;
@@ -362,6 +366,14 @@
     display: flex;
     align-items: center;
     gap: 0.3rem;
+  }
+
+  .info-item a {
+  text-decoration: none;
+  background: #666;
+  border-radius: 1rem;
+  padding: 0 8px;
+  color: #e1e1e1;
   }
 
   /* Feedback Form */
