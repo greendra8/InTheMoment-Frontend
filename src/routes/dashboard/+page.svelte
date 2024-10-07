@@ -420,14 +420,14 @@
   .quick-access-button {
     display: flex;
     align-items: stretch;
-    background-color: #303030;
+    background-color: #333;
     border: none;
     border-radius: 0.5rem;
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.2s ease;
     color: white;
     text-align: left;
-    height: 70px;
+    height: 60px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     /* overflow: hidden; */
     padding: 0;
@@ -435,7 +435,7 @@
 
   .button-image {
     flex: 0 0 auto;
-    width: 70px;
+    width: 60px;
     height: 100%;
   }
 
@@ -452,7 +452,7 @@
     flex: 1;
     font-family: 'Poppins', Arial, sans-serif;
     font-weight: 600;
-    font-size: 0.8rem;
+    font-size: 0.7rem;
     display: flex;
     align-items: center;
     padding: 0 0.5rem;
