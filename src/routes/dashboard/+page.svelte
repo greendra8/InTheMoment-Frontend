@@ -132,7 +132,7 @@
       <div class="featured-card-shadow"></div>
       <div
         class="featured-card"
-        style="background-image: url('{featuredMeditation?.backgroundImage ?? ''}'); background-color: #e1e1e1"
+        style="background-image: url('{featuredMeditation?.backgroundImage ?? ''}'); background-color: #E1E1E1"
         on:click={() => {
           if (featuredMeditation?.id) {
             const link = getMeditationLink(featuredMeditation.id);
@@ -196,7 +196,7 @@
       <!-- SVG curve transition -->
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 100" preserveAspectRatio="none">
         <path
-          fill="#e1e1e1"
+          fill="#E1E1E1"
           d="M0,100 C480,0 960,100 1440,100 L1440,0 L0,0 Z"
         ></path>
       </svg>
@@ -244,7 +244,7 @@
       >
         <!-- 5px translation hides 1px black line showing from dark section background -->
         <path
-          fill="#e1e1e1"
+          fill="#E1E1E1"
           d="M0,0 C480,100 960,0 1440,0 L1440,100 L0,100 Z"
         ></path>
       </svg>
@@ -262,7 +262,7 @@
 
   /* Light section styling */
   .light-section {
-    background-color: #e1e1e1;
+    background-color: #E1E1E1;
     padding: 0 1.5rem;
   }
 
@@ -336,7 +336,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: #e1e1e1;
+    background-color: #E1E1E1;
     background-size: cover;
     background-position: center;
     color: white;
@@ -420,32 +420,48 @@
   .quick-access-button {
     display: flex;
     align-items: stretch;
-    background-color: #333;
+    background-color: transparent;
     border: none;
     border-radius: 0.5rem;
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.2s ease;
-    color: white;
+    color: #333;
     text-align: left;
     height: 60px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    /* overflow: hidden; */
+    border: 1px solid #706b5780;
     padding: 0;
+    overflow: hidden;
   }
 
   .button-image {
     flex: 0 0 auto;
     width: 60px;
     height: 100%;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .button-image::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    right: 0;
+    bottom: -1px;
+    background-color: #ECEADF;
+    border-top-left-radius: 0.5rem;
+    border-bottom-left-radius: 0.5rem;
   }
 
   .button-image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border-bottom-left-radius: 0.5rem;
-    opacity: 0.9;
     display: block;
+    opacity: 0.9;
+    position: relative;
+    z-index: 1;
   }
 
   .button-title {
