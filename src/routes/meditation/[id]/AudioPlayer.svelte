@@ -403,7 +403,7 @@
       width: 100%;
       max-width: 400px;
       position: absolute;
-      bottom: 5rem;
+      bottom: 6rem;
       left: 50%;
       transform: translateX(-50%);
       display: flex;
@@ -424,9 +424,9 @@
   
     .progress-container {
       width: 100%;
-      height: 0.375rem;
+      height: 0.275rem;
       background-color: #d0d0d0;
-      border-radius: 3px;
+      border-radius: 1px;
       cursor: pointer;
       position: relative;
       margin-bottom: 0.5rem;
@@ -434,8 +434,8 @@
   
     .progress-bar {
       height: 100%;
-      background-color: #007aff;
-      border-radius: 3px;
+      background-color: #97aacf;
+      border-radius: 1px;
       position: absolute;
       top: 0;
       left: 0;
@@ -444,12 +444,12 @@
     .progress-knob {
       width: 0.75rem;
       height: 0.75rem;
-      background-color: #007aff;
+      background-color: #97aacf;
       border-radius: 50%;
       position: absolute;
       top: 50%;
       transform: translateY(-50%);
-      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.2);
+      box-shadow: 0 0rem 10px rgba(0, 0, 0, 0.7);
       transition: transform 0.1s ease;
       cursor: pointer;
     }
@@ -496,7 +496,7 @@
       height: 0.75rem;
       width: 0.75rem;
       border-radius: 50%;
-      background: #007AFF;
+      background: #97aacf;
       cursor: pointer;
       margin-top: -0.25rem;
       box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
@@ -507,7 +507,7 @@
       width: 0.75rem;
       border: none;
       border-radius: 50%;
-      background: #007AFF;
+      background: #97aacf;
       cursor: pointer;
     }
   
@@ -517,7 +517,7 @@
       height: 0.25rem;
       background: linear-gradient(
         to right,
-        #007AFF var(--volume-percentage, 50%),
+        #97aacf var(--volume-percentage, 50%),
         #d0d0d0 var(--volume-percentage, 50%)
       );
       border-radius: 2px;
@@ -528,7 +528,7 @@
       height: 0.25rem;
       background: linear-gradient(
         to right,
-        #007AFF var(--volume-percentage, 50%),
+        #97aacf var(--volume-percentage, 50%),
         #d0d0d0 var(--volume-percentage, 50%)
       );
       border-radius: 2px;
@@ -543,8 +543,8 @@
     /* Responsive Design */
     @media (max-width: 768px) {
       .progress-knob {
-        width: 1rem;
-        height: 1rem;
+        width: 0.8rem;
+        height: 0.8rem;
       }
   
       .progress-knob:hover {
@@ -555,7 +555,7 @@
     @media (max-width: 600px) {
       .controls-wrapper {
         max-width: 85%;
-        bottom: 7rem;
+        bottom: 8rem;
       }
   
       .volume-control {
