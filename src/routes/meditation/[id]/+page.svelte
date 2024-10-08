@@ -191,6 +191,7 @@
 </script>
 
 <svelte:head>
+  <title>{meditation.title}</title>
   <style>
     body {
       overflow: hidden;
@@ -363,6 +364,11 @@
     color: #4CAF50;
   }
 
+  .listened-icon i {
+    border-radius: 50%;
+    box-shadow: 0 0 6px 2px rgba(76, 175, 80, 0.4);
+  }
+
   .meditation-info {
     display: flex;
     justify-content: center;
@@ -453,6 +459,7 @@
     display: flex;
     flex-direction: column;
     align-items: flex-end;
+    z-index: 0;
   }
 
   @media (max-width: 600px) {
