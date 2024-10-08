@@ -216,12 +216,14 @@
     <header>
       <div class="header-content">
         <h2>
-          {meditation.title}
-          {#if meditation.listened}
-            <span class="listened-icon" title="You've listened to this meditation before">
-              <i class="fas fa-check-circle"></i>
-            </span>
-          {/if}
+          <span class="title-wrapper">
+            {#if meditation.listened}
+              <span class="listened-icon" title="You've listened to this meditation before">
+                <i class="fas fa-check-circle"></i>
+              </span>
+            {/if}
+            {meditation.title}
+          </span>
         </h2>
         <div class="meditation-info">
           <span class="info-item">
@@ -325,8 +327,8 @@
     margin-bottom: 1.25rem;
     margin: 0 0.25rem;
     position: absolute;
-    top: 1.5rem;
-    padding: 1.25rem;
+    top: 0.5rem;
+    padding: 1rem;
     box-sizing: border-box;
     display: flex;
     justify-content: center;
@@ -346,12 +348,19 @@
     justify-content: center;
   }
 
+  .title-wrapper {
+    position: relative;
+    display: inline-block;
+    padding-top: 1.5rem; /* Adjust this value to control the space above the title */
+  }
+
   .listened-icon {
-    font-size: 1rem;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.9rem;
     color: #4CAF50;
-    vertical-align: middle;
-    padding-left: 0.5rem;
-    margin-top: 0.44rem;
   }
 
   .meditation-info {
@@ -418,7 +427,7 @@
 
   .show-feedback-button,
   .hide-feedback-button {
-    margin-bottom: 1rem;
+    margin-bottom: 2rem;
     padding: 0.5rem 1rem;
     background-color: #f5f5f5;
     color: #333;
