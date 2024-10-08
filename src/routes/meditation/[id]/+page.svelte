@@ -451,25 +451,25 @@ h2 {
   left: 1.5rem;
   right: 1.5rem;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end; /* Change this to align menu to the right */
   align-items: center;
   z-index: 1;
 }
 
-/* Back Icon - Visible Only on Mobile */
+/* Back Icon - Hidden by Default */
 .back-icon {
-  display: none; /* Hidden by default */
+  display: none;
   background-color: #f5f5f5;
   border-radius: 1rem;
   height: 2rem;
   padding: 0 0.8rem;
   color: #333;
-  display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
   box-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.08);
   transition: background-color 0.3s ease, opacity 0.3s ease;
+  margin-right: auto; /* Push it to the left */
 }
 
 .back-icon:hover {
