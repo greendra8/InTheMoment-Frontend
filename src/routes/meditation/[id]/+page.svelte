@@ -432,9 +432,10 @@
     background-color: #f5f5f5;
     color: #333;
     border: none;
-    border-radius: 0.425rem;
+    border-radius: 1rem;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    opacity: 0.9;
   }
 
   .show-feedback-button:hover,
