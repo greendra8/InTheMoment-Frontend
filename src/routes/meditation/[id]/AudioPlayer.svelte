@@ -467,7 +467,7 @@
   
     .time-display {
       font-size: 0.8rem;
-      color: #e1e1e1a0;
+      color: #E1E1E1a0;
     }
   
     /* Volume Control */
