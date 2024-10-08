@@ -173,7 +173,7 @@
   .content-container {
     max-width: 800px;
     margin: 0 auto;
-    padding: 1rem;
+    padding: 0.5rem;
   }
 
   @media (min-width: 1025px) {
