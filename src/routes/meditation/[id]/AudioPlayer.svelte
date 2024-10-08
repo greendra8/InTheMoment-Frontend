@@ -409,6 +409,7 @@
       display: flex;
       flex-direction: column;
       align-items: flex-end;
+      z-index: 1; /* Ensure it's above the feedback-controls-wrapper */
     }
   
     @media (max-width: 600px) {
@@ -499,7 +500,7 @@
       background: #97aacf;
       cursor: pointer;
       margin-top: -0.25rem;
-      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
+      box-shadow: 0 0rem 10px rgba(0, 0, 0, 0.7);
     }
   
     :global(.volume-slider::-moz-range-thumb) {
@@ -508,6 +509,7 @@
       border: none;
       border-radius: 50%;
       background: #97aacf;
+      box-shadow: 0 0rem 10px rgba(0, 0, 0, 0.7);
       cursor: pointer;
     }
   
@@ -520,7 +522,7 @@
         #97aacf var(--volume-percentage, 50%),
         #d0d0d0 var(--volume-percentage, 50%)
       );
-      border-radius: 2px;
+      border-radius: 1px;
     }
   
     :global(.volume-slider::-moz-range-track) {
@@ -531,7 +533,7 @@
         #97aacf var(--volume-percentage, 50%),
         #d0d0d0 var(--volume-percentage, 50%)
       );
-      border-radius: 2px;
+      border-radius: 1px;
     }
   
     .no-audio {
