@@ -52,7 +52,7 @@
 
     <div class="form-group">
       <label for="lesson_content">Lesson Content</label>
-      <textarea id="lesson_content" name="lesson_content" bind:value={lesson.lesson_content} rows="10" required></textarea>
+      <textarea id="lesson_content" name="lesson_content" bind:value={lesson.lesson_content} rows="28" required></textarea>
     </div>
 
     {#if updateSuccess}
