@@ -1,5 +1,6 @@
 <!-- +layout.svelte -->
 <script lang="ts">
+  import { onNavigate, goto } from '$app/navigation';
   import '../app.css';
   import { invalidate } from '$app/navigation';
   import { onMount } from 'svelte';
@@ -22,13 +23,71 @@
       const currentSession = get(sessionStore);
       if (newSession?.expires_at !== currentSession?.expires_at) {
         sessionStore.set(newSession);
-        // invalidate('supabase:auth'); // this line causes token spam! never uncomment it!
       } else {
         console.log('No session update needed');
       }
     });
 
-    return () => authListener?.subscription.unsubscribe();
+    // Add event listener for messages from React Native
+    window.addEventListener('message', handleReactNativeMessage);
+
+    // Add this debugging listener
+    window.addEventListener('message', (event) => {
+      // Ignore messages from React DevTools
+      if (event.data && event.data.source === 'react-devtools-content-script') {
+        return;
+      }
+      console.log('Received message event:', event);
+      console.log('Message data:', event.data);
+    });
+
+    return () => {
+      authListener?.subscription.unsubscribe();
+      window.removeEventListener('message', handleReactNativeMessage);
+    };
+  });
+
+  function handleReactNativeMessage(event: MessageEvent) {
+    // Ignore messages from React DevTools
+    if (event.data && event.data.source === 'react-devtools-content-script') {
+      return;
+    }
+
+    try {
+      // Check if the event data is a string and attempt to parse it
+      if (typeof event.data === 'string') {
+        const message = JSON.parse(event.data);
+        if (message.type === 'navigation') {
+          goto(message.path);
+        }
+      } else if (typeof event.data === 'object' && event.data !== null) {
+        // Handle object messages directly
+        if (event.data.type === 'navigation') {
+          goto(event.data.path);
+        }
+      } else {
+        console.warn('Received unexpected message format:', event.data);
+      }
+    } catch (error) {
+      console.warn('Error parsing message:', event.data);
+      console.error('Parse error details:', error);
+    }
+  }
+
+  onNavigate((navigation) => {
+    if (!document.startViewTransition) {
+      console.log('View transitions not supported');
+      return;
+    }
+
+    console.log('Starting view transition');
+    return new Promise((resolve) => {
+      document.startViewTransition(async () => {
+        resolve();
+        await navigation.complete;
+        console.log('View transition completed');
+      });
+    });
   });
 
   $: isHomePage = $page.url.pathname === '/';
@@ -106,18 +165,6 @@
     position: relative;
   }
 
-  .icon-container::before {
-    content: '';
-    position: absolute;
-    bottom: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 45px;
-    height: px;
-    background-color: #45a049;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
 
   .nav-item.active .icon-container::before {
     opacity: 1;
@@ -127,21 +174,15 @@
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background-color: #f0f0f0;
     display: flex;
     justify-content: center;
     align-items: center;
     transition: all 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1), inset 0 0 0 rgba(0,0,0,0.2);
-  }
-
-  .nav-item:hover .icon-background {
-    background-color: #e8e8e8;
   }
 
   .nav-item.active .icon-background {
-    background-color: #e0e0e0;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05), inset 0 2px 4px rgba(0,0,0,0.1);
+    background-color: #333;
+    color: #fff;
   }
 
   .nav-item i {
@@ -153,8 +194,10 @@
     font-size: 12px;
     text-align: center;
     display: none;
-    margin-top: 5px;
+    margin-bottom: 5px;
     width: 100%;
+    font-weight: 600;
+    color: #4c4c4c;
   }
 
   main {
@@ -304,5 +347,29 @@
 
   :global(a:visited) {
     color: inherit;
+  }
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+  }
+
+  @keyframes fade-out {
+    to { opacity: 0; }
+  }
+
+  :root::view-transition-old(root) {
+    animation: 500ms cubic-bezier(0.4, 0, 1, 1) both fade-out;
+  }
+
+  :root::view-transition-new(root) {
+    animation: 500ms cubic-bezier(0, 0, 0.2, 1) both fade-in;
+  }
+
+  @media (prefers-reduced-motion) {
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+      animation: none !important;
+    }
   }
 </style>
