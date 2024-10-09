@@ -341,7 +341,6 @@
   .meditation-container {
     max-width: 600px;
     margin: 0 auto;
-    text-align: center;
   }
 
   h1 {
