@@ -65,7 +65,7 @@
   <a href="/admin" class="back-link"><i class="fas fa-arrow-left"></i> Back to Playlists</a>
 
   <div class="lesson-list">
-    <h2><i class="fas fa-book"></i> Lessons</h2>
+    <h2>Lessons</h2>
     {#each data.lessons as lesson}
       <div class="lesson-item">
         <button on:click={() => goToLesson(lesson.id)}>
@@ -76,7 +76,7 @@
   </div>
 
   <div class="add-lesson">
-    <h3><i class="fas fa-plus-circle"></i> Add New Lesson</h3>
+    <h3>Add New Lesson</h3>
     <form method="POST" action="?/addLesson" use:enhance={() => {
       return async ({ result }) => {
         if (result.type === 'success') {

@@ -18,10 +18,10 @@
 </svelte:head>
 
 <div class="admin-dashboard">
-  <h1><i class="fas fa-cogs"></i> Admin Dashboard</h1>
+  <h1>Admin Dashboard</h1>
 
   <div class="playlist-list">
-    <h2><i class="fas fa-list"></i> Playlists</h2>
+    <h2>Playlists</h2>
     {#each data.playlists as playlist}
       <div class="playlist-item">
         <a href="/admin/playlist/{playlist.id}">
@@ -44,7 +44,7 @@
   </div>
 
   <div class="add-playlist">
-    <h3><i class="fas fa-plus-circle"></i> Add New Playlist</h3>
+    <h3>Add New Playlist</h3>
     <form method="POST" action="?/addPlaylist" use:enhance={() => {
       return async ({ result }) => {
         if (result.type === 'success') {
