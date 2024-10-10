@@ -510,10 +510,11 @@ h2 {
   position: absolute;
   top: 3.5rem;
   right: 1.5rem;
-  background-color: #fff;
+  background-color: #efefef;
   border-radius: 0.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   z-index: 2;
+  overflow: hidden; /* This ensures the child elements don't overflow the rounded corners */
 }
 
 .menu ul {
@@ -541,8 +542,9 @@ h2 {
 }
 
 .menu li:hover {
-  background-color: #f5f5f5;
+  background-color: #e9e9e9;
 }
+
 
 /* =======================
    Feedback Form
