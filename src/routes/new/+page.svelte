@@ -423,7 +423,7 @@
     padding: 0.75rem 1rem;
     font-size: 1rem;
     background-color: #333;
-    color: white;
+    color: #e1e1e1;
     border: none;
     border-radius: 4px;
     cursor: pointer;
@@ -484,7 +484,8 @@
 
   .sliding-checkbox {
     display: flex;
-    background-color: #f0f0f0;
+    background-color: transparent;
+    border: 1px solid #706b5780;
     border-radius: 8px;
     overflow: hidden;
     position: relative;
@@ -519,7 +520,7 @@
   }
 
   .option-content.selected {
-    color: white;
+    color: #e1e1e1;
   }
 
   .option i {
@@ -538,13 +539,14 @@
     margin-bottom: 2rem;
     border-radius: 8px;
     overflow: hidden;
+    border: 1px solid #706b5780;
   }
 
   .tabs button {
     flex: 1;
     padding: 0.75rem 1rem;
     border: none;
-    background-color: #f0f0f0;
+    background-color: transparent;
     cursor: pointer;
     transition: background-color 0.3s ease, color 0.3s ease;
     font-size: 1rem;
@@ -553,7 +555,7 @@
 
   .tabs button.active {
     background-color: #333;
-    color: white;
+    color: #e1e1e1;
   }
 
   .playlist-selector {
@@ -565,6 +567,11 @@
     display: block;
     margin-bottom: 0.5rem;
     font-weight: 500;
+  }
+
+  .playlist-selector select {
+    background-color: #e1e1e1 !important;
+    border: 1px solid #706b5780 !important;
   }
 
   .select-wrapper {

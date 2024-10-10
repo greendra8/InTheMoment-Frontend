@@ -29,7 +29,7 @@
 
 <div class="profile-container">
   {#if profile}
-    <h1>User Profile</h1>
+    <h1>Your Profile</h1>
 
     <div class="stats">
       <p>Minutes Listened: <span>{profile.minutes_listened}</span></p>
@@ -71,11 +71,11 @@
     font-family: 'Poppins', sans-serif;
     color: #333;
     margin-bottom: 1.5rem;
-    text-align: center;
   }
 
   .stats {
-    background-color: #f0f0f0;
+    background-color: #e1e1e1;
+    border: 1px solid #706b5780;
     padding: 1rem;
     border-radius: 8px;
     margin-bottom: 1.5rem;
@@ -92,10 +92,10 @@
   }
 
   form {
-    background-color: #f8f8f8; /* Changed from #ffffff to a light gray */
+    background-color: #e1e1e1; /* Changed from #ffffff to a light gray */
+    border: 1px solid #706b5780;
     padding: 1.5rem;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 
   .form-group {
@@ -111,6 +111,7 @@
   input, select {
     width: 100%;
     padding: 0.5rem;
+    background-color: #e1e1e1;
     border: 1px solid #ccc;
     border-radius: 4px;
     font-size: 1rem;

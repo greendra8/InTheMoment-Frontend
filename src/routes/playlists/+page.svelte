@@ -65,14 +65,15 @@
   }
 
   .playlist-card {
-    background-color: var(--card-bg-color);
-    color: var(--card-text-color);
+    background-color: transparent;
+    color: #333;
     border-radius: 12px;
     padding: 1.5rem;
     cursor: pointer;
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
+    border: 1px solid #706b5780;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   }
 
