@@ -93,7 +93,7 @@
   }
 
   form {
-    background-color: #e1e1e1; /* Changed from #ffffff to a light gray */
+    background-color: #e1e1e1; /* Changed from #E1E1E1 to a light gray */
     border: 1px solid #706b5780;
     padding: 1.5rem;
     border-radius: 8px;
@@ -131,7 +131,7 @@
 
   .update-button {
     background-color: #4CAF50;
-    color: white;
+    color: #E1E1E1;
     margin-bottom: 1rem;
   }
 
@@ -141,7 +141,7 @@
 
   .logout-button {
     background-color: #f44336;
-    color: white;
+    color: #E1E1E1;
   }
 
   .logout-button:hover {

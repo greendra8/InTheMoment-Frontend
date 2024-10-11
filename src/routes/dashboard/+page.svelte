@@ -290,7 +290,7 @@
   /* Dark section styling */
   .dark-section {
     background-color: #333333;
-    color: #FFFFFF;
+    color: #E1E1E1;
     padding: 0 1.5rem;
     position: relative;
     margin: 0 -1.5rem;
@@ -339,7 +339,7 @@
     background-color: #E1E1E1;
     background-size: cover;
     background-position: center;
-    color: white;
+    color: #E1E1E1;
     border-radius: 1rem;
     overflow: hidden;
     text-decoration: none;
@@ -383,7 +383,7 @@
     position: absolute;
     bottom: 2rem;
     right: 2rem;
-    color: white;
+    color: #E1E1E1;
     font-size: 1.5rem;
     z-index: 1;
     display: flex;
@@ -479,7 +479,7 @@
     font-family: 'Poppins', Arial, sans-serif;
     font-weight: 600;
     margin: 0;
-    color: #ffffff;
+    color: #E1E1E1;
     padding-top: 50px; /* Adjust based on the curve height */
     margin-top: 0;
   }
@@ -494,7 +494,7 @@
   .meditation-item {
     display: flex;
     align-items: center;
-    background-color: #ffffff;
+    background-color: #E1E1E1;
     border-radius: 0.5rem;
     padding: 1rem;
     margin-bottom: 1rem;
@@ -624,7 +624,7 @@
   }
 
   .carousel-item h3 {
-    color: white;
+    color: #E1E1E1;
     margin: 0;
     font-size: 1.2rem;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
@@ -635,7 +635,7 @@
     top: 1rem;
     right: 1rem;
     z-index: 2;
-    color: white;
+    color: #E1E1E1;
     width: 2rem;
     height: 2rem;
     display: flex;

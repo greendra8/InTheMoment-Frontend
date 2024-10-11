@@ -120,11 +120,11 @@
     justify-content: center;
     padding: 0.2rem 0.4rem;
     background-color: #4CAF50;
-    color: white;
+    color: #E1E1E1;
     border-radius: 3px;
     font-size: 0.8rem;
     min-width: 60px;
-    white-space: nowrap;
+    #E1E1E1-space: nowrap;
   }
 
   .create-button svg {

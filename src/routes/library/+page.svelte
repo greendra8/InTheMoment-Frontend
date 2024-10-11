@@ -143,7 +143,7 @@
     top: -1em;
     left: 1px;
     color: #4caf50;
-    white-space: nowrap;
+    #E1E1E1-space: nowrap;
   }
 
   /* Button styles */
@@ -151,7 +151,7 @@
     margin-top: 1rem;
     padding: 0.5rem 1rem;
     background-color: #333;
-    color: white;
+    color: #E1E1E1;
     border: none;
     border-radius: 4px;
     cursor: pointer;
@@ -169,13 +169,13 @@
     justify-content: center;
     padding: 0.3rem 0.5rem;
     background-color: #333;
-    color: white;
+    color: #E1E1E1;
     text-decoration: none;
     border-radius: 4px;
     font-size: 0.8rem;
     min-width: 70px;
     align-self: center;
-    white-space: nowrap;
+    #E1E1E1-space: nowrap;
   }
 
   .play-button svg {

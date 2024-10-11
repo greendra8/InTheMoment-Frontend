@@ -379,7 +379,7 @@
     top: 50%;
     width: 25px;
     height: 25px;
-    background: #ffffff;
+    background: #E1E1E1;
     border: 2px solid #000000;
     border-radius: 50%;
     transform: translateY(-50%);
@@ -592,7 +592,7 @@
     padding: 0.75rem 1rem;
     border: 1px solid #ccc;
     border-radius: 4px;
-    background-color: white;
+    background-color: #E1E1E1;
     font-size: 1rem;
     appearance: none;
     cursor: pointer;

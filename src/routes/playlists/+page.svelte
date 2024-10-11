@@ -6,11 +6,11 @@
 
   function getRandomGrey() {
     const greys = [
-      { bg: '#4A4A4A', text: '#FFFFFF' },
-      { bg: '#616161', text: '#FFFFFF' },
-      { bg: '#757575', text: '#FFFFFF' },
-      { bg: '#9E9E9E', text: '#FFFFFF' },
-      { bg: '#BDBDBD', text: '#FFFFFF' },
+      { bg: '#4A4A4A', text: '#E1E1E1' },
+      { bg: '#616161', text: '#E1E1E1' },
+      { bg: '#757575', text: '#E1E1E1' },
+      { bg: '#9E9E9E', text: '#E1E1E1' },
+      { bg: '#BDBDBD', text: '#E1E1E1' },
     ];
     return greys[Math.floor(Math.random() * greys.length)];
   }
@@ -147,10 +147,6 @@
   }
 
   @media (max-width: 768px) {
-    .playlist-grid {
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    }
-
     .playlist-card {
       padding: 1rem;
     }

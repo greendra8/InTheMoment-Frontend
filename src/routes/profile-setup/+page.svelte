@@ -324,7 +324,7 @@
   }
 
   .option-label input:checked + .option-text {
-    color: white;
+    color: #E1E1E1;
     background-color: black;
   }
 
@@ -381,7 +381,7 @@
 
   .btn.primary {
     background-color: #4a90e2;
-    color: white;
+    color: #E1E1E1;
   }
 
   .btn.secondary {

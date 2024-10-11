@@ -276,7 +276,7 @@
         <canvas bind:this={canvasElement} style="width: 300px; height: 300px;"></canvas>
         <div class="play-overlay" class:visible={!isPlaying}>
           <svg viewBox="0 0 24 24" width="48" height="48">
-            <polygon points="5,3 19,12 5,21" fill="#FFFFFF" />
+            <polygon points="5,3 19,12 5,21" #E1E1E1"#FFFFFF" />
           </svg>
         </div>
       </div>

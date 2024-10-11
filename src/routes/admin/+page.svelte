@@ -116,7 +116,7 @@
   button {
     padding: 10px 15px;
     background-color: #4CAF50;
-    color: white;
+    color: #E1E1E1;
     border: none;
     cursor: pointer;
     transition: background-color 0.3s;

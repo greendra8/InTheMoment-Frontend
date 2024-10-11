@@ -61,7 +61,7 @@
     width: 100%;
     padding: 0.75rem;
     background-color: #0e0e0e;
-    color: white;
+    color: #E1E1E1;
     border: none;
     border-radius: 4px;
     cursor: pointer;
