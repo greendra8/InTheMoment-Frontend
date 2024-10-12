@@ -644,8 +644,24 @@
     transition: transform 0.2s ease-in-out;
   }
 
+  /* Animation styling */
+
   .carousel-item:hover .carousel-item-chevron {
     transform: scale(1.1);
+  }
+  .carousel-item,
+  .featured-card,
+  .meditation-item,
+  .quick-access-button {
+    transition: transform 0.1s ease-in-out, filter 0.1s ease-in-out;
+  }
+
+  .carousel-item:active,
+  .featured-card:active,
+  .meditation-item:active,
+  .quick-access-button:active {
+    filter: brightness(0.97);
+    transform: scale(0.97);
   }
 
   /* Mobile styling */
@@ -657,15 +673,6 @@
       transform: scale(1);
       filter: brightness(1);
       transition: transform 0.3s ease-in-out, filter 0.3s ease-in-out;
-    }
-
-    .carousel-item:active,
-    .featured-card:active,
-    .meditation-item:active,
-    .quick-access-button:active {
-      filter: brightness(0.97);
-      transform: scale(0.97);
-      transition: transform 0.1s ease-in-out, filter 0.1s ease-in-out;
     }
 
     .carousel-item h3 {

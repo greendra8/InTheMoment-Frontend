@@ -35,6 +35,13 @@
     <ul>
       {#each meditations as meditation (meditation.id)}
         <li>
+          {#if meditation.status !== 'processing'}
+            <a href="/meditation/{meditation.id}" class="play-button">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="10 8 16 12 10 16 10 8"></polygon>
+              </svg>
+            </a>
+          {/if}
           <div class="meditation-info">
             {#if meditation.status === 'processing'}
               <!-- Display for processing meditations -->
@@ -55,14 +62,6 @@
               <p>Length: {meditation.length || 'N/A'} min</p>
             {/if}
           </div>
-          {#if meditation.status !== 'processing'}
-            <a href="/meditation/{meditation.id}" class="play-button">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polygon points="5 3 19 12 5 21 5 3"></polygon>
-              </svg>
-              Play
-            </a>
-          {/if}
         </li>
       {/each}
     </ul>
@@ -100,18 +99,16 @@
 
   li {
     display: flex;
-    justify-content: space-between;
     align-items: center;
     margin-bottom: 1rem;
     padding: 0.5rem;
-    border-radius: 10px;
+    border-radius: 0.5rem;
     background-color: #e8e8e8;
   }
 
   /* Meditation info styles */
   .meditation-info {
     flex-grow: 1;
-    margin-right: 1rem;
   }
 
   .meditation-info p {
@@ -122,9 +119,10 @@
 
   /* Title and icon styles */
   .title-wrapper {
-    font-size: 1.1rem;
+    font-size: 1rem;
+    font-weight: 500;
     margin: 0.2rem 0;
-    line-height: 1.4;
+    line-height: 1.2;
   }
 
   .title-text {
@@ -167,25 +165,27 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0.3rem 0.5rem;
+    width: 45px;
+    height: 45px;
     background-color: #333;
     color: #E1E1E1;
     text-decoration: none;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    min-width: 70px;
-    align-self: center;
-    #E1E1E1-space: nowrap;
+    border-radius: 50%;
+    margin-left: 0.5rem;
+    margin-right: 1rem;
+    flex-shrink: 0;
+    transition: transform 0.1s ease-in-out, background-color 0.1s ease-in-out;
   }
 
   .play-button svg {
-    margin-right: 0.2rem;
-    width: 18px;
-    height: 18px;
+    width: 28px;
+    height: 28px;
   }
 
   .play-button:active {
     background-color: #000;
+    transform: scale(0.97);
+    transition: transform 0.1s ease-in-out, background-color 0.1s ease-in-out;
   }
 
   /* Error message style */

@@ -79,6 +79,7 @@
     padding: 1rem;
     border-radius: 8px;
     margin-bottom: 1.5rem;
+    box-shadow: 0 4px 6px #0000001a;
   }
 
   .stats p {
@@ -97,6 +98,7 @@
     border: 1px solid #706b5780;
     padding: 1.5rem;
     border-radius: 8px;
+    box-shadow: 0 4px 6px #0000001a;
   }
 
   .form-group {
