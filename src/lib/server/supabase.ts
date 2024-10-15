@@ -16,7 +16,7 @@ export async function getUserProfile(userId: string) {
     .select('*')
     .eq('id', userId)
     .single()
-  
+
   if (error) throw error;
   return data;
 }
@@ -26,16 +26,16 @@ export async function getUserMeditations(userId: string, page: number = 1, limit
   const start = (page - 1) * limit
   const end = start + limit - 1
 
-  const { data, error } = await supabaseAdmin
+  const { data, error, count } = await supabaseAdmin
     .from('audio_sessions')
-    .select('*, lesson_playlists(playlist_name)')
+    .select('*, lesson_playlists(playlist_name)', { count: 'exact' })
     .eq('user_id', userId)
     .eq('generation_status', 'Completed')
     .range(start, end)
     .order('created_at', { ascending: false })
-  
+
   if (error) throw error;
-  return data;
+  return { data, totalCount: count };
 }
 
 // Helper function to get a single meditation
@@ -45,7 +45,7 @@ export async function getMeditation(meditationId: string) {
     .select('*, lesson_playlists(playlist_name)')
     .eq('id', meditationId)
     .single()
-  
+
   if (error) throw error;
 
   try {
@@ -79,13 +79,13 @@ export async function isUserProfileComplete(userId: string) {
     .select('complete')
     .eq('id', userId)
     .single()
-  
+
   if (error) {
     console.error('Error checking user profile completion:', error)
     throw error
   }
 
-  
+
   return data?.complete || false
 }
 

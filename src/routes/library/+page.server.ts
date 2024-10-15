@@ -17,12 +17,15 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	}
 
 	const page = parseInt(url.searchParams.get('page') || '1');
-	const limit = parseInt(url.searchParams.get('limit') || '10');
+	const limit = parseInt(url.searchParams.get('limit') || '2');
 
 	try {
-		const meditations = await getUserMeditations(session.user.id, page, limit);
+		const { data: meditations, totalCount } = await getUserMeditations(session.user.id, page, limit);
 		return { 
 			meditations,
+			totalCount,
+			totalPages: Math.ceil(totalCount / limit),
+			limit,
 			currentPage: page,
 			session // Pass session to page.svelte via prop
 		};
