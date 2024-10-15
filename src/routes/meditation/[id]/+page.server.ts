@@ -20,7 +20,9 @@ export const load: PageServerLoad = async ({ params, locals }) => {
   }
 
   try {
-    const meditation = await getMeditation(meditationId);
+    let meditation;
+    meditation = await getMeditation(meditationId);
+
     if (!meditation) {
       console.log('Meditation not found, throwing 404 error');
       throw error(404, 'Meditation not found');
@@ -28,9 +30,9 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
     const feedback = await getFeedback(meditationId, userId);
 
-    return { 
+    return {
       meditation,
-      userId, 
+      userId,
       feedback: feedback || null
     };
   } catch (err) {
