@@ -17,11 +17,11 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	}
 
 	const page = parseInt(url.searchParams.get('page') || '1');
-	const limit = parseInt(url.searchParams.get('limit') || '2');
+	const limit = parseInt(url.searchParams.get('limit') || '10');
 
 	try {
 		const { data: meditations, totalCount } = await getUserMeditations(session.user.id, page, limit);
-		return { 
+		return {
 			meditations,
 			totalCount,
 			totalPages: Math.ceil(totalCount / limit),
