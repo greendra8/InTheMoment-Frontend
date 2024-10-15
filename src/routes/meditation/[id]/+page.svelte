@@ -247,7 +247,7 @@
         <li
           on:click|stopPropagation={() => {
             if (!meditation.listened && !isCompletedThisSession) {
-              completeMeditation(meditation.id, userId, 0);
+              completeMeditation(meditation.id, userId, meditation.length);
               isCompletedThisSession = true;
             }
           }}
