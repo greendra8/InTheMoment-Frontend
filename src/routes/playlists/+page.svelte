@@ -23,6 +23,12 @@
 <div class="playlists-page">
   <h1>Playlists</h1>
 
+  <!-- info label saying that all playlists and lessons are created by humans -->
+  <p class="info-label">
+    <i class="fas fa-info-circle"></i>
+    All playlists and lessons are created by humans.
+  </p>
+
   <div class="playlist-grid">
     {#each data.playlists as playlist, index (playlist.id)}
       {@const colors = getRandomGrey()}
@@ -54,6 +60,12 @@
     font-family: 'Poppins', sans-serif;
     font-weight: 600;
     color: #333;
+    margin-bottom: 1.5rem;
+  }
+
+  .info-label {
+    font-size: 0.8rem;
+    color: #666;
     margin-bottom: 1.5rem;
   }
 
