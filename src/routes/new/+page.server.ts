@@ -65,8 +65,6 @@ export const actions: Actions = {
 		const parameters = JSON.parse(data.get('parameters') as string);
 		const playlist_id = data.get('playlist_id') as string;
 
-		console.log('Server: Received form data:', { userLocalTime, length, parameters, playlist_id });
-
 		try {
 			console.log('Server: Calling generateMeditation');
 			const result = await generateMeditation(
@@ -84,8 +82,8 @@ export const actions: Actions = {
 				type: 'success',
 				data: {
 					meditation_id: result.data.meditation_id
-					}
-				};
+				}
+			};
 		} catch (err) {
 			console.error('Server: Meditation generation error:', err);
 			return {

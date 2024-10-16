@@ -31,10 +31,11 @@ export const actions: Actions = {
 		const formData = await request.formData();
 		const name = formData.get('name') as string;
 		const experience = formData.get('experience') as string;
+		const voice_id = parseInt(formData.get('voice_id') as string);
 
 		try {
-			const updatedProfile = await updateUserProfile(session.user.id, { name, experience: experience });
-      return { success: true, profile: updatedProfile };
+			const updatedProfile = await updateUserProfile(session.user.id, { name, experience, voice_id });
+			return { success: true, profile: updatedProfile };
 		} catch (err) {
 			console.error('Error updating user profile:', err);
 			return fail(500, { message: 'Failed to update profile' });
