@@ -180,8 +180,6 @@ export async function completeMeditation(meditationId: string, userId: string, m
 
 // Helper function to update user profile
 export async function updateUserProfile(userId: string, data: { name: string, experience: string, voice_id: number }) {
-  console.log('Updating user profile for userId:', userId);
-  console.log('Data to update:', data);
 
   const { data: updatedProfile, error } = await supabase
     .from('profiles')
@@ -198,6 +196,5 @@ export async function updateUserProfile(userId: string, data: { name: string, ex
     throw error;
   }
 
-  console.log('Profile updated successfully:', updatedProfile);
   return updatedProfile;
 }
