@@ -1,17 +1,27 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
 	import type { PageData, ActionData } from './$types';
+	import { enhance } from '$app/forms';
 	import { invalidate } from '$app/navigation';
 	import { supabase } from '$lib/supabaseClient';
 
 	export let data: PageData;
 	export let form: ActionData;
 
+	// Initialize the profile from the loaded data
 	let profile = data.profile;
 
+	// Reactive statement to update profile when data or form changes
+	$: {
+		if (form?.type === 'success') {
+			profile = form.data.profile;
+		}
+	}
+
 	const voiceOptions = [
-		{ id: 0, label: 'Male' },
-		{ id: 1, label: 'Female' }
+		{ id: 0, label: 'Female 1' },
+		{ id: 1, label: 'Female 2' },
+		{ id: 2, label: 'Male 1' },
+		{ id: 3, label: 'Male 2' }
 	];
 
 	async function handleLogout() {
@@ -22,12 +32,18 @@
 		}
 	}
 
-	function updateProfile(event: SubmitEvent) {
-		return async ({ result }: { result: ActionData }) => {
-			if (result.type === 'success' && result.data) {
-				profile = result.data;
-			}
-		};
+	let formElement: HTMLFormElement;
+	let showSuccessMessage = false;
+
+	function handleSubmit(event: SubmitEvent) {
+		showSuccessMessage = false;
+	}
+
+	function handleUpdateSuccess() {
+		showSuccessMessage = true;
+		setTimeout(() => {
+			showSuccessMessage = false;
+		}, 3000); // Hide the message after 3 seconds
 	}
 </script>
 
@@ -39,24 +55,39 @@
 			<p>Minutes Listened: <span>{profile.minutes_listened}</span></p>
 		</div>
 
-		<form method="POST" action="?/updateProfile" use:enhance={updateProfile}>
+		<form
+			method="POST"
+			use:enhance={() => {
+				return ({ result }) => {
+					if (result.type === 'success') {
+						handleUpdateSuccess();
+					}
+				};
+			}}
+			on:submit={handleSubmit}
+			bind:this={formElement}
+		>
 			<div class="form-group">
 				<label for="name">Name:</label>
 				<input type="text" id="name" name="name" value={profile.name ?? ''} required />
 			</div>
 			<div class="form-group">
 				<label for="experience">Experience Level:</label>
-				<select id="experience" name="experience" value={profile.experience ?? 'beginner'} required>
-					<option value="beginner">Beginner</option>
-					<option value="intermediate">Intermediate</option>
-					<option value="advanced">Advanced</option>
+				<select id="experience" name="experience" required>
+					<option value="beginner" selected={profile.experience === 'beginner'}>Beginner</option>
+					<option value="intermediate" selected={profile.experience === 'intermediate'}
+						>Intermediate</option
+					>
+					<option value="advanced" selected={profile.experience === 'advanced'}>Advanced</option>
 				</select>
 			</div>
 			<div class="form-group">
 				<label for="voice_id">Preferred Voice:</label>
-				<select id="voice_id" name="voice_id" value={profile.voice_id ?? 0} required>
+				<select id="voice_id" name="voice_id" required>
 					{#each voiceOptions as option}
-						<option value={option.id}>{option.label}</option>
+						<option value={option.id} selected={profile.voice_id === option.id}
+							>{option.label}</option
+						>
 					{/each}
 				</select>
 			</div>
@@ -66,7 +97,7 @@
 		<br />
 		<button class="logout-button" on:click={handleLogout}>Logout</button>
 
-		{#if form?.type === 'success'}
+		{#if showSuccessMessage}
 			<p class="message success">Profile updated successfully!</p>
 		{/if}
 

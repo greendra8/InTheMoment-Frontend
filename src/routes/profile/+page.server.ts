@@ -1,9 +1,7 @@
-import { error } from '@sveltejs/kit';
-import type { PageServerLoad } from './$types';
+import { error, fail } from '@sveltejs/kit';
+import type { PageServerLoad, Actions } from './$types';
 import { getUserProfile } from '$lib/server/supabase';
 import { updateUserProfile } from '$lib/api';
-import { fail } from '@sveltejs/kit';
-import type { Actions } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const { session } = locals;
@@ -21,7 +19,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 };
 
 export const actions: Actions = {
-	updateProfile: async ({ request, locals }) => {
+	default: async ({ request, locals }) => {
 		const { session } = locals;
 
 		if (!session) {
@@ -34,11 +32,22 @@ export const actions: Actions = {
 		const voice_id = parseInt(formData.get('voice_id') as string);
 
 		try {
-			const updatedProfile = await updateUserProfile(session.user.id, { name, experience, voice_id });
-			return { success: true, profile: updatedProfile };
+			const updatedProfile = await updateUserProfile(session.user.id, {
+				name,
+				experience,
+				voice_id
+			});
+
+			// Return a success response
+			return {
+				type: 'success',
+				data: { profile: updatedProfile }
+			};
 		} catch (err) {
 			console.error('Error updating user profile:', err);
-			return fail(500, { message: 'Failed to update profile' });
+
+			// Return an error response
+			return fail(500, { type: 'error', error: 'Failed to update profile' });
 		}
 	}
 };
