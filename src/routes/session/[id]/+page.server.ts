@@ -1,5 +1,5 @@
 import { error } from '@sveltejs/kit';
-import type { PageServerLoad } from '../../meditation/[id]/$types';
+import type { PageServerLoad } from './$types';
 import { getMeditation, getFeedback } from '$lib/server/supabase';
 
 

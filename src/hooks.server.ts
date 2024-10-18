@@ -101,7 +101,7 @@ const authGuard: Handle = async ({ event, resolve }) => {
       event.url.pathname.startsWith('/new') ||
       event.url.pathname.startsWith('/profile') ||
       event.url.pathname.startsWith('/list') ||
-      event.url.pathname.startsWith('/meditation/') ||
+      event.url.pathname.startsWith('/session/') ||
       event.url.pathname.startsWith('/admin')
     )
   ) {

@@ -27,7 +27,7 @@
 			{@const isAccessible = lesson.lesson_number <= nextLessonNumber}
 			{@const href = isAccessible
 				? lesson.meditationId
-					? `/meditation/${lesson.meditationId}`
+					? `/session/${lesson.meditationId}`
 					: `/new?playlist=${data.playlist.id}`
 				: null}
 			<li class:disabled={!isAccessible}>

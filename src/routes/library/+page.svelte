@@ -40,7 +40,7 @@
 			{#each meditations as meditation (meditation.id)}
 				<li>
 					{#if meditation.status !== 'processing'}
-						<a href="/meditation/{meditation.id}" class="play-button">
+						<a href="/session/{meditation.id}" class="play-button">
 							<svg
 								xmlns="http://www.w3.org/2000/svg"
 								width="24"

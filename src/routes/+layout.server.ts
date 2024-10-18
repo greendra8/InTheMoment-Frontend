@@ -26,7 +26,7 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
   if (
     !session?.user &&
     (url.pathname.startsWith('/dashboard') ||
-      url.pathname.startsWith('/meditation') ||
+      url.pathname.startsWith('/session') ||
       url.pathname.startsWith('/playlists') ||
       url.pathname.startsWith('/new') ||
       url.pathname.startsWith('/admin') ||
@@ -38,18 +38,18 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 
   const navItems = session?.user
     ? [
-        { href: '/dashboard', label: 'Explore', icon: 'fa-compass' },
-        { href: '/library', label: 'Library', icon: 'fa-list' },
-        { href: '/new', label: 'New', icon: 'fa-plus' },
-        { href: '/playlists', label: 'Learn', icon: 'fa-book' },
-        { href: '/profile', label: 'Profile', icon: 'fa-user' },
-        ...(isAdmin ? [{ href: '/admin', label: 'Admin', icon: 'fa-cog' }] : []),
-      ]
+      { href: '/dashboard', label: 'Explore', icon: 'fa-compass' },
+      { href: '/library', label: 'Library', icon: 'fa-list' },
+      { href: '/new', label: 'New', icon: 'fa-plus' },
+      { href: '/playlists', label: 'Learn', icon: 'fa-book' },
+      { href: '/profile', label: 'Profile', icon: 'fa-user' },
+      ...(isAdmin ? [{ href: '/admin', label: 'Admin', icon: 'fa-cog' }] : []),
+    ]
     : [
-        { href: '/', label: 'Home', icon: 'fa-home' },
-        { href: '/login', label: 'Login', icon: 'fa-sign-in-alt' },
-        { href: '/register', label: 'Register', icon: 'fa-user-plus' },
-      ];
+      { href: '/', label: 'Home', icon: 'fa-home' },
+      { href: '/login', label: 'Login', icon: 'fa-sign-in-alt' },
+      { href: '/register', label: 'Register', icon: 'fa-user-plus' },
+    ];
 
   return {
     user: session?.user ? { id: session.user.id, email: session.user.email } : null,

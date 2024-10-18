@@ -38,19 +38,20 @@ export const actions: Actions = {
     const lessonTitle = formData.get('lesson_title') as string;
     const lessonNumber = parseInt(formData.get('lesson_number') as string);
     const lessonContent = formData.get('lesson_content') as string;
+    const lessonTechniques = formData.get('lesson_techniques') as string;
 
     try {
       const { data, error: updateError } = await supabaseAdmin
         .from('lesson_content')
-        .update({ lesson_number: lessonNumber, lesson_title: lessonTitle, lesson_content: lessonContent })
+        .update({ lesson_number: lessonNumber, lesson_title: lessonTitle, lesson_content: lessonContent, lesson_techniques: lessonTechniques })
         .eq('id', id)
         .select('*, lesson_playlists!inner(playlist_name)')
         .single();
 
       if (updateError) throw updateError;
 
-      return { 
-        success: true, 
+      return {
+        success: true,
         lesson: {
           ...data,
           playlist_name: data.lesson_playlists.playlist_name
