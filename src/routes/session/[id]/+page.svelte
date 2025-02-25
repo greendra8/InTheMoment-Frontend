@@ -26,7 +26,7 @@
 	// Store the real viewport height, accounting for mobile browser UI
 	let realViewportHeight: number;
 
-	let audioPlayerComponent;
+	let audioPlayerComponent: AudioPlayer;
 
 	let isMenuOpen = false;
 

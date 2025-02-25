@@ -1,5 +1,6 @@
 <script>
 	import { onMount } from 'svelte';
+	import { setupAudioVisualizer } from '$lib/audioVisualizer';
 
 	// Core visualization variables
 	let canvas;
@@ -19,6 +20,13 @@
 	let isLowPerfDevice = false;
 	let presetLoaded = false;
 	let resizeTimeout;
+
+	// Orb visualizer variables
+	let orbCanvas;
+	let orbAudio;
+	let orbAudioContext;
+	let orbAnalyser;
+	let orbVisualizer;
 
 	// Check if device is low performance
 	function checkDevicePerformance() {
@@ -291,6 +299,51 @@
 		preset = null;
 	}
 
+	// Setup orb visualizer
+	function setupOrb() {
+		if (!orbCanvas || !orbAudio) return;
+
+		try {
+			// Create audio context
+			orbAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+			orbAnalyser = orbAudioContext.createAnalyser();
+			orbAnalyser.fftSize = 1024;
+
+			// Create silent audio source for visualization
+			const bufferSize = orbAudioContext.sampleRate * 2; // 2 seconds buffer
+			const buffer = orbAudioContext.createBuffer(1, bufferSize, orbAudioContext.sampleRate);
+			const data = buffer.getChannelData(0);
+
+			// Fill with minimal noise to activate analyzer
+			for (let i = 0; i < bufferSize; i++) {
+				data[i] = (Math.random() * 2 - 1) * 0.001;
+			}
+
+			const source = orbAudioContext.createBufferSource();
+			source.buffer = buffer;
+			source.loop = true;
+			source.connect(orbAnalyser);
+			orbAnalyser.connect(orbAudioContext.destination);
+			source.start(0);
+
+			// Setup canvas size
+			const orbContainer = orbCanvas.parentElement;
+			const size = Math.min(orbContainer.clientWidth, 300);
+			orbCanvas.width = size;
+			orbCanvas.height = size;
+
+			// Initialize visualizer
+			orbVisualizer = setupAudioVisualizer(orbAudio, orbCanvas, orbAnalyser, size, size);
+
+			// Set to breathing mode
+			if (orbVisualizer) {
+				orbVisualizer.setStandbyMode(true);
+			}
+		} catch (error) {
+			console.error('Error setting up orb visualizer:', error);
+		}
+	}
+
 	onMount(async () => {
 		// Add event listeners
 		window.addEventListener('resize', resizeCanvas);
@@ -307,12 +360,24 @@
 			initVisualizer();
 		}, 300);
 
+		// Setup orb visualizer after a short delay
+		setTimeout(() => {
+			setupOrb();
+		}, 500);
+
 		return () => {
 			// Clean up on component unmount
 			clearTimeout(initTimeout);
 			window.removeEventListener('resize', resizeCanvas);
 			document.removeEventListener('visibilitychange', handleVisibilityChange);
 			cleanup();
+
+			// Clean up orb visualizer
+			if (orbAudioContext) {
+				orbAudioContext
+					.close()
+					.catch((err) => console.error('Error closing orb audio context:', err));
+			}
 		};
 	});
 </script>
@@ -369,6 +434,25 @@
 				In The Moment combines mindfulness science with personalised guidance to create meditation
 				sessions that adapt to you
 			</p>
+		</div>
+	</section>
+
+	<!-- Orb Visualizer Section -->
+	<section class="orb-section">
+		<div class="container">
+			<div class="orb-container">
+				<div class="orb-wrapper">
+					<canvas bind:this={orbCanvas} class="orb-canvas"></canvas>
+					<audio bind:this={orbAudio} crossorigin="anonymous" style="display: none;"></audio>
+				</div>
+				<div class="orb-content">
+					<h2 class="section-title">Meet Your Mentor</h2>
+					<p class="section-description">
+						This dynamic orb visualises your personal meditation assistant, responding to your
+						progress and helping you achieve deeper mindfulness with each session.
+					</p>
+				</div>
+			</div>
 		</div>
 	</section>
 
@@ -879,7 +963,7 @@
 		align-items: center;
 		transition: all 0.3s ease;
 		margin-bottom: 0.5rem;
-		white-space: nowrap; /* Prevent wrapping on desktop */
+		min-width: 500px;
 	}
 
 	.benefit-tag:hover {
@@ -1161,6 +1245,94 @@
 		}
 		60% {
 			transform: translateY(-5px) translateX(-50%);
+		}
+	}
+
+	/* Orb Visualizer Section Styles */
+	.orb-section {
+		padding: 4rem 0;
+		background: #f0f0f0;
+		overflow: hidden;
+	}
+
+	.orb-container {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 3rem;
+		max-width: 1000px;
+		margin: 0 auto;
+	}
+
+	.orb-wrapper {
+		position: relative;
+		width: 300px;
+		height: 300px;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		flex-shrink: 0;
+	}
+
+	.orb-canvas {
+		border-radius: 50%;
+	}
+
+	.orb-content {
+		max-width: 500px;
+	}
+
+	.orb-content h2 {
+		text-align: left;
+		margin-bottom: 1.5rem;
+		font-size: 2.5rem;
+		color: #333;
+	}
+
+	.orb-content .section-description {
+		margin-bottom: 2rem;
+		font-size: 1.1rem;
+		line-height: 1.6;
+		color: #666;
+	}
+
+	@media (max-width: 900px) {
+		.orb-container {
+			flex-direction: column;
+			text-align: center;
+			gap: 2rem;
+		}
+
+		.orb-wrapper {
+			width: 250px;
+			height: 250px;
+		}
+
+		.orb-content h2 {
+			text-align: center;
+		}
+
+		.orb-content h2 {
+			font-size: 2rem;
+		}
+	}
+
+	@media (max-width: 600px) {
+		.orb-section {
+			padding: 3rem 0;
+		}
+
+		.orb-wrapper {
+			width: 200px;
+			height: 200px;
+		}
+
+		.orb-content h2 {
+			font-size: 1.8rem;
+		}
+
+		.orb-content .section-description {
+			font-size: 1rem;
 		}
 	}
 </style>

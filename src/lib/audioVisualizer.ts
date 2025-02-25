@@ -99,141 +99,143 @@ export function setupAudioVisualizer(audio: HTMLAudioElement, canvas: HTMLCanvas
       average = dataArray.reduce((sum, value) => sum + value, 0) / bufferLength;
     }
 
-    canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
+    if (canvasCtx) {
+      canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
 
-    const baseRadius = maxRadius * BASE_RADIUS_FRACTION;
+      const baseRadius = maxRadius * BASE_RADIUS_FRACTION;
 
-    // Calculate breathing effect
-    let breathingEffect = 0;
-    if (ENABLE_BREATHING) {
-      breathingEffect = Math.sin((Date.now() - startTime) / BREATHING_PERIOD) * BREATHING_AMPLITUDE;
-    }
-
-    // Determine if we should be in breathing mode
-    if (isStandbyMode || audio.paused || average < VOLUME_THRESHOLD) {
-      quietTime += 16; // Assuming 60fps
-      if (quietTime >= BREATHING_DELAY) {
-        isBreathing = true;
+      // Calculate breathing effect
+      let breathingEffect = 0;
+      if (ENABLE_BREATHING) {
+        breathingEffect = Math.sin((Date.now() - startTime) / BREATHING_PERIOD) * BREATHING_AMPLITUDE;
       }
-    } else {
-      quietTime = 0;
-      isBreathing = false;
-    }
 
-    // Calculate target radius based on mode
-    let targetRadius = isBreathing
-      ? baseRadius + breathingEffect
-      : baseRadius + (average / 255) * (maxRadius * 0.4);
+      // Determine if we should be in breathing mode
+      if (isStandbyMode || audio.paused || average < VOLUME_THRESHOLD) {
+        quietTime += 16; // Assuming 60fps
+        if (quietTime >= BREATHING_DELAY) {
+          isBreathing = true;
+        }
+      } else {
+        quietTime = 0;
+        isBreathing = false;
+      }
 
-    // Smoothly transition to target radius
-    const currentTransitionSpeed = isBreathing ? BREATHING_TRANSITION_SPEED : TRANSITION_SPEED;
-    lastPulseRadius += (targetRadius - lastPulseRadius) * currentTransitionSpeed;
+      // Calculate target radius based on mode
+      let targetRadius = isBreathing
+        ? baseRadius + breathingEffect
+        : baseRadius + (average / 255) * (maxRadius * 0.4);
 
-    const pulseRadius = lastPulseRadius;
+      // Smoothly transition to target radius
+      const currentTransitionSpeed = isBreathing ? BREATHING_TRANSITION_SPEED : TRANSITION_SPEED;
+      lastPulseRadius += (targetRadius - lastPulseRadius) * currentTransitionSpeed;
 
-    // Handle celebration effect
-    let celebrationFactor = 0;
-    if (ENABLE_CELEBRATION && isCelebrating) {
-      const celebrationProgress = (Date.now() - celebrationStartTime) / CELEBRATION_DURATION;
-      celebrationFactor = Math.sin(celebrationProgress * Math.PI * 8) * (1 - celebrationProgress) * CELEBRATION_PULSE_FACTOR;
-    }
+      const pulseRadius = lastPulseRadius;
 
-    const celebrationPulseRadius = pulseRadius * (1 + celebrationFactor);
+      // Handle celebration effect
+      let celebrationFactor = 0;
+      if (ENABLE_CELEBRATION && isCelebrating) {
+        const celebrationProgress = (Date.now() - celebrationStartTime) / CELEBRATION_DURATION;
+        celebrationFactor = Math.sin(celebrationProgress * Math.PI * 8) * (1 - celebrationProgress) * CELEBRATION_PULSE_FACTOR;
+      }
 
-    // Draw main pulse
-    const gradient = canvasCtx.createRadialGradient(
-      centerX - celebrationPulseRadius * 0.3,
-      centerY - celebrationPulseRadius * 0.3,
-      0,
-      centerX,
-      centerY,
-      celebrationPulseRadius
-    );
-    gradient.addColorStop(0, `rgba(255, 255, 255, ${0.9 + average / 1000})`);
-    gradient.addColorStop(0.7, `rgba(200, 220, 255, ${0.7 + average / 1500})`);
-    gradient.addColorStop(1, `rgba(150, 180, 255, ${0.5 + average / 2000})`);
+      const celebrationPulseRadius = pulseRadius * (1 + celebrationFactor);
 
-    canvasCtx.beginPath();
-    canvasCtx.arc(centerX, centerY, celebrationPulseRadius, 0, 2 * Math.PI);
-    canvasCtx.fillStyle = gradient;
-    canvasCtx.fill();
-
-    // Draw highlight
-    const highlightGradient = canvasCtx.createRadialGradient(
-      centerX - pulseRadius * 0.5,
-      centerY - pulseRadius * 0.5,
-      0,
-      centerX - pulseRadius * 0.3,
-      centerY - pulseRadius * 0.3,
-      pulseRadius
-    );
-    highlightGradient.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
-    highlightGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.3)');
-    highlightGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-
-    canvasCtx.beginPath();
-    canvasCtx.arc(centerX, centerY, pulseRadius, 0, 2 * Math.PI);
-    canvasCtx.fillStyle = highlightGradient;
-    canvasCtx.fill();
-
-    // Draw glow effect
-    if (ENABLE_GLOW) {
-      const glowSize = GLOW_SIZE_BASE + average / 4 + (ENABLE_BREATHING ? breathingEffect / 2 : 0);
-      const glowGradient = canvasCtx.createRadialGradient(
+      // Draw main pulse
+      const gradient = canvasCtx.createRadialGradient(
+        centerX - celebrationPulseRadius * 0.3,
+        centerY - celebrationPulseRadius * 0.3,
+        0,
         centerX,
         centerY,
-        pulseRadius - glowSize,
-        centerX,
-        centerY,
-        pulseRadius + glowSize
+        celebrationPulseRadius
       );
-      glowGradient.addColorStop(0, 'rgba(150, 180, 255, 0)');
-      glowGradient.addColorStop(0.5, `rgba(150, 180, 255, ${0.1 + average / 1500})`);
-      glowGradient.addColorStop(1, 'rgba(150, 180, 255, 0)');
+      gradient.addColorStop(0, `rgba(255, 255, 255, ${0.9 + average / 1000})`);
+      gradient.addColorStop(0.7, `rgba(200, 220, 255, ${0.7 + average / 1500})`);
+      gradient.addColorStop(1, `rgba(150, 180, 255, ${0.5 + average / 2000})`);
 
       canvasCtx.beginPath();
-      canvasCtx.arc(centerX, centerY, pulseRadius + glowSize, 0, 2 * Math.PI);
-      canvasCtx.fillStyle = glowGradient;
+      canvasCtx.arc(centerX, centerY, celebrationPulseRadius, 0, 2 * Math.PI);
+      canvasCtx.fillStyle = gradient;
       canvasCtx.fill();
-    }
 
-    // Draw ripples
-    if (ENABLE_RIPPLES) {
-      for (let i = 1; i <= RIPPLE_COUNT; i++) {
-        let rippleRadius = baseRadius + (i * RIPPLE_BASE_DISTANCE) + Math.sin(Date.now() / (800 - i * 200)) * (3 + average / 30);
-        let rippleOpacity = 0.2 - i * 0.03 + average / 1000;
-        let rippleWidth = 1 + average / 100;
+      // Draw highlight
+      const highlightGradient = canvasCtx.createRadialGradient(
+        centerX - pulseRadius * 0.5,
+        centerY - pulseRadius * 0.5,
+        0,
+        centerX - pulseRadius * 0.3,
+        centerY - pulseRadius * 0.3,
+        pulseRadius
+      );
+      highlightGradient.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
+      highlightGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.3)');
+      highlightGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
 
-        if (ENABLE_CELEBRATION && isCelebrating) {
-          const celebrationProgress = (Date.now() - celebrationStartTime) / CELEBRATION_DURATION;
-          const celebrationFactor = Math.sin(celebrationProgress * Math.PI * 4) * (1 - celebrationProgress);
-          rippleRadius += celebrationFactor * CELEBRATION_RIPPLE_FACTOR;
-          rippleOpacity += celebrationFactor * 0.15;
-          rippleWidth += celebrationFactor * 1.1;
-        }
+      canvasCtx.beginPath();
+      canvasCtx.arc(centerX, centerY, pulseRadius, 0, 2 * Math.PI);
+      canvasCtx.fillStyle = highlightGradient;
+      canvasCtx.fill();
 
-        rippleRadius = Math.min(rippleRadius, maxRadius);
+      // Draw glow effect
+      if (ENABLE_GLOW) {
+        const glowSize = GLOW_SIZE_BASE + average / 4 + (ENABLE_BREATHING ? breathingEffect / 2 : 0);
+        const glowGradient = canvasCtx.createRadialGradient(
+          centerX,
+          centerY,
+          pulseRadius - glowSize,
+          centerX,
+          centerY,
+          pulseRadius + glowSize
+        );
+        glowGradient.addColorStop(0, 'rgba(150, 180, 255, 0)');
+        glowGradient.addColorStop(0.5, `rgba(150, 180, 255, ${0.1 + average / 1500})`);
+        glowGradient.addColorStop(1, 'rgba(150, 180, 255, 0)');
 
         canvasCtx.beginPath();
-        canvasCtx.arc(centerX, centerY, rippleRadius, 0, 2 * Math.PI);
-        canvasCtx.strokeStyle = `rgba(150, 180, 255, ${rippleOpacity})`;
-        canvasCtx.lineWidth = rippleWidth;
-        canvasCtx.stroke();
+        canvasCtx.arc(centerX, centerY, pulseRadius + glowSize, 0, 2 * Math.PI);
+        canvasCtx.fillStyle = glowGradient;
+        canvasCtx.fill();
       }
+
+      // Draw ripples
+      if (ENABLE_RIPPLES) {
+        for (let i = 1; i <= RIPPLE_COUNT; i++) {
+          let rippleRadius = baseRadius + (i * RIPPLE_BASE_DISTANCE) + Math.sin(Date.now() / (800 - i * 200)) * (3 + average / 30);
+          let rippleOpacity = 0.2 - i * 0.03 + average / 1000;
+          let rippleWidth = 1 + average / 100;
+
+          if (ENABLE_CELEBRATION && isCelebrating) {
+            const celebrationProgress = (Date.now() - celebrationStartTime) / CELEBRATION_DURATION;
+            const celebrationFactor = Math.sin(celebrationProgress * Math.PI * 4) * (1 - celebrationProgress);
+            rippleRadius += celebrationFactor * CELEBRATION_RIPPLE_FACTOR;
+            rippleOpacity += celebrationFactor * 0.15;
+            rippleWidth += celebrationFactor * 1.1;
+          }
+
+          rippleRadius = Math.min(rippleRadius, maxRadius);
+
+          canvasCtx.beginPath();
+          canvasCtx.arc(centerX, centerY, rippleRadius, 0, 2 * Math.PI);
+          canvasCtx.strokeStyle = `rgba(150, 180, 255, ${rippleOpacity})`;
+          canvasCtx.lineWidth = rippleWidth;
+          canvasCtx.stroke();
+        }
+      }
+
+      // End celebration if duration is over
+      if (ENABLE_CELEBRATION && isCelebrating && Date.now() - celebrationStartTime > CELEBRATION_DURATION) {
+        isCelebrating = false;
+      }
+
+      // Apply blur and opacity
+      canvasCtx.filter = `blur(${blur}px)`;
+      canvasCtx.globalAlpha = opacity;
+
+      // Reset canvas properties
+      canvasCtx.filter = 'none';
+      canvasCtx.globalAlpha = 1;
     }
-
-    // End celebration if duration is over
-    if (ENABLE_CELEBRATION && isCelebrating && Date.now() - celebrationStartTime > CELEBRATION_DURATION) {
-      isCelebrating = false;
-    }
-
-    // Apply blur and opacity
-    canvasCtx.filter = `blur(${blur}px)`;
-    canvasCtx.globalAlpha = opacity;
-
-    // Reset canvas properties
-    canvasCtx.filter = 'none';
-    canvasCtx.globalAlpha = 1;
   }
 
   // Start celebration animation
