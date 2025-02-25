@@ -701,7 +701,7 @@
 	}
 
 	.hero-text {
-		text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+		text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 		display: flex;
 		flex-direction: column;
 		align-items: center;
@@ -963,7 +963,6 @@
 		align-items: center;
 		transition: all 0.3s ease;
 		margin-bottom: 0.5rem;
-		min-width: 500px;
 	}
 
 	.benefit-tag:hover {
