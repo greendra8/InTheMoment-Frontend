@@ -349,6 +349,14 @@
 				<a href="/register" class="button primary">Begin Your Journey</a>
 				<a href="/login" class="button secondary">Sign In</a>
 			</div>
+
+			<!-- Scroll Down Indicator -->
+			<div class="scroll-indicator">
+				<div class="scroll-arrow">
+					<i class="fas fa-chevron-down"></i>
+				</div>
+				<span class="scroll-text">Scroll Down</span>
+			</div>
 		</div>
 	</div>
 </section>
@@ -1078,6 +1086,19 @@
 		.platform i {
 			font-size: 3rem;
 		}
+
+		.scroll-indicator {
+			bottom: 30px;
+		}
+
+		.scroll-arrow {
+			font-size: 20px;
+			margin-bottom: 5px;
+		}
+
+		.scroll-text {
+			font-size: 12px;
+		}
 	}
 
 	@media (max-width: 350px) {
@@ -1092,6 +1113,54 @@
 		.button {
 			padding: 0.8rem 1.5rem;
 			font-size: 1rem;
+		}
+	}
+
+	/* Scroll Indicator */
+	.scroll-indicator {
+		position: absolute;
+		bottom: 80px;
+		left: 50%;
+		transform: translateX(-50%);
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		color: white;
+		opacity: 0.8;
+		transition: opacity 0.3s ease;
+		animation: bounce 2s infinite;
+	}
+
+	.scroll-indicator:hover {
+		opacity: 1;
+		animation-play-state: paused;
+	}
+
+	.scroll-arrow {
+		font-size: 24px;
+		margin-bottom: 8px;
+	}
+
+	.scroll-text {
+		font-size: 14px;
+		font-weight: 500;
+		letter-spacing: 1px;
+		text-transform: uppercase;
+	}
+
+	@keyframes bounce {
+		0%,
+		20%,
+		50%,
+		80%,
+		100% {
+			transform: translateY(0) translateX(-50%);
+		}
+		40% {
+			transform: translateY(-10px) translateX(-50%);
+		}
+		60% {
+			transform: translateY(-5px) translateX(-50%);
 		}
 	}
 </style>
