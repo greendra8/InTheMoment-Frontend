@@ -160,7 +160,7 @@
 
 <svelte:head>
 	<link
-		href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Roboto:wght@300;400;700&display=swap"
+		href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
 		rel="stylesheet"
 	/>
 	<link
@@ -191,137 +191,217 @@
 		<canvas bind:this={canvas} class="visualizer-canvas"></canvas>
 		<div class="hero-content">
 			<div class="hero-text">
-				<h1>Live In The Moment</h1>
+				<h1>Mindfulness Reimagined</h1>
 				<p class="tagline">
-					Experience bespoke mindfulness journeys crafted by cutting-edge artificial intelligence
+					Discover AI-powered meditation journeys tailored to your unique mind and needs
 				</p>
 			</div>
 			<div class="cta">
-				<a href="/register" class="button primary">Sign Up Now</a>
-				<a href="/login" class="button secondary">Welcome Back</a>
+				<a href="/register" class="button primary">Begin Your Journey</a>
+				<a href="/login" class="button secondary">Sign In</a>
 			</div>
 		</div>
 	</div>
 </section>
 
 <div class="content-wrapper">
-	<main class="global-container">
-		<section class="features">
-			<div class="feature">
-				<span class="icon"><i class="fas fa-brain"></i></span>
-				<h2>Personalised AI Guidance</h2>
-				<p>
-					Our advanced AI analyses your preferences, stress levels, and goals to create truly unique
-					meditation experiences
-				</p>
-			</div>
-			<div class="feature">
-				<span class="icon"><i class="fas fa-music"></i></span>
-				<h2>Immersive Audio</h2>
-				<p>
-					Enjoy crystal-clear guided meditations with dynamic soundscapes and soothing
-					visualisations
-				</p>
-			</div>
-			<div class="feature">
-				<span class="icon"><i class="fas fa-chart-line"></i></span>
-				<h2>Progress Tracking</h2>
-				<p>Visualise your mindfulness journey with detailed insights and achievement milestones</p>
-			</div>
-		</section>
-
-		<section class="how-it-works">
-			<h2>How In The Moment Works</h2>
-			<div class="steps">
-				<div class="step">
-					<span class="step-number">1</span>
-					<h3>Profile Creation</h3>
-					<p>Answer a few questions about your meditation goals and preferences</p>
-				</div>
-				<div class="step">
-					<span class="step-number">2</span>
-					<h3>AI Generation</h3>
-					<p>Our AI crafts a personalised meditation script and selects appropriate audio</p>
-				</div>
-				<div class="step">
-					<span class="step-number">3</span>
-					<h3>Immersive Experience</h3>
-					<p>Listen to your custom meditation with our interactive audio player</p>
-				</div>
-				<div class="step">
-					<span class="step-number">4</span>
-					<h3>Continuous Improvement</h3>
-					<p>Provide feedback to refine future sessions and track your progress</p>
-				</div>
-			</div>
-		</section>
-
-		<section class="features-highlight">
-			<h2>Why Choose In The Moment?</h2>
-			<div class="highlight-grid">
-				<div class="highlight-item">
-					<i class="fas fa-brain"></i> Cutting-edge AI technology for truly personalised experiences
-				</div>
-				<div class="highlight-item">
-					<i class="fas fa-palette"></i> Beautiful, responsive design that works on all your devices
-				</div>
-				<div class="highlight-item">
-					<i class="fas fa-lock"></i> Secure user profiles and data protection
-				</div>
-				<div class="highlight-item">
-					<i class="fas fa-seedling"></i> Continuous learning algorithm that grows with you
-				</div>
-			</div>
-		</section>
-
-		<section class="mobile-apps">
-			<h2>Take In The Moment Everywhere</h2>
-			<p class="coming-soon">Native mobile apps for Android and iOS coming soon!</p>
-			<div class="app-icons">
-				<div class="app-icon">
-					<i class="fab fa-android"></i>
-					<span>Android</span>
-				</div>
-				<div class="app-icon">
-					<i class="fab fa-apple"></i>
-					<span>iOS</span>
-				</div>
-			</div>
-			<p class="offline-support">
-				Enjoy offline support for uninterrupted meditation, anywhere you go
+	<section class="intro-section">
+		<div class="container">
+			<h2 class="section-title">Transform Your Mental Wellbeing</h2>
+			<p class="section-subtitle">
+				In The Moment combines cutting-edge AI with mindfulness science to create personalized
+				meditation experiences
 			</p>
-		</section>
+		</div>
+	</section>
 
-		<section class="final-cta">
-			<h2>Ready to Transform Your Mindfulness Practice?</h2>
-			<p>Join users who have discovered the power of AI-driven meditation</p>
-			<a href="/register" class="button primary">Sign Up Now</a>
-		</section>
-	</main>
+	<section class="features-section">
+		<div class="container">
+			<div class="features-wrapper">
+				<div class="feature-column">
+					<div class="feature-item">
+						<div class="feature-icon">
+							<i class="fas fa-brain"></i>
+						</div>
+						<div class="feature-content">
+							<h3>AI-Powered Guidance</h3>
+							<p>
+								Our advanced algorithms analyze your preferences and goals to create truly unique
+								meditation experiences
+							</p>
+						</div>
+					</div>
+					<div class="feature-item">
+						<div class="feature-icon">
+							<i class="fas fa-headphones-alt"></i>
+						</div>
+						<div class="feature-content">
+							<h3>Immersive Audio</h3>
+							<p>
+								Experience crystal-clear guided meditations with dynamic soundscapes designed for
+								deep focus
+							</p>
+						</div>
+					</div>
+				</div>
+				<div class="feature-column">
+					<div class="feature-item">
+						<div class="feature-icon">
+							<i class="fas fa-chart-line"></i>
+						</div>
+						<div class="feature-content">
+							<h3>Progress Tracking</h3>
+							<p>
+								Visualize your mindfulness journey with detailed insights and achievement milestones
+							</p>
+						</div>
+					</div>
+					<div class="feature-item">
+						<div class="feature-icon">
+							<i class="fas fa-user-circle"></i>
+						</div>
+						<div class="feature-content">
+							<h3>Personalized Experience</h3>
+							<p>
+								Every session adapts to your feedback, creating a meditation practice that evolves
+								with you
+							</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<section class="how-it-works-section">
+		<div class="container">
+			<h2 class="section-title">How It Works</h2>
+			<div class="timeline">
+				<div class="timeline-item">
+					<div class="timeline-marker">1</div>
+					<div class="timeline-content">
+						<h3>Create Your Profile</h3>
+						<p>Answer a few questions about your meditation goals and preferences</p>
+					</div>
+				</div>
+				<div class="timeline-item">
+					<div class="timeline-marker">2</div>
+					<div class="timeline-content">
+						<h3>AI Generation</h3>
+						<p>Our AI crafts a personalized meditation script and selects appropriate audio</p>
+					</div>
+				</div>
+				<div class="timeline-item">
+					<div class="timeline-marker">3</div>
+					<div class="timeline-content">
+						<h3>Immersive Experience</h3>
+						<p>Listen to your custom meditation with our interactive audio player</p>
+					</div>
+				</div>
+				<div class="timeline-item">
+					<div class="timeline-marker">4</div>
+					<div class="timeline-content">
+						<h3>Continuous Improvement</h3>
+						<p>Provide feedback to refine future sessions and track your progress</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<section class="benefits-section">
+		<div class="container">
+			<h2 class="section-title">Why Choose In The Moment?</h2>
+			<div class="benefits-wrapper">
+				<div class="benefit-tag">
+					<i class="fas fa-brain"></i>
+					<span>Advanced AI technology for truly personalized experiences</span>
+				</div>
+				<div class="benefit-tag">
+					<i class="fas fa-palette"></i>
+					<span>Beautiful, responsive design that works on all your devices</span>
+				</div>
+				<div class="benefit-tag">
+					<i class="fas fa-lock"></i>
+					<span>Secure user profiles with enterprise-grade data protection</span>
+				</div>
+				<div class="benefit-tag">
+					<i class="fas fa-seedling"></i>
+					<span>Continuous learning algorithm that grows with your practice</span>
+				</div>
+				<div class="benefit-tag">
+					<i class="fas fa-moon"></i>
+					<span>Specialized sessions for sleep, focus, anxiety, and more</span>
+				</div>
+				<div class="benefit-tag">
+					<i class="fas fa-heart"></i>
+					<span>Science-backed approach to mental wellbeing</span>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<section class="mobile-section">
+		<div class="container">
+			<div class="mobile-content">
+				<h2 class="section-title">Take In The Moment Everywhere</h2>
+				<p class="section-subtitle">Native mobile apps coming soon to iOS and Android</p>
+				<div class="app-platforms">
+					<div class="platform">
+						<i class="fab fa-android"></i>
+						<span>Android</span>
+					</div>
+					<div class="platform">
+						<i class="fab fa-apple"></i>
+						<span>iOS</span>
+					</div>
+				</div>
+				<p class="mobile-feature">
+					Enjoy offline support for uninterrupted meditation, anywhere you go
+				</p>
+			</div>
+		</div>
+	</section>
+
+	<section class="cta-section">
+		<div class="container">
+			<div class="cta-content">
+				<h2>Ready to Transform Your Mindfulness Practice?</h2>
+				<p>Join thousands who have discovered the power of AI-driven meditation</p>
+				<a href="/register" class="button primary large">Start Your Free Trial</a>
+			</div>
+		</div>
+	</section>
 </div>
 
 <style>
-	main {
-		max-width: 1400px;
-		margin: 0 auto;
-		padding: 2rem;
-		text-align: center;
+	/* Base Styles */
+	:global(body) {
+		font-family: 'Inter', sans-serif;
+		line-height: 1.6;
 		color: #333;
-	}
-
-	.content-wrapper {
-		width: 100%;
-		margin: 0 auto;
-		padding-top: 4rem;
+		background-color: #fff;
+		margin: 0;
+		padding: 0;
 	}
 
 	h1,
-	h2 {
-		font-family: 'Poppins', sans-serif;
+	h2,
+	h3,
+	h4 {
+		font-family: 'Space Grotesk', sans-serif;
+		font-weight: 600;
 	}
 
+	.container {
+		max-width: 1200px;
+		margin: 0 auto;
+		padding: 0 1.5rem;
+	}
+
+	/* Hero Section */
 	.hero-container {
-		margin-bottom: 0;
+		margin: 0;
 		overflow: hidden;
 		width: 100%;
 		position: relative;
@@ -332,7 +412,7 @@
 		width: 100vw;
 		height: 100vh;
 		max-height: 100vh;
-		min-height: 500px;
+		min-height: 600px;
 		overflow: hidden;
 		left: 50%;
 		right: 50%;
@@ -347,7 +427,7 @@
 		width: 100%;
 		height: 100%;
 		z-index: 1;
-		background-color: #000; /* Add a black background to ensure visibility */
+		background-color: #000;
 	}
 
 	.hero-content {
@@ -364,37 +444,38 @@
 		padding: 2rem;
 		box-sizing: border-box;
 		color: white;
-		text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-		background: rgba(0, 0, 0, 0.1); /* Slightly darker overlay for better contrast */
+		background: rgba(0, 0, 0, 0.25);
 	}
 
 	.hero-text {
+		text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		margin-bottom: 2rem;
-		max-width: 1200px;
+		margin-bottom: 2.5rem;
+		max-width: 900px;
 		width: 100%;
 	}
 
 	.hero-content h1 {
-		font-size: clamp(2.5rem, 5vw, 4rem);
+		font-size: clamp(3rem, 6vw, 5rem);
 		margin-bottom: 1.5rem;
 		text-align: center;
-		line-height: 1.2;
+		line-height: 1.1;
 		width: 100%;
-		max-width: 1200px;
+		letter-spacing: -0.02em;
 	}
 
 	.tagline {
-		font-size: clamp(1.1rem, 2vw, 1.4rem);
+		font-size: clamp(1.2rem, 2.5vw, 1.6rem);
 		margin-bottom: 0;
 		color: white;
-		max-width: 800px;
+		max-width: 700px;
 		text-align: center;
 		line-height: 1.5;
 		width: 100%;
+		font-weight: 400;
 	}
 
 	.cta {
@@ -406,109 +487,336 @@
 		max-width: 600px;
 	}
 
-	.features {
-		display: flex;
-		justify-content: space-between;
-		margin-bottom: 4rem;
-		gap: 2rem;
-	}
-
-	.feature {
-		flex: 1;
-		padding: 2rem;
-		background-color: #fff;
-		border-radius: 12px;
-		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-		transition: transform 0.3s ease;
-	}
-
-	.feature:hover {
-		transform: translateY(-5px);
-	}
-
-	.icon {
-		font-size: 3rem;
-		margin-bottom: 1rem;
-		display: block;
-	}
-
-	.feature h2 {
-		font-size: 1.8rem;
-		color: #333;
-		margin-bottom: 1rem;
-	}
-
-	.feature p {
-		font-size: 1.1rem;
-		color: #555;
-	}
-
-	.final-cta {
-		background-color: #f5f5f5;
-		color: #333;
-		padding: 3rem;
-		border-radius: 12px;
-	}
-
-	.final-cta h2 {
-		font-size: 2.5rem;
-		margin-bottom: 1.5rem;
-	}
-
 	.button {
 		display: inline-block;
 		padding: 1rem 2rem;
 		font-size: 1.1rem;
 		text-decoration: none;
-		color: #333;
-		background-color: #fff;
-		border: 2px solid #333;
 		border-radius: 50px;
 		transition: all 0.3s ease;
-		font-weight: bold;
+		font-weight: 600;
 		min-width: 200px;
 		box-sizing: border-box;
 		text-align: center;
+		letter-spacing: 0.5px;
 	}
 
-	.button:hover {
-		background-color: #f0f0f0;
-		transform: translateY(-2px);
+	.button.large {
+		padding: 1.2rem 2.5rem;
+		font-size: 1.2rem;
+		min-width: 250px;
 	}
 
 	.button.primary {
-		background-color: #000;
-		color: #fff;
+		background-color: #ffffff;
+		color: #000;
+		border: none;
+		box-shadow: 0 4px 14px rgba(255, 255, 255, 0.3);
 	}
 
 	.button.primary:hover {
-		background-color: #444;
+		background-color: #f0f0f0;
+		transform: translateY(-3px);
+		box-shadow: 0 6px 20px rgba(255, 255, 255, 0.4);
 	}
 
 	.button.secondary {
 		background-color: transparent;
 		color: white;
-		border-color: white;
+		border: 2px solid rgba(255, 255, 255, 0.8);
+		backdrop-filter: blur(4px);
 	}
 
 	.button.secondary:hover {
-		background-color: rgba(255, 255, 255, 0.1);
+		background-color: rgba(255, 255, 255, 0.15);
+		transform: translateY(-3px);
 	}
 
+	/* Content Sections */
+	.content-wrapper {
+		width: 100%;
+		margin: 0 auto;
+	}
+
+	.section-title {
+		font-size: clamp(2rem, 4vw, 2.8rem);
+		margin-bottom: 1.5rem;
+		text-align: center;
+		color: #1a1a1a;
+	}
+
+	.section-subtitle {
+		font-size: clamp(1.1rem, 2vw, 1.3rem);
+		text-align: center;
+		max-width: 800px;
+		margin: 0 auto 3rem;
+		color: #4a4a4a;
+	}
+
+	/* Intro Section */
+	.intro-section {
+		padding: 5rem 1rem;
+		background-color: #f8f8f8;
+		text-align: center;
+	}
+
+	/* Features Section */
+	.features-section {
+		padding: 5rem 1rem;
+		background-color: #fff;
+	}
+
+	.features-wrapper {
+		display: flex;
+		gap: 2rem;
+		margin-top: 3rem;
+	}
+
+	.feature-column {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		gap: 2rem;
+	}
+
+	.feature-item {
+		display: flex;
+		align-items: flex-start;
+		background-color: #f8f8f8;
+		border-radius: 16px;
+		padding: 2rem;
+		transition: all 0.3s ease;
+		height: 100%;
+	}
+
+	.feature-item:hover {
+		transform: translateY(-5px);
+		box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+		background-color: #fff;
+	}
+
+	.feature-icon {
+		width: 60px;
+		height: 60px;
+		border-radius: 50%;
+		background: #000;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin-right: 1.5rem;
+		color: white;
+		font-size: 1.5rem;
+		flex-shrink: 0;
+	}
+
+	.feature-content h3 {
+		font-size: 1.4rem;
+		margin: 0 0 0.8rem 0;
+		color: #1a1a1a;
+	}
+
+	.feature-content p {
+		margin: 0;
+		color: #4a4a4a;
+		font-size: 1rem;
+		line-height: 1.6;
+	}
+
+	/* How It Works Section */
+	.how-it-works-section {
+		padding: 5rem 1rem;
+		background-color: #f0f0f0;
+	}
+
+	.timeline {
+		position: relative;
+		max-width: 800px;
+		margin: 3rem auto 0;
+	}
+
+	.timeline::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		left: 24px;
+		width: 2px;
+		background-color: #000;
+	}
+
+	.timeline-item {
+		position: relative;
+		padding-left: 70px;
+		margin-bottom: 2.5rem;
+	}
+
+	.timeline-item:last-child {
+		margin-bottom: 0;
+	}
+
+	.timeline-marker {
+		position: absolute;
+		left: 0;
+		width: 50px;
+		height: 50px;
+		border-radius: 50%;
+		background-color: #000;
+		color: white;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-weight: bold;
+		font-size: 1.2rem;
+		z-index: 2;
+	}
+
+	.timeline-content {
+		background-color: #fff;
+		padding: 1.5rem 2rem;
+		border-radius: 8px;
+		box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+	}
+
+	.timeline-content h3 {
+		margin: 0 0 0.5rem 0;
+		color: #1a1a1a;
+		font-size: 1.3rem;
+	}
+
+	.timeline-content p {
+		margin: 0;
+		color: #4a4a4a;
+	}
+
+	/* Benefits Section */
+	.benefits-section {
+		padding: 5rem 1rem;
+		background-color: #fff;
+	}
+
+	.benefits-wrapper {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 1rem;
+		margin-top: 3rem;
+	}
+
+	.benefit-tag {
+		background-color: #f0f0f0;
+		border-radius: 50px;
+		padding: 0.8rem 1.5rem;
+		display: flex;
+		align-items: center;
+		transition: all 0.3s ease;
+		margin-bottom: 0.5rem;
+	}
+
+	.benefit-tag:hover {
+		background-color: #000;
+		color: white;
+		transform: translateY(-3px);
+	}
+
+	.benefit-tag i {
+		font-size: 1.2rem;
+		margin-right: 0.8rem;
+		transition: all 0.3s ease;
+	}
+
+	.benefit-tag span {
+		font-size: 1rem;
+		font-weight: 500;
+	}
+
+	/* Mobile Section */
+	.mobile-section {
+		padding: 5rem 1rem;
+		background-color: #f0f0f0;
+		text-align: center;
+	}
+
+	.mobile-content {
+		max-width: 800px;
+		margin: 0 auto;
+	}
+
+	.app-platforms {
+		display: flex;
+		justify-content: center;
+		gap: 4rem;
+		margin: 3rem 0;
+	}
+
+	.platform {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		transition: all 0.3s ease;
+	}
+
+	.platform:hover {
+		transform: translateY(-5px);
+	}
+
+	.platform i {
+		font-size: 4rem;
+		margin-bottom: 1rem;
+		color: #000;
+	}
+
+	.platform span {
+		font-weight: 600;
+		font-size: 1.2rem;
+		color: #1a1a1a;
+	}
+
+	.mobile-feature {
+		font-size: 1.1rem;
+		color: #4a4a4a;
+		margin-top: 2rem;
+	}
+
+	/* CTA Section */
+	.cta-section {
+		padding: 5rem 1rem;
+		background-color: #000;
+		color: white;
+		text-align: center;
+	}
+
+	.cta-content {
+		max-width: 800px;
+		margin: 0 auto;
+	}
+
+	.cta-content h2 {
+		font-size: clamp(2rem, 4vw, 2.8rem);
+		margin-bottom: 1.5rem;
+		color: white;
+	}
+
+	.cta-content p {
+		font-size: 1.2rem;
+		margin-bottom: 2.5rem;
+		color: rgba(255, 255, 255, 0.9);
+	}
+
+	.cta-section .button.primary {
+		background-color: white;
+		color: #000;
+		box-shadow: 0 4px 14px rgba(255, 255, 255, 0.3);
+	}
+
+	.cta-section .button.primary:hover {
+		background-color: #f0f0f0;
+		box-shadow: 0 6px 20px rgba(255, 255, 255, 0.4);
+	}
+
+	/* Responsive Styles */
 	@media (max-width: 1024px) {
-		main {
-			padding: 2rem 1rem;
-		}
-
-		.features {
+		.features-wrapper {
 			flex-direction: column;
-			align-items: center;
-		}
-
-		.feature {
-			width: 100%;
-			max-width: 500px;
-			margin-bottom: 2rem;
 		}
 	}
 
@@ -521,22 +829,15 @@
 			max-width: 100%;
 			padding: 0 1rem;
 		}
+
+		.app-platforms {
+			gap: 3rem;
+		}
 	}
 
 	@media (max-width: 600px) {
-		.content-wrapper {
-			padding-top: 3rem;
-		}
-
-		.hero-container {
-			margin-bottom: 0;
-		}
-
 		.visualizer-wrapper {
-			min-height: 400px;
-			margin-left: -50vw;
-			margin-right: -50vw;
-			width: 100vw;
+			min-height: 500px;
 		}
 
 		.hero-content {
@@ -545,17 +846,16 @@
 		}
 
 		.hero-text {
-			margin-bottom: 1.5rem;
+			margin-bottom: 2rem;
 		}
 
 		.hero-content h1 {
 			margin-bottom: 1rem;
-			font-size: clamp(2rem, 8vw, 2.5rem);
+			font-size: clamp(2.2rem, 8vw, 3rem);
 		}
 
 		.tagline {
 			font-size: clamp(1rem, 4vw, 1.2rem);
-			padding: 0;
 		}
 
 		.cta {
@@ -563,56 +863,58 @@
 			width: 100%;
 			max-width: 300px;
 			gap: 1rem;
-			padding: 0;
-		}
-
-		.features {
-			flex-direction: column;
-		}
-
-		.feature {
-			width: 100%;
-			margin-bottom: 1rem;
-		}
-
-		.final-cta {
-			padding: 2rem 1rem;
-		}
-
-		.final-cta h2 {
-			font-size: 2rem;
 		}
 
 		.button {
 			width: 100%;
 			max-width: 100%;
-			margin: 0 auto;
-			display: block;
 			min-width: unset;
-			padding: 1rem 1rem;
+		}
+
+		.section-title {
+			font-size: 1.8rem;
+		}
+
+		.section-subtitle {
+			font-size: 1rem;
+		}
+
+		.feature-item {
+			flex-direction: column;
+			align-items: center;
+			text-align: center;
+		}
+
+		.feature-icon {
+			margin-right: 0;
+			margin-bottom: 1rem;
+		}
+
+		.timeline::before {
+			left: 20px;
+		}
+
+		.timeline-marker {
+			width: 40px;
+			height: 40px;
+		}
+
+		.timeline-item {
+			padding-left: 60px;
+		}
+
+		.app-platforms {
+			gap: 2rem;
+		}
+
+		.platform i {
+			font-size: 3rem;
 		}
 	}
 
-	@media (min-width: 601px) {
-		.features,
-		.final-cta {
-			padding-left: 2rem;
-			padding-right: 2rem;
-		}
-	}
-
-	@media (max-width: 600px) {
-		.features,
-		.final-cta {
-			padding-left: 1rem;
-			padding-right: 1rem;
-		}
-	}
-
-	/* For very small screens */
 	@media (max-width: 350px) {
 		.hero-content h1 {
-			font-size: 1.8rem;
+			font-size: 2rem;
 		}
 
 		.tagline {
@@ -622,141 +924,6 @@
 		.button {
 			padding: 0.8rem 1.5rem;
 			font-size: 1rem;
-		}
-	}
-
-	.how-it-works {
-		margin-bottom: 4rem;
-	}
-
-	.steps {
-		display: flex;
-		justify-content: space-between;
-		gap: 2rem;
-		margin-top: 2rem;
-	}
-
-	.step {
-		flex: 1;
-		text-align: center;
-		padding: 1rem;
-		background-color: #f9f9f9;
-		border-radius: 12px;
-	}
-
-	.step-number {
-		display: inline-block;
-		width: 30px;
-		height: 30px;
-		line-height: 30px;
-		background-color: #333;
-		color: #fff;
-		border-radius: 50%;
-		margin-bottom: 1rem;
-	}
-
-	.features-highlight {
-		margin-bottom: 4rem;
-	}
-
-	.highlight-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-		gap: 1.5rem;
-		margin-top: 2rem;
-	}
-
-	.highlight-item {
-		background-color: #f9f9f9;
-		padding: 1.5rem;
-		border-radius: 12px;
-		font-size: 1.1rem;
-		text-align: left;
-		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-		transition:
-			transform 0.3s ease,
-			box-shadow 0.3s ease;
-	}
-
-	.highlight-item:hover {
-		transform: translateY(-5px);
-		box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-	}
-
-	@media (max-width: 768px) {
-		.steps {
-			flex-direction: column;
-		}
-
-		.highlight-grid {
-			grid-template-columns: 1fr;
-		}
-	}
-
-	.mobile-apps {
-		background-color: #f9f9f9;
-		padding: 4rem 2rem;
-		border-radius: 12px;
-		margin-bottom: 4rem;
-		text-align: center;
-	}
-
-	.mobile-apps h2 {
-		font-size: 2.5rem;
-		margin-bottom: 1rem;
-	}
-
-	.coming-soon {
-		font-size: 1.2rem;
-		color: #555;
-		margin-bottom: 2rem;
-	}
-
-	.app-icons {
-		display: flex;
-		justify-content: center;
-		gap: 3rem;
-		margin-bottom: 2rem;
-	}
-
-	.app-icon {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-	}
-
-	.app-icon i {
-		font-size: 4rem;
-		margin-bottom: 0.5rem;
-		color: #333;
-	}
-
-	.app-icon span {
-		font-weight: bold;
-		color: #333;
-	}
-
-	.offline-support {
-		font-size: 1.1rem;
-		color: #555;
-		margin-top: 1rem;
-	}
-
-	@media (max-width: 600px) {
-		.mobile-apps {
-			padding: 2rem 1rem;
-		}
-
-		.mobile-apps h2 {
-			font-size: 2rem;
-		}
-
-		.app-icons {
-			gap: 2rem;
-		}
-
-		.app-icon i {
-			font-size: 3rem;
 		}
 	}
 </style>
