@@ -7,19 +7,102 @@
 	let audioContext = null;
 	let sourceNode = null;
 	let presets = {};
+	let isVisible = true;
+	let isTabActive = true;
+	let animationFrameId = null;
+	let visibilityObserver = null;
+	let lastRenderTime = 0;
+	let renderInterval = 1000 / 30; // Target 30fps by default
+	let isLowPerfDevice = false;
+
+	// Optimized resize function with debouncing
+	let resizeTimeout;
+	function resizeCanvas() {
+		if (!canvas) return;
+
+		// Clear any pending resize
+		if (resizeTimeout) {
+			clearTimeout(resizeTimeout);
+		}
+
+		// Debounce resize operations
+		resizeTimeout = setTimeout(() => {
+			try {
+				const width = window.innerWidth;
+				const height = Math.min(window.innerHeight * 0.8, 800); // Limit height
+
+				// Only resize if dimensions actually changed
+				if (canvas.width !== width || canvas.height !== height) {
+					canvas.width = width;
+					canvas.height = height;
+					if (visualizer) {
+						visualizer.setRendererSize(width, height);
+					}
+				}
+			} catch (error) {
+				console.error('Error resizing canvas:', error);
+			}
+		}, 100); // 100ms debounce
+	}
+
+	// Check if device is low performance
+	function checkDevicePerformance() {
+		// Simple heuristic - mobile devices or older browsers
+		const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+			navigator.userAgent
+		);
+		const isOldBrowser = !window.requestAnimationFrame || !window.AudioContext;
+
+		// More sophisticated check - available CPU cores
+		const cpuCores = navigator.hardwareConcurrency || 4;
+
+		// Only consider truly low-performance devices
+		isLowPerfDevice = isOldBrowser || (isMobile && cpuCores <= 2);
+
+		// Adjust render interval based on device performance
+		// but keep quality high for all devices
+		if (isLowPerfDevice) {
+			renderInterval = 1000 / 24; // Target 24fps for low-perf devices
+		}
+	}
 
 	function startRenderer() {
-		requestAnimationFrame(() => startRenderer());
-		if (visualizer) {
-			visualizer.render();
+		// Cancel any existing animation frame
+		if (animationFrameId) {
+			cancelAnimationFrame(animationFrameId);
 		}
+
+		const renderLoop = (timestamp) => {
+			// Only render if visible, tab is active, and enough time has passed
+			if (isVisible && isTabActive && visualizer) {
+				const elapsed = timestamp - lastRenderTime;
+
+				if (elapsed >= renderInterval) {
+					visualizer.render();
+					lastRenderTime = timestamp;
+				}
+			}
+
+			animationFrameId = requestAnimationFrame(renderLoop);
+		};
+
+		animationFrameId = requestAnimationFrame(renderLoop);
+		rendering = true;
+	}
+
+	function pauseRenderer() {
+		if (animationFrameId) {
+			cancelAnimationFrame(animationFrameId);
+			animationFrameId = null;
+		}
+		rendering = false;
 	}
 
 	function createSilentAudio() {
 		if (!audioContext || !visualizer) return;
 
 		try {
-			const bufferSize = audioContext.sampleRate * 2; // 2 seconds of silence
+			const bufferSize = audioContext.sampleRate; // 1 second of silence is enough
 			const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
 			const data = buffer.getChannelData(0);
 			for (let i = 0; i < bufferSize; i++) {
@@ -38,27 +121,10 @@
 			sourceNode.start(0);
 
 			if (!rendering) {
-				rendering = true;
 				startRenderer();
 			}
 		} catch (error) {
 			console.error('Error creating silent audio:', error);
-		}
-	}
-
-	function resizeCanvas() {
-		if (!canvas) return;
-
-		try {
-			const width = window.innerWidth;
-			const height = Math.min(window.innerHeight * 0.8, 800); // Limit height
-			canvas.width = width;
-			canvas.height = height;
-			if (visualizer) {
-				visualizer.setRendererSize(width, height);
-			}
-		} catch (error) {
-			console.error('Error resizing canvas:', error);
 		}
 	}
 
@@ -74,8 +140,11 @@
 		}
 
 		try {
+			// Check device performance first
+			checkDevicePerformance();
+
 			// Create audio context
-			audioContext = new AudioContext();
+			audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
 			// Get presets
 			presets = {};
@@ -88,24 +157,22 @@
 
 			// Get preset keys
 			const presetKeys = Object.keys(presets);
-			console.log('Available presets:', presetKeys.length);
 
 			if (presetKeys.length === 0) {
 				console.error('No presets available');
 				return;
 			}
 
-			// Create visualizer
+			// Create visualizer with adjusted quality settings
 			visualizer = window.butterchurn.default.createVisualizer(audioContext, canvas, {
 				width: canvas.width,
 				height: canvas.height,
-				pixelRatio: window.devicePixelRatio || 1,
-				textureRatio: 1
+				pixelRatio: Math.min(window.devicePixelRatio || 1, 2), // Cap at 2x for performance
+				textureRatio: isLowPerfDevice ? 0.8 : 1 // Keep 80% quality on mobile
 			});
 
 			// Select preset
 			let presetKey;
-			console.log('Preset keys:', presetKeys);
 			if (presetKeys.length > 60) {
 				presetKey = presetKeys[22]; // 60 light, 22 dark
 			} else {
@@ -113,33 +180,101 @@
 				presetKey = presetKeys[randomIndex];
 			}
 
-			console.log('Loading preset:', presetKey);
 			visualizer.loadPreset(presets[presetKey], 0);
 
-			// Start audio and rendering
-			createSilentAudio();
+			// Start audio and rendering if visible
+			if (isVisible) {
+				createSilentAudio();
+			}
+
+			// Set up visibility observer
+			setupVisibilityObserver();
 		} catch (error) {
 			console.error('Error initializing visualizer:', error);
 		}
 	}
 
+	function setupVisibilityObserver() {
+		// Set up Intersection Observer to detect when visualizer is in/out of view
+		if ('IntersectionObserver' in window) {
+			visibilityObserver = new IntersectionObserver(
+				(entries) => {
+					const [entry] = entries;
+					isVisible = entry.isIntersecting;
+
+					if (isVisible) {
+						// Resume rendering when visible
+						if (audioContext && audioContext.state === 'suspended') {
+							audioContext.resume().catch((e) => console.error('Error resuming audio context:', e));
+						}
+						if (!rendering && visualizer) {
+							startRenderer();
+						}
+					} else {
+						// Pause rendering when not visible
+						pauseRenderer();
+						if (audioContext && audioContext.state === 'running') {
+							audioContext
+								.suspend()
+								.catch((e) => console.error('Error suspending audio context:', e));
+						}
+					}
+				},
+				{ threshold: 0.1 } // Consider visible when at least 10% is in view
+			);
+
+			if (canvas) {
+				visibilityObserver.observe(canvas);
+			}
+		}
+	}
+
+	function handleVisibilityChange() {
+		isTabActive = document.visibilityState === 'visible';
+
+		if (isTabActive) {
+			// Resume when tab becomes active
+			if (isVisible && !rendering && visualizer) {
+				if (audioContext && audioContext.state === 'suspended') {
+					audioContext.resume().catch((e) => console.error('Error resuming audio context:', e));
+				}
+				startRenderer();
+			}
+		} else {
+			// Pause when tab becomes inactive
+			pauseRenderer();
+			if (audioContext && audioContext.state === 'running') {
+				audioContext.suspend().catch((e) => console.error('Error suspending audio context:', e));
+			}
+		}
+	}
+
 	onMount(() => {
-		// Add resize event listener
+		// Add event listeners
 		window.addEventListener('resize', resizeCanvas);
+		document.addEventListener('visibilitychange', handleVisibilityChange);
 
 		// Initialize canvas size
 		resizeCanvas();
 
-		// Initialize visualizer after scripts are loaded
+		// Initialize visualizer after scripts are loaded - use a shorter timeout
 		const initTimeout = setTimeout(() => {
-			console.log('Initializing visualizer...');
 			initVisualizer();
-		}, 500);
+		}, 300);
 
 		return () => {
 			// Clean up on component unmount
 			clearTimeout(initTimeout);
 			window.removeEventListener('resize', resizeCanvas);
+			document.removeEventListener('visibilitychange', handleVisibilityChange);
+
+			if (visibilityObserver && canvas) {
+				visibilityObserver.unobserve(canvas);
+				visibilityObserver = null;
+			}
+
+			pauseRenderer();
+
 			if (sourceNode) {
 				try {
 					sourceNode.stop();
@@ -159,6 +294,7 @@
 </script>
 
 <svelte:head>
+	<title>InTheMoment</title>
 	<link
 		href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
 		rel="stylesheet"
@@ -167,22 +303,26 @@
 		rel="stylesheet"
 		href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
 	/>
-	<!-- Butterchurn dependencies -->
+	<!-- Butterchurn dependencies - loaded with defer for better performance -->
 	<script
 		type="text/javascript"
 		src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"
+		defer
 	></script>
 	<script
 		type="text/javascript"
 		src="https://unpkg.com/butterchurn@2.6.7/lib/butterchurn.min.js"
+		defer
 	></script>
 	<script
 		type="text/javascript"
 		src="https://unpkg.com/butterchurn-presets@2.4.7/lib/butterchurnPresets.min.js"
+		defer
 	></script>
 	<script
 		type="text/javascript"
 		src="https://unpkg.com/butterchurn-presets@2.4.7/lib/butterchurnPresetsExtra.min.js"
+		defer
 	></script>
 </svelte:head>
 
@@ -710,6 +850,7 @@
 		align-items: center;
 		transition: all 0.3s ease;
 		margin-bottom: 0.5rem;
+		white-space: nowrap; /* Prevent wrapping on desktop */
 	}
 
 	.benefit-tag:hover {
@@ -833,6 +974,11 @@
 		.app-platforms {
 			gap: 3rem;
 		}
+
+		/* Allow benefit tags to wrap on mobile */
+		.benefit-tag {
+			white-space: normal;
+		}
 	}
 
 	@media (max-width: 600px) {
@@ -842,7 +988,8 @@
 
 		.hero-content {
 			padding: 1.5rem;
-			justify-content: center;
+			justify-content: flex-start;
+			padding-top: 35%;
 		}
 
 		.hero-text {
@@ -851,7 +998,7 @@
 
 		.hero-content h1 {
 			margin-bottom: 1rem;
-			font-size: clamp(2.2rem, 8vw, 3rem);
+			font-size: clamp(2.5rem, 10vw, 3.5rem);
 		}
 
 		.tagline {
@@ -914,7 +1061,7 @@
 
 	@media (max-width: 350px) {
 		.hero-content h1 {
-			font-size: 2rem;
+			font-size: 2.3rem;
 		}
 
 		.tagline {
