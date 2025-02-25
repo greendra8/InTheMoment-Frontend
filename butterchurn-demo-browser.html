@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>App Landing Page with Butterchurn</title>
+  <meta name="description" content="Landing Page with Butterchurn Visualizer">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <script type="text/javascript" src="https://unpkg.com/lodash"></script>
+  <script type="text/javascript" src="https://unpkg.com/butterchurn"></script>
+  <script type="text/javascript" src="https://unpkg.com/butterchurn-presets"></script>
+  <script type="text/javascript" src="https://unpkg.com/butterchurn-presets/lib/butterchurnPresetsExtra.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+      font-family: Arial, sans-serif;
+    }
+    #mainWrapper {
+      position: relative;
+      height: 100vh;
+      width: 100vw;
+    }
+    #canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+    #landingText {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      text-align: center;
+      z-index: 5;
+    }
+    #landingText h1 {
+      font-size: 3em;
+      margin: 0;
+    }
+    #landingText p {
+      font-size: 1.5em;
+    }
+    #content {
+      padding: 40px;
+      background: #f5f5f5;
+      color: #333;
+    }
+    #content h2 {
+      font-size: 2em;
+      margin-top: 0;
+    }
+    #content p {
+      font-size: 1.2em;
+      line-height: 1.6;
+    }
+  </style>
+  <link rel="stylesheet" href="https://unpkg.com/normalize.css/normalize.css" />
+
+  <script>
+    $(function() {
+      var visualizer = null;
+      var rendering = false;
+      var audioContext = null;
+      var sourceNode = null;
+      var presets = {};
+      var canvas = document.getElementById('canvas');
+
+      function startRenderer() {
+        requestAnimationFrame(() => startRenderer());
+        visualizer.render();
+      }
+
+      function createSilentAudio() {
+        const bufferSize = audioContext.sampleRate * 2; // 2 seconds of silence
+        const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 0.1 - 0.05; // Small random noise to drive visuals
+        }
+        sourceNode = audioContext.createBufferSource();
+        sourceNode.buffer = buffer;
+        sourceNode.loop = true;
+
+        const gainNode = audioContext.createGain();
+        gainNode.gain.value = 0; // Mute the output
+        sourceNode.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        visualizer.connectAudio(sourceNode); // Connect to visualizer directly
+        sourceNode.start(0);
+
+        if (!rendering) {
+          rendering = true;
+          startRenderer();
+        }
+      }
+
+      function resizeCanvas() {
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+        if (visualizer) {
+          visualizer.setRendererSize(width, height);
+        }
+      }
+      window.addEventListener('resize', resizeCanvas);
+
+      function initPlayer() {
+        audioContext = new AudioContext();
+        presets = {};
+        if (window.butterchurnPresets) {
+          Object.assign(presets, butterchurnPresets.getPresets());
+        }
+        if (window.butterchurnPresetsExtra) {
+          Object.assign(presets, butterchurnPresetsExtra.getPresets());
+        }
+        presets = _(presets).toPairs().sortBy(([k, v]) => k.toLowerCase()).fromPairs().value();
+        var presetKeys = _.keys(presets);
+
+        console.log("Available presets:", presetKeys);
+        console.log("Preset at index 147:", presetKeys[147]);
+
+        visualizer = butterchurn.default.createVisualizer(audioContext, canvas, {
+          width: window.innerWidth,
+          height: window.innerHeight,
+          pixelRatio: window.devicePixelRatio || 1,
+          textureRatio: 1,
+        });
+        resizeCanvas();
+
+        if (presetKeys.length > 147) {
+          var targetPresetKey = presetKeys[147];
+          console.log("Loading preset at index 147:", targetPresetKey);
+          visualizer.loadPreset(presets[targetPresetKey], 0);
+        } else {
+          console.error("Index 147 is out of range, loading random preset");
+          var randomIndex = Math.floor(Math.random() * presetKeys.length);
+          var randomPresetKey = presetKeys[randomIndex];
+          console.log("Random preset selected:", randomPresetKey, "at index:", randomIndex);
+          visualizer.loadPreset(presets[randomPresetKey], 0);
+        }
+
+        // Start silent audio and visualization immediately
+        createSilentAudio();
+      }
+
+      initPlayer();
+    });
+  </script>
+</head>
+<body>
+  <div id="mainWrapper">
+    <canvas id="canvas"></canvas>
+    <div id="landingText">
+      <h1>Welcome to Our App</h1>
+      <p>Experience the ultimate visual journey</p>
+    </div>
+  </div>
+  <div id="content">
+    <h2>About Our App</h2>
+    <p>Our app brings you an immersive experience with stunning visualizations powered by Butterchurn. Scroll down to learn more about our features, connect with our community, or download the app today!</p>
+  </div>
+</body>
+</html>

@@ -4,7 +4,12 @@ body {
   padding: 0;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: 'Poppins', sans-serif;
 }
 
@@ -12,8 +17,7 @@ h1 {
   font-weight: 600;
 }
 
-Global styles
-:root {
+Global styles:root {
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -27,7 +31,8 @@ Global styles
 }
 
 /* For input elements, allow user selection */
-input, textarea {
+input,
+textarea {
   -webkit-user-select: auto;
   user-select: auto;
 }
@@ -58,7 +63,7 @@ input, textarea {
 
 @media (max-width: 600px) {
   .full-width .content-container {
-    padding: 0 0.5rem;
+    padding: 0;
   }
 }
 
@@ -73,14 +78,19 @@ input, textarea {
 }
 
 @keyframes fade-in {
-  from { opacity: 0; }
+  from {
+    opacity: 0;
+  }
 }
 
 @keyframes fade-out {
-  to { opacity: 0; }
+  to {
+    opacity: 0;
+  }
 }
 
 @media (prefers-reduced-motion) {
+
   ::view-transition-group(*),
   ::view-transition-old(*),
   ::view-transition-new(*) {
