@@ -336,9 +336,10 @@
 		padding: 0 !important;
 	}
 
-	main.native-app {
-		/* padding-bottom: 100px; */
-	}
+	/* Padding is now handled in app.css */
+	/* main.native-app {
+		padding-bottom: 120px;
+	} */
 
 	.content-container {
 		max-width: 800px;

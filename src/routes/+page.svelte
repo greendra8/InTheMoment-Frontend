@@ -534,6 +534,11 @@
 		background-color: #fff !important;
 	}
 
+	/* Ensure the homepage has proper bottom padding */
+	:global(.homepage-content) {
+		padding-bottom: 80px !important;
+	}
+
 	/* Ensure homepage styles don't leak to other pages */
 	:global(.homepage-content) h1,
 	:global(.homepage-content) h2,
