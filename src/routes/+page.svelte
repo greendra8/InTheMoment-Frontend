@@ -641,7 +641,7 @@
 		padding: 1rem 2rem;
 		font-size: 1.1rem;
 		text-decoration: none;
-		border-radius: 50px;
+		border-radius: 5px;
 		transition: all 0.3s ease;
 		font-weight: 600;
 		min-width: 200px;
