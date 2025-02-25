@@ -94,17 +94,61 @@
 	$: navItemCount = navItems ? navItems.length : 5;
 
 	// Determine if we're on mobile or desktop for different nav rendering
-	let isMobile = false;
+	// Set initial value based on window width if available
+	let isMobile = typeof window !== 'undefined' ? window.innerWidth <= 1024 : false;
+	let lastScrollY = 0;
+	let mobileNavSolid = true;
+	let userInteracting = false;
+
+	// Track scroll position for mobile nav transparency
+	function handleScroll() {
+		if (!isMobile) return;
+
+		const currentScrollY = window.scrollY;
+
+		// Scrolling down - make transparent
+		if (currentScrollY > lastScrollY && currentScrollY > 50) {
+			mobileNavSolid = false;
+		}
+		// Scrolling up - make solid
+		else if (currentScrollY < lastScrollY) {
+			mobileNavSolid = true;
+		}
+
+		lastScrollY = currentScrollY;
+	}
+
+	// Handle mobile nav interaction
+	function handleMobileNavInteraction() {
+		userInteracting = true;
+		mobileNavSolid = true;
+
+		// Reset after interaction
+		setTimeout(() => {
+			userInteracting = false;
+			// Only make transparent again if we've scrolled down
+			if (window.scrollY > 50 && lastScrollY > 50) {
+				mobileNavSolid = false;
+			}
+		}, 3000);
+	}
 
 	onMount(() => {
-		// Initial check
+		// Update mobile check on mount to ensure it's accurate
 		checkMobile();
+
+		// Set initial scroll position
+		lastScrollY = window.scrollY;
 
 		// Listen for resize events
 		window.addEventListener('resize', checkMobile);
 
+		// Listen for scroll events
+		window.addEventListener('scroll', handleScroll, { passive: true });
+
 		return () => {
 			window.removeEventListener('resize', checkMobile);
+			window.removeEventListener('scroll', handleScroll);
 		};
 	});
 
@@ -113,7 +157,7 @@
 	}
 </script>
 
-{#if !$appContext.isNativeApp}
+{#if !$appContext.isNativeApp && !isHomePage}
 	<!-- Desktop Navigation -->
 	<nav class="desktop-nav" class:hidden={isMobile}>
 		{#each navItems as item}
@@ -132,13 +176,19 @@
 	</nav>
 
 	<!-- Mobile Navigation -->
-	<nav class="mobile-nav" class:hidden={!isMobile}>
-		<div class="mobile-nav-gradient"></div>
+	<nav
+		class="mobile-nav"
+		class:hidden={!isMobile}
+		class:solid={mobileNavSolid}
+		on:touchstart={handleMobileNavInteraction}
+		on:mousedown={handleMobileNavInteraction}
+	>
 		{#each navItems as item}
 			<a
 				href={item.href}
 				class="nav-item"
 				class:active={$page.url.pathname === item.href}
+				class:faded={!mobileNavSolid}
 				aria-label={item.label}
 			>
 				<div class="icon-container">
@@ -256,27 +306,19 @@
 		right: 0;
 		display: flex;
 		justify-content: space-around;
-		background-color: transparent;
+		background-color: rgba(225, 225, 225, 1);
 		z-index: 1000;
 		padding: 10px 0 20px 0; /* Extra padding at bottom for iOS home indicator */
+		transition: background-color 0.3s ease;
+		border-top: 1px solid rgba(0, 0, 0, 0.1);
 	}
 
-	.mobile-nav-gradient {
-		position: absolute;
-		bottom: 0;
-		left: 0;
-		right: 0;
-		height: 100%;
-		background: linear-gradient(
-			to bottom,
-			rgba(225, 225, 225, 0.5) 0%,
-			rgba(225, 225, 225, 0.8) 40%,
-			rgba(225, 225, 225, 0.95) 70%,
-			rgba(225, 225, 225, 1) 100%
-		);
-		backdrop-filter: blur(10px);
-		z-index: -1;
-		border-top: 1px solid rgba(0, 0, 0, 0.1);
+	.mobile-nav.solid {
+		background-color: rgba(225, 225, 225, 1);
+	}
+
+	.mobile-nav:not(.solid) {
+		background-color: rgba(225, 225, 225, 0.8);
 	}
 
 	.mobile-nav .nav-item {
@@ -288,9 +330,17 @@
 		text-decoration: none;
 		padding: 8px 0;
 		flex: 1;
-		transition: color 0.2s ease;
+		transition: all 0.2s ease;
 		position: relative;
 		z-index: 2;
+	}
+
+	.mobile-nav .nav-item.faded {
+		opacity: 0.7;
+	}
+
+	.mobile-nav .nav-item.active.faded {
+		opacity: 0.85;
 	}
 
 	.mobile-nav .icon-container {
@@ -299,8 +349,8 @@
 		align-items: center;
 		margin-bottom: 5px;
 		color: #777;
-		transition: color 0.3s ease;
-		will-change: color;
+		transition: all 0.3s ease;
+		will-change: color, opacity;
 	}
 
 	.mobile-nav .nav-item i {
@@ -311,7 +361,7 @@
 		font-family: 'Poppins', sans-serif;
 		font-size: 11px;
 		font-weight: 500;
-		transition: color 0.3s ease;
+		transition: all 0.3s ease;
 	}
 
 	.mobile-nav .nav-item.active {
@@ -322,9 +372,17 @@
 		color: #000;
 	}
 
+	.mobile-nav .nav-item.active.faded i {
+		color: rgba(0, 0, 0, 0.85);
+	}
+
 	.mobile-nav .nav-item.active .nav-label {
 		color: #000;
 		font-weight: 600;
+	}
+
+	.mobile-nav .nav-item.active.faded .nav-label {
+		color: rgba(0, 0, 0, 0.85);
 	}
 
 	main.full-width .content-container {
