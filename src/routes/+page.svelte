@@ -1,12 +1,15 @@
 <script>
 	import { onMount } from 'svelte';
 
+	// Core visualization variables
 	let canvas;
 	let visualizer = null;
 	let rendering = false;
 	let audioContext = null;
 	let sourceNode = null;
-	let presets = {};
+	let preset = null;
+
+	// Optimization variables
 	let isVisible = true;
 	let isTabActive = true;
 	let animationFrameId = null;
@@ -14,9 +17,97 @@
 	let lastRenderTime = 0;
 	let renderInterval = 1000 / 30; // Target 30fps by default
 	let isLowPerfDevice = false;
+	let presetLoaded = false;
+	let resizeTimeout;
+
+	// Check if device is low performance
+	function checkDevicePerformance() {
+		// Simple heuristic - mobile devices or older browsers
+		const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+			navigator.userAgent
+		);
+		const isOldBrowser = !window.requestAnimationFrame || !window.AudioContext;
+
+		// More sophisticated check - available CPU cores
+		const cpuCores = navigator.hardwareConcurrency || 4;
+
+		// Only consider truly low-performance devices
+		isLowPerfDevice = isOldBrowser || (isMobile && cpuCores <= 2);
+
+		// Adjust render interval based on device performance
+		if (isLowPerfDevice) {
+			renderInterval = 1000 / 24; // Target 24fps for low-perf devices
+		}
+	}
+
+	// Optimized renderer with throttling
+	function startRenderer() {
+		// Cancel any existing animation frame
+		if (animationFrameId) {
+			cancelAnimationFrame(animationFrameId);
+		}
+
+		const renderLoop = (timestamp) => {
+			// Only render if visible, tab is active, and enough time has passed
+			if (isVisible && isTabActive && visualizer) {
+				const elapsed = timestamp - lastRenderTime;
+
+				if (elapsed >= renderInterval) {
+					visualizer.render();
+					lastRenderTime = timestamp;
+				}
+			}
+
+			animationFrameId = requestAnimationFrame(renderLoop);
+		};
+
+		animationFrameId = requestAnimationFrame(renderLoop);
+		rendering = true;
+	}
+
+	// Clean pause function
+	function pauseRenderer() {
+		if (animationFrameId) {
+			cancelAnimationFrame(animationFrameId);
+			animationFrameId = null;
+		}
+		rendering = false;
+	}
+
+	// Create silent audio to drive the visualizer
+	function createSilentAudio() {
+		if (!audioContext || !visualizer) return;
+
+		try {
+			const bufferSize = audioContext.sampleRate; // 1 second of silence is enough
+			const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+			const data = buffer.getChannelData(0);
+
+			for (let i = 0; i < bufferSize; i++) {
+				data[i] = Math.random() * 0.1 - 0.05; // Small random noise to drive visuals
+			}
+
+			sourceNode = audioContext.createBufferSource();
+			sourceNode.buffer = buffer;
+			sourceNode.loop = true;
+
+			const gainNode = audioContext.createGain();
+			gainNode.gain.value = 0; // Mute the output
+			sourceNode.connect(gainNode);
+			gainNode.connect(audioContext.destination);
+
+			visualizer.connectAudio(sourceNode); // Connect to visualizer directly
+			sourceNode.start(0);
+
+			if (!rendering) {
+				startRenderer();
+			}
+		} catch (error) {
+			console.error('Error creating silent audio:', error);
+		}
+	}
 
 	// Optimized resize function with debouncing
-	let resizeTimeout;
 	function resizeCanvas() {
 		if (!canvas) return;
 
@@ -45,86 +136,27 @@
 		}, 100); // 100ms debounce
 	}
 
-	// Check if device is low performance
-	function checkDevicePerformance() {
-		// Simple heuristic - mobile devices or older browsers
-		const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-			navigator.userAgent
-		);
-		const isOldBrowser = !window.requestAnimationFrame || !window.AudioContext;
-
-		// More sophisticated check - available CPU cores
-		const cpuCores = navigator.hardwareConcurrency || 4;
-
-		// Only consider truly low-performance devices
-		isLowPerfDevice = isOldBrowser || (isMobile && cpuCores <= 2);
-
-		// Adjust render interval based on device performance
-		// but keep quality high for all devices
-		if (isLowPerfDevice) {
-			renderInterval = 1000 / 24; // Target 24fps for low-perf devices
-		}
-	}
-
-	function startRenderer() {
-		// Cancel any existing animation frame
-		if (animationFrameId) {
-			cancelAnimationFrame(animationFrameId);
-		}
-
-		const renderLoop = (timestamp) => {
-			// Only render if visible, tab is active, and enough time has passed
-			if (isVisible && isTabActive && visualizer) {
-				const elapsed = timestamp - lastRenderTime;
-
-				if (elapsed >= renderInterval) {
-					visualizer.render();
-					lastRenderTime = timestamp;
-				}
-			}
-
-			animationFrameId = requestAnimationFrame(renderLoop);
-		};
-
-		animationFrameId = requestAnimationFrame(renderLoop);
-		rendering = true;
-	}
-
-	function pauseRenderer() {
-		if (animationFrameId) {
-			cancelAnimationFrame(animationFrameId);
-			animationFrameId = null;
-		}
-		rendering = false;
-	}
-
-	function createSilentAudio() {
-		if (!audioContext || !visualizer) return;
-
+	// Load a specific preset from a JSON file
+	async function loadPreset() {
 		try {
-			const bufferSize = audioContext.sampleRate; // 1 second of silence is enough
-			const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
-			const data = buffer.getChannelData(0);
-			for (let i = 0; i < bufferSize; i++) {
-				data[i] = Math.random() * 0.1 - 0.05; // Small random noise to drive visuals
+			// Fetch the preset JSON file
+			const response = await fetch('/presets/flexi + amandio c - organic12-3d-2.json');
+			if (!response.ok) {
+				throw new Error(`Failed to load preset: ${response.status} ${response.statusText}`);
 			}
-			sourceNode = audioContext.createBufferSource();
-			sourceNode.buffer = buffer;
-			sourceNode.loop = true;
 
-			const gainNode = audioContext.createGain();
-			gainNode.gain.value = 0; // Mute the output
-			sourceNode.connect(gainNode);
-			gainNode.connect(audioContext.destination);
+			preset = await response.json();
+			presetLoaded = true;
 
-			visualizer.connectAudio(sourceNode); // Connect to visualizer directly
-			sourceNode.start(0);
-
-			if (!rendering) {
-				startRenderer();
+			// If visualizer is already initialized, load the preset
+			if (visualizer && preset) {
+				visualizer.loadPreset(preset, 0);
 			}
+
+			return true;
 		} catch (error) {
-			console.error('Error creating silent audio:', error);
+			console.error('Error loading preset:', error);
+			return false;
 		}
 	}
 
@@ -146,23 +178,6 @@
 			// Create audio context
 			audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
-			// Get presets
-			presets = {};
-			if (window.butterchurnPresets) {
-				Object.assign(presets, window.butterchurnPresets.getPresets());
-			}
-			if (window.butterchurnPresetsExtra) {
-				Object.assign(presets, window.butterchurnPresetsExtra.getPresets());
-			}
-
-			// Get preset keys
-			const presetKeys = Object.keys(presets);
-
-			if (presetKeys.length === 0) {
-				console.error('No presets available');
-				return;
-			}
-
 			// Create visualizer with adjusted quality settings
 			visualizer = window.butterchurn.default.createVisualizer(audioContext, canvas, {
 				width: canvas.width,
@@ -171,16 +186,10 @@
 				textureRatio: isLowPerfDevice ? 0.8 : 1 // Keep 80% quality on mobile
 			});
 
-			// Select preset
-			let presetKey;
-			if (presetKeys.length > 60) {
-				presetKey = presetKeys[22]; // 60 light, 22 dark
-			} else {
-				const randomIndex = Math.floor(Math.random() * presetKeys.length);
-				presetKey = presetKeys[randomIndex];
+			// Load the preset if it's already fetched, otherwise wait for it
+			if (presetLoaded && preset) {
+				visualizer.loadPreset(preset, 0);
 			}
-
-			visualizer.loadPreset(presets[presetKey], 0);
 
 			// Start audio and rendering if visible
 			if (isVisible) {
@@ -249,7 +258,40 @@
 		}
 	}
 
-	onMount(() => {
+	// Clean up resources
+	function cleanup() {
+		if (resizeTimeout) clearTimeout(resizeTimeout);
+
+		if (visibilityObserver && canvas) {
+			visibilityObserver.unobserve(canvas);
+			visibilityObserver = null;
+		}
+
+		pauseRenderer();
+
+		if (sourceNode) {
+			try {
+				sourceNode.stop();
+			} catch (e) {
+				console.error('Error stopping source node:', e);
+			}
+			sourceNode = null;
+		}
+
+		if (audioContext) {
+			try {
+				audioContext.close();
+			} catch (e) {
+				console.error('Error closing audio context:', e);
+			}
+			audioContext = null;
+		}
+
+		visualizer = null;
+		preset = null;
+	}
+
+	onMount(async () => {
 		// Add event listeners
 		window.addEventListener('resize', resizeCanvas);
 		document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -257,7 +299,10 @@
 		// Initialize canvas size
 		resizeCanvas();
 
-		// Initialize visualizer after scripts are loaded - use a shorter timeout
+		// Start loading the preset
+		await loadPreset();
+
+		// Initialize visualizer after scripts are loaded
 		const initTimeout = setTimeout(() => {
 			initVisualizer();
 		}, 300);
@@ -267,28 +312,7 @@
 			clearTimeout(initTimeout);
 			window.removeEventListener('resize', resizeCanvas);
 			document.removeEventListener('visibilitychange', handleVisibilityChange);
-
-			if (visibilityObserver && canvas) {
-				visibilityObserver.unobserve(canvas);
-				visibilityObserver = null;
-			}
-
-			pauseRenderer();
-
-			if (sourceNode) {
-				try {
-					sourceNode.stop();
-				} catch (e) {
-					console.error('Error stopping source node:', e);
-				}
-			}
-			if (audioContext) {
-				try {
-					audioContext.close();
-				} catch (e) {
-					console.error('Error closing audio context:', e);
-				}
-			}
+			cleanup();
 		};
 	});
 </script>
@@ -303,25 +327,10 @@
 		rel="stylesheet"
 		href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
 	/>
-	<!-- Butterchurn dependencies - loaded with defer for better performance -->
-	<script
-		type="text/javascript"
-		src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"
-		defer
-	></script>
+	<!-- Butterchurn core library only -->
 	<script
 		type="text/javascript"
 		src="https://unpkg.com/butterchurn@2.6.7/lib/butterchurn.min.js"
-		defer
-	></script>
-	<script
-		type="text/javascript"
-		src="https://unpkg.com/butterchurn-presets@2.4.7/lib/butterchurnPresets.min.js"
-		defer
-	></script>
-	<script
-		type="text/javascript"
-		src="https://unpkg.com/butterchurn-presets@2.4.7/lib/butterchurnPresetsExtra.min.js"
 		defer
 	></script>
 </svelte:head>
