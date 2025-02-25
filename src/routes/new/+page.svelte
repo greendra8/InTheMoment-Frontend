@@ -690,8 +690,6 @@
 	.generating-message {
 		margin-top: 1rem;
 		padding: 0.75rem;
-		background-color: #f8f8f8;
-		border-radius: 12px;
 		font-size: 0.9rem;
 		color: #555;
 		text-align: center;

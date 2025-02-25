@@ -342,7 +342,7 @@
 			<div class="hero-text">
 				<h1>Mindfulness Reimagined</h1>
 				<p class="tagline">
-					Discover AI-powered meditation journeys tailored to your unique mind and needs
+					Discover personalised meditation sessions tailored to your unique mind and needs
 				</p>
 			</div>
 			<div class="cta">
@@ -358,8 +358,8 @@
 		<div class="container">
 			<h2 class="section-title">Transform Your Mental Wellbeing</h2>
 			<p class="section-subtitle">
-				In The Moment combines cutting-edge AI with mindfulness science to create personalized
-				meditation experiences
+				In The Moment combines mindfulness science with personalised guidance to create meditation
+				sessions that adapt to you
 			</p>
 		</div>
 	</section>
@@ -373,10 +373,10 @@
 							<i class="fas fa-brain"></i>
 						</div>
 						<div class="feature-content">
-							<h3>AI-Powered Guidance</h3>
+							<h3>Personalised Guidance</h3>
 							<p>
-								Our advanced algorithms analyze your preferences and goals to create truly unique
-								meditation experiences
+								Our adaptive approach analyses your preferences and goals to create truly unique
+								meditation sessions
 							</p>
 						</div>
 					</div>
@@ -401,7 +401,7 @@
 						<div class="feature-content">
 							<h3>Progress Tracking</h3>
 							<p>
-								Visualize your mindfulness journey with detailed insights and achievement milestones
+								Visualise your mindfulness journey with detailed insights and achievement milestones
 							</p>
 						</div>
 					</div>
@@ -410,7 +410,7 @@
 							<i class="fas fa-user-circle"></i>
 						</div>
 						<div class="feature-content">
-							<h3>Personalized Experience</h3>
+							<h3>Personalised Experience</h3>
 							<p>
 								Every session adapts to your feedback, creating a meditation practice that evolves
 								with you
@@ -436,8 +436,10 @@
 				<div class="timeline-item">
 					<div class="timeline-marker">2</div>
 					<div class="timeline-content">
-						<h3>AI Generation</h3>
-						<p>Our AI crafts a personalized meditation script and selects appropriate audio</p>
+						<h3>Custom Creation</h3>
+						<p>
+							Our system crafts a personalised meditation script, spoken aloud by a comforting voice
+						</p>
 					</div>
 				</div>
 				<div class="timeline-item">
@@ -464,7 +466,7 @@
 			<div class="benefits-wrapper">
 				<div class="benefit-tag">
 					<i class="fas fa-brain"></i>
-					<span>Advanced AI technology for truly personalized experiences</span>
+					<span>Expert-crafted content personalised to your unique needs</span>
 				</div>
 				<div class="benefit-tag">
 					<i class="fas fa-palette"></i>
@@ -476,11 +478,11 @@
 				</div>
 				<div class="benefit-tag">
 					<i class="fas fa-seedling"></i>
-					<span>Continuous learning algorithm that grows with your practice</span>
+					<span>Adaptive learning system that grows with your practice</span>
 				</div>
 				<div class="benefit-tag">
 					<i class="fas fa-moon"></i>
-					<span>Specialized sessions for sleep, focus, anxiety, and more</span>
+					<span>Specialised sessions for sleep, focus, anxiety, and more</span>
 				</div>
 				<div class="benefit-tag">
 					<i class="fas fa-heart"></i>
@@ -516,7 +518,7 @@
 		<div class="container">
 			<div class="cta-content">
 				<h2>Ready to Transform Your Mindfulness Practice?</h2>
-				<p>Join thousands who have discovered the power of AI-driven meditation</p>
+				<p>Join thousands who have discovered the power of personalised meditation</p>
 				<a href="/register" class="button primary large">Start Your Free Trial</a>
 			</div>
 		</div>
