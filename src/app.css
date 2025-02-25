@@ -109,28 +109,11 @@ main {
   /* Default space for mobile nav */
 }
 
-main.native-app {
-  padding-bottom: 120px;
-  /* Extra space for native app navbar */
-}
-
-/* Ensure content in native app is properly visible */
-.native-app .content-container {
-  padding-bottom: 100px !important;
-}
 
 /* Adjust padding based on screen size */
 @media (min-width: 1025px) {
   main:not(.native-app) {
     padding-bottom: 0px;
     /* NO padding needed on desktop */
-  }
-}
-
-/* Adjust padding for iOS devices which may have the home indicator */
-@supports (-webkit-touch-callout: none) {
-  main.native-app {
-    padding-bottom: 140px;
-    /* Even more padding for iOS devices */
   }
 }
