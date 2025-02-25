@@ -8,7 +8,7 @@
 
 	export let data: PageData;
 
-	let activeTab: 'custom' | 'lesson' = data.initialTab;
+	let activeTab: 'custom' | 'lesson' = data.initialTab as 'custom' | 'lesson';
 	let selectedPlaylist = data.selectedPlaylist ? data.selectedPlaylist.id : '';
 	let selectedLesson = '';
 
@@ -30,7 +30,7 @@
 
 	let postureOptions = [
 		{ value: 'sitting', display: 'Sitting', icon: 'fa-chair' },
-		{ value: 'lying', display: 'Lying Down', icon: 'fa-bed' },
+		{ value: 'lying', display: 'Lying', icon: 'fa-bed' },
 		{ value: 'walking', display: 'Walking', icon: 'fa-walking' }
 	];
 	let eyesOptions = [
@@ -253,7 +253,9 @@
 
 	<div class="options-container">
 		<div class="option-group">
-			<h3>Posture</h3>
+			<div class="option-header">
+				<h3>Posture</h3>
+			</div>
 			<div class="sliding-checkbox" style="--option-count: {postureOptions.length};">
 				<div
 					class="slider-background"
@@ -277,7 +279,12 @@
 			</div>
 		</div>
 		<div class="option-group">
-			<h3>Eyes</h3>
+			<div class="option-header">
+				<h3>Eyes</h3>
+				{#if isWalking}
+					<span class="option-note">Auto-set to open when walking</span>
+				{/if}
+			</div>
 			<div
 				class="sliding-checkbox"
 				style="--option-count: {eyesOptions.length}; opacity: {isWalking ? 0.5 : 1};"
@@ -307,11 +314,15 @@
 	</div>
 
 	<div class="duration-slider">
-		<label for="duration">Duration: <span id="duration-value">{duration}</span> minutes</label>
+		<label for="duration">
+			<span class="label-text">Duration:</span>
+			<span class="duration-value">{duration} minutes</span>
+		</label>
 		<div class="slider-container">
+			<div class="slider-track">
+				<div class="slider-progress" style="width: {((duration - 10) / 35) * 100}%"></div>
+			</div>
 			<input type="range" id="duration" name="duration" min="10" max="45" bind:value={duration} />
-			<div class="slider-progress" style="width: {((duration - 10) / 35) * 100}%"></div>
-			<div class="slider-thumb" style="left: calc({((duration - 10) / 35) * 100}% - 10px)"></div>
 		</div>
 	</div>
 
@@ -350,219 +361,35 @@
 
 <style>
 	:global(body) {
-		font-family: 'Lato', sans-serif;
+		font-family: 'Inter', sans-serif;
 	}
 
 	h1,
 	h2,
 	h3 {
-		font-family: 'Poppins', sans-serif;
+		font-family: 'Space Grotesk', sans-serif;
 	}
 
 	.meditation-container {
-		max-width: 600px;
-		margin: 0 auto;
+		width: 100%;
+		padding: 1.5rem 0;
 	}
 
 	h1 {
-		margin-bottom: 2rem;
-	}
-	.duration-slider {
-		margin-bottom: 2rem;
-		text-align: left;
-	}
-
-	.duration-slider label {
-		display: block;
-		margin-bottom: 0.5rem;
+		font-size: 1.8rem;
+		margin-bottom: 1.5rem;
+		font-weight: 600;
+		letter-spacing: -0.02em;
 	}
 
-	.slider-container {
-		position: relative;
-		width: 100%;
-		height: 20px;
-		background: #ddd;
-		border-radius: 5px;
-	}
-
-	.slider-progress {
-		position: absolute;
-		top: 0;
-		left: 0;
-		height: 100%;
-		background: #000000;
-		border-radius: 5px;
-		pointer-events: none;
-	}
-
-	.slider-thumb {
-		position: absolute;
-		top: 50%;
-		width: 25px;
-		height: 25px;
-		background: #e1e1e1;
-		border: 2px solid #000000;
-		border-radius: 50%;
-		transform: translateY(-50%);
-		pointer-events: none;
-		z-index: 2;
-	}
-
-	.duration-slider input {
-		-webkit-appearance: none;
-		appearance: none;
-		width: 100%;
-		height: 20px;
-		background: transparent;
-		outline: none;
-		margin: 0;
-		padding: 0;
-		cursor: pointer;
-		position: relative;
-		z-index: 1;
-	}
-
-	.duration-slider input::-webkit-slider-thumb {
-		-webkit-appearance: none;
-		appearance: none;
-		width: 25px;
-		height: 25px;
-		background: transparent;
-		cursor: pointer;
-	}
-
-	.duration-slider input::-moz-range-thumb {
-		width: 25px;
-		height: 25px;
-		background: transparent;
-		cursor: pointer;
-		border: none;
-	}
-
-	.generate-btn {
-		width: 100%;
-		padding: 0.75rem 1rem;
-		font-size: 1rem;
-		background-color: #333;
-		color: #e1e1e1;
-		border: none;
-		border-radius: 4px;
-		cursor: pointer;
-		transition:
-			background-color 0.3s ease,
-			transform 0.1s ease;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: 0.5rem;
-	}
-
-	.generate-btn:hover {
-		background-color: #000;
-		transform: translateY(-1px);
-	}
-
-	.generate-btn:active {
-		transform: translateY(1px);
-	}
-
-	.generate-btn:disabled {
-		background-color: #cccccc;
-		cursor: not-allowed;
-		transform: none;
-	}
-
-	.generate-btn i {
-		font-size: 1.2rem;
-	}
-
-	.generate-btn span {
-		font-weight: 500;
-	}
-
-	.generating-message {
-		font-style: italic;
-		margin-top: 1rem;
-	}
-
-	.error {
-		color: red;
-		margin-top: 1rem;
-	}
-
-	.options-container {
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
-		margin-bottom: 2rem;
-	}
-
-	.option-group {
-		text-align: left;
-	}
-
-	.option-group h3 {
-		margin-bottom: 0.5rem;
-	}
-
-	.sliding-checkbox {
-		display: flex;
-		background-color: transparent;
-		border: 1px solid #706b5780;
-		border-radius: 8px;
-		overflow: hidden;
-		position: relative;
-		transition: opacity 0.3s ease;
-	}
-
-	.slider-background {
-		position: absolute;
-		top: 0;
-		left: 0;
-		width: calc(100% / var(--option-count));
-		height: 100%;
-		background-color: #333;
-		transition: transform 0.3s ease;
-	}
-
-	.option {
-		flex: 1;
-		padding: 0.5rem;
-		text-align: center;
-		cursor: pointer;
-		position: relative;
-		z-index: 1;
-	}
-
-	.option-content {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		transition: color 1s ease;
-		color: #333;
-	}
-
-	.option-content.selected {
-		color: #e1e1e1;
-	}
-
-	.option i {
-		display: block;
-		font-size: 1.5rem;
-		margin-bottom: 0.25rem;
-	}
-
-	.option span {
-		font-size: 0.8rem;
-	}
-
+	/* Tabs */
 	.tabs {
 		display: flex;
-		justify-content: center;
-		margin-bottom: 2rem;
-		border-radius: 8px;
+		margin-bottom: 1.5rem;
+		border-radius: 12px;
 		overflow: hidden;
-		border: 1px solid #706b5780;
+		border: 1px solid rgba(0, 0, 0, 0.1);
+		background-color: #f8f8f8;
 	}
 
 	.tabs button {
@@ -571,32 +398,29 @@
 		border: none;
 		background-color: transparent;
 		cursor: pointer;
-		transition:
-			background-color 0.3s ease,
-			color 0.3s ease;
-		font-size: 1rem;
+		transition: all 0.3s ease;
+		font-size: 0.95rem;
 		font-weight: 500;
+		color: #555;
+		font-family: 'Inter', sans-serif;
 	}
 
 	.tabs button.active {
-		background-color: #333;
-		color: #e1e1e1;
+		background-color: #000;
+		color: #fff;
 	}
 
+	/* Playlist Selector */
 	.playlist-selector {
-		margin-bottom: 2rem;
-		text-align: left;
+		margin-bottom: 1.5rem;
 	}
 
 	.playlist-selector label {
 		display: block;
 		margin-bottom: 0.5rem;
 		font-weight: 500;
-	}
-
-	.playlist-selector select {
-		background-color: #e1e1e1 !important;
-		border: 1px solid #706b5780 !important;
+		font-size: 0.9rem;
+		color: #555;
 	}
 
 	.select-wrapper {
@@ -610,22 +434,295 @@
 		right: 1rem;
 		transform: translateY(-50%);
 		pointer-events: none;
+		font-size: 0.8rem;
+		color: #555;
 	}
 
 	.playlist-selector select {
 		width: 100%;
 		padding: 0.75rem 1rem;
-		border: 1px solid #ccc;
-		border-radius: 4px;
-		background-color: #e1e1e1;
-		font-size: 1rem;
+		border: 1px solid rgba(0, 0, 0, 0.1);
+		border-radius: 12px;
+		background-color: #f8f8f8;
+		font-size: 0.95rem;
 		appearance: none;
 		cursor: pointer;
+		font-family: 'Inter', sans-serif;
 	}
 
 	.playlist-selector select:focus {
 		outline: none;
-		border-color: #333;
-		box-shadow: 0 0 0 2px rgba(51, 51, 51, 0.2);
+		border-color: #000;
+	}
+
+	/* Options Container */
+	.options-container {
+		display: flex;
+		gap: 1rem;
+		margin-bottom: 1.5rem;
+	}
+
+	.option-group {
+		flex: 1;
+	}
+
+	.option-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 0.5rem;
+	}
+
+	.option-note {
+		font-size: 0.7rem;
+		color: #777;
+		font-style: italic;
+	}
+
+	.option-group h3 {
+		margin: 0;
+		font-size: 0.9rem;
+		font-weight: 500;
+		color: #555;
+	}
+
+	.sliding-checkbox {
+		display: flex;
+		background-color: #f8f8f8;
+		border: 1px solid rgba(0, 0, 0, 0.1);
+		border-radius: 12px;
+		overflow: hidden;
+		position: relative;
+		transition: opacity 0.3s ease;
+	}
+
+	.slider-background {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: calc(100% / var(--option-count));
+		height: 100%;
+		background-color: #000;
+		transition: transform 0.3s ease;
+	}
+
+	.option {
+		flex: 1;
+		padding: 0.75rem 0.25rem;
+		text-align: center;
+		cursor: pointer;
+		position: relative;
+		z-index: 1;
+	}
+
+	.option-content {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		transition: color 0.3s ease;
+		color: #555;
+	}
+
+	.option-content.selected {
+		color: #fff;
+	}
+
+	.option i {
+		display: block;
+		font-size: 1.2rem;
+		margin-bottom: 0.25rem;
+	}
+
+	.option span {
+		font-size: 0.8rem;
+		font-weight: 500;
+		white-space: nowrap;
+	}
+
+	/* Duration Slider */
+	.duration-slider {
+		margin-bottom: 1.5rem;
+	}
+
+	.duration-slider label {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 0.5rem;
+		font-size: 0.9rem;
+		font-weight: 500;
+		color: #555;
+	}
+
+	.duration-value {
+		font-weight: 600;
+		color: #000;
+		background: #f8f8f8;
+		padding: 0.2rem 0.6rem;
+		border-radius: 12px;
+		font-size: 0.85rem;
+	}
+
+	.slider-container {
+		position: relative;
+		width: 100%;
+		height: 30px;
+	}
+
+	.slider-track {
+		position: absolute;
+		top: 50%;
+		left: 0;
+		right: 0;
+		height: 8px;
+		background: #f0f0f0;
+		border-radius: 4px;
+		transform: translateY(-50%);
+		pointer-events: none;
+	}
+
+	.slider-progress {
+		position: absolute;
+		top: 0;
+		left: 0;
+		height: 100%;
+		background: #000;
+		border-radius: 4px;
+		pointer-events: none;
+	}
+
+	.duration-slider input {
+		-webkit-appearance: none;
+		appearance: none;
+		width: 100%;
+		height: 30px;
+		background: transparent;
+		outline: none;
+		margin: 0;
+		padding: 0;
+		cursor: pointer;
+		position: relative;
+		z-index: 1;
+	}
+
+	.duration-slider input::-webkit-slider-runnable-track {
+		width: 100%;
+		height: 8px;
+		background: transparent;
+		border-radius: 4px;
+		cursor: pointer;
+	}
+
+	.duration-slider input::-moz-range-track {
+		width: 100%;
+		height: 8px;
+		background: transparent;
+		border-radius: 4px;
+		cursor: pointer;
+	}
+
+	.duration-slider input::-webkit-slider-thumb {
+		-webkit-appearance: none;
+		appearance: none;
+		width: 20px;
+		height: 20px;
+		background: #fff;
+		border: 2px solid #000;
+		border-radius: 50%;
+		cursor: pointer;
+		margin-top: -6px;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	}
+
+	.duration-slider input::-moz-range-thumb {
+		width: 20px;
+		height: 20px;
+		background: #fff;
+		border: 2px solid #000;
+		border-radius: 50%;
+		cursor: pointer;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+		border: 2px solid #000;
+	}
+
+	/* Generate Button */
+	.generate-btn {
+		width: 100%;
+		padding: 0.9rem 1rem;
+		font-size: 1rem;
+		background-color: #000;
+		color: #fff;
+		border: none;
+		border-radius: 12px;
+		cursor: pointer;
+		transition: all 0.3s ease;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		font-family: 'Inter', sans-serif;
+		font-weight: 500;
+		box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+	}
+
+	.generate-btn:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+	}
+
+	.generate-btn:active {
+		transform: translateY(1px);
+		box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+	}
+
+	.generate-btn:disabled {
+		background-color: #ccc;
+		cursor: not-allowed;
+		transform: none;
+		box-shadow: none;
+	}
+
+	.generate-btn i {
+		font-size: 1rem;
+	}
+
+	/* Status Messages */
+	.generating-message {
+		margin-top: 1rem;
+		padding: 0.75rem;
+		background-color: #f8f8f8;
+		border-radius: 12px;
+		font-size: 0.9rem;
+		color: #555;
+		text-align: center;
+	}
+
+	.generating-message i {
+		color: #000;
+	}
+
+	.error {
+		color: #e53935;
+		margin-top: 1rem;
+		padding: 0.75rem;
+		background-color: rgba(229, 57, 53, 0.1);
+		border-radius: 12px;
+		font-size: 0.9rem;
+		text-align: center;
+	}
+
+	@media (max-width: 480px) {
+		.options-container {
+			flex-direction: column;
+		}
+
+		.meditation-container {
+			padding: 1rem 0;
+		}
+
+		h1 {
+			font-size: 1.6rem;
+			margin-bottom: 1.2rem;
+		}
 	}
 </style>

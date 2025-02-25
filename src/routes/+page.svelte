@@ -526,14 +526,19 @@
 <style>
 	/* Base Styles */
 	:global(body) {
-		font-family: 'Inter', sans-serif;
-		line-height: 1.6;
-		color: #333;
-		background-color: #fff;
-		margin: 0;
-		padding: 0;
+		/* These styles are now in app.css */
 	}
 
+	/* Homepage specific background override */
+	:global(.homepage-content) {
+		background-color: #fff !important;
+	}
+
+	/* Ensure homepage styles don't leak to other pages */
+	:global(.homepage-content) h1,
+	:global(.homepage-content) h2,
+	:global(.homepage-content) h3,
+	:global(.homepage-content) h4,
 	h1,
 	h2,
 	h3,

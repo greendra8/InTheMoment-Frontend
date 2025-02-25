@@ -91,10 +91,31 @@
 	});
 
 	$: isHomePage = $page.url.pathname === '/';
+	$: navItemCount = navItems ? navItems.length : 5;
+
+	// Determine if we're on mobile or desktop for different nav rendering
+	let isMobile = false;
+
+	onMount(() => {
+		// Initial check
+		checkMobile();
+
+		// Listen for resize events
+		window.addEventListener('resize', checkMobile);
+
+		return () => {
+			window.removeEventListener('resize', checkMobile);
+		};
+	});
+
+	function checkMobile() {
+		isMobile = window.innerWidth <= 1024;
+	}
 </script>
 
 {#if !$appContext.isNativeApp}
-	<nav class="nav">
+	<!-- Desktop Navigation -->
+	<nav class="desktop-nav" class:hidden={isMobile}>
 		{#each navItems as item}
 			<a
 				href={item.href}
@@ -103,9 +124,25 @@
 				aria-label={item.label}
 			>
 				<div class="icon-container">
-					<div class="icon-background">
-						<i class="fas {item.icon}"></i>
-					</div>
+					<i class="fas {item.icon}"></i>
+				</div>
+				<span class="nav-label">{item.label}</span>
+			</a>
+		{/each}
+	</nav>
+
+	<!-- Mobile Navigation -->
+	<nav class="mobile-nav" class:hidden={!isMobile}>
+		<div class="mobile-nav-gradient"></div>
+		{#each navItems as item}
+			<a
+				href={item.href}
+				class="nav-item"
+				class:active={$page.url.pathname === item.href}
+				aria-label={item.label}
+			>
+				<div class="icon-container">
+					<i class="fas {item.icon}"></i>
 				</div>
 				<span class="nav-label">{item.label}</span>
 			</a>
@@ -122,86 +159,172 @@
 </main>
 
 <style>
-	:global(body) {
-		font-family: 'Lato', sans-serif;
-		line-height: 1.6;
-		color: #333;
-		background-color: #e1e1e1;
-		margin: 0;
-		padding: 0;
+	/* Hide nav based on screen size */
+	.hidden {
+		display: none !important;
 	}
 
-	.nav {
+	/* Desktop Navigation Styles */
+	.desktop-nav {
 		position: fixed;
-		bottom: 10px;
-		left: 50%;
-		transform: translateX(-50%);
+		top: 20px;
+		left: 20px;
 		background-color: #eaeaea;
 		border-radius: 25px;
 		box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-		padding: 10px 0;
-		display: flex;
-		flex-direction: row;
-		justify-content: space-around;
-		gap: 10px;
-		width: calc(100% - 20px);
-		max-width: 400px;
-		z-index: 1000;
-	}
-
-	.nav-item {
 		display: flex;
 		flex-direction: column;
-		justify-content: center;
+		padding: 15px 10px;
+		gap: 15px;
+		z-index: 1000;
+		width: auto;
+		min-width: 60px;
+		transition: all 0.3s ease;
+	}
+
+	.desktop-nav .nav-item {
+		display: flex;
 		align-items: center;
 		color: #333;
 		text-decoration: none;
-		flex: 1;
-		transition: transform 0.3s ease;
+		transition: all 0.2s ease;
 		position: relative;
-		padding: 0 10px;
+		padding: 8px 10px;
+		border-radius: 12px;
+		white-space: nowrap;
 	}
 
-	.icon-container {
-		position: relative;
+	.desktop-nav .nav-item:hover {
+		background-color: rgba(0, 0, 0, 0.05);
 	}
 
-	.nav-item.active .icon-container::before {
-		opacity: 1;
-	}
-
-	.icon-background {
+	.desktop-nav .icon-container {
 		width: 40px;
 		height: 40px;
 		border-radius: 50%;
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		transition: all 0.3s ease;
+		background-color: transparent;
+		color: #333;
+		transition:
+			background-color 0.3s ease,
+			color 0.3s ease;
+		flex-shrink: 0;
+		will-change: background-color, color;
 	}
 
-	.nav-item.active .icon-background {
-		background-color: #333;
+	.desktop-nav .nav-item.active .icon-container {
+		background-color: #000;
 		color: #fff;
 	}
 
-	.nav-item i {
-		font-size: 20px;
+	.desktop-nav .nav-item i {
+		font-size: 18px;
 	}
 
-	.nav-label {
+	.desktop-nav .nav-label {
 		font-family: 'Poppins', sans-serif;
-		font-size: 12px;
-		text-align: center;
-		display: none;
-		margin-bottom: 5px;
-		width: 100%;
-		font-weight: 600;
+		font-weight: 500;
 		color: #4c4c4c;
+		transition:
+			opacity 0.3s ease,
+			max-width 0.3s ease,
+			margin-left 0.3s ease;
+		font-size: 14px;
+		opacity: 0;
+		max-width: 0;
+		overflow: hidden;
 	}
 
-	main {
-		padding-bottom: 80px;
+	.desktop-nav:hover .nav-label {
+		opacity: 1;
+		margin-left: 12px;
+		max-width: 150px;
+	}
+
+	.desktop-nav .nav-item.active .nav-label {
+		color: #000;
+		font-weight: 600;
+	}
+
+	/* Mobile Navigation Styles */
+	.mobile-nav {
+		position: fixed;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		display: flex;
+		justify-content: space-around;
+		background-color: transparent;
+		z-index: 1000;
+		padding: 10px 0 20px 0; /* Extra padding at bottom for iOS home indicator */
+	}
+
+	.mobile-nav-gradient {
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		height: 100%;
+		background: linear-gradient(
+			to bottom,
+			rgba(225, 225, 225, 0.5) 0%,
+			rgba(225, 225, 225, 0.8) 40%,
+			rgba(225, 225, 225, 0.95) 70%,
+			rgba(225, 225, 225, 1) 100%
+		);
+		backdrop-filter: blur(10px);
+		z-index: -1;
+		border-top: 1px solid rgba(0, 0, 0, 0.1);
+	}
+
+	.mobile-nav .nav-item {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		color: #777;
+		text-decoration: none;
+		padding: 8px 0;
+		flex: 1;
+		transition: color 0.2s ease;
+		position: relative;
+		z-index: 2;
+	}
+
+	.mobile-nav .icon-container {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		margin-bottom: 5px;
+		color: #777;
+		transition: color 0.3s ease;
+		will-change: color;
+	}
+
+	.mobile-nav .nav-item i {
+		font-size: 22px;
+	}
+
+	.mobile-nav .nav-label {
+		font-family: 'Poppins', sans-serif;
+		font-size: 11px;
+		font-weight: 500;
+		transition: color 0.3s ease;
+	}
+
+	.mobile-nav .nav-item.active {
+		color: #000;
+	}
+
+	.mobile-nav .nav-item.active i {
+		color: #000;
+	}
+
+	.mobile-nav .nav-item.active .nav-label {
+		color: #000;
+		font-weight: 600;
 	}
 
 	main.full-width .content-container {
@@ -221,115 +344,6 @@
 		max-width: 800px;
 		margin: 0 auto;
 		padding: 0.5rem;
-	}
-
-	@media (min-width: 1025px) {
-		.nav {
-			top: 20px;
-			bottom: auto;
-			left: 20px;
-			transform: none;
-			width: auto;
-			max-width: none;
-			flex-direction: column;
-			border-radius: 12px;
-			padding: 10px 3px;
-			justify-content: flex-start;
-		}
-
-		.nav-item {
-			flex-direction: column;
-			gap: 5px;
-			align-items: flex-start;
-			padding: 0;
-		}
-
-		.icon-container {
-			position: relative;
-			padding: 0 15px;
-		}
-
-		.icon-container::before {
-			top: 50%;
-			left: -3px;
-			transform: translateY(-50%);
-			width: 2px;
-			height: 35px;
-		}
-
-		.nav-label {
-			display: block;
-		}
-
-		main {
-			padding-top: 0;
-			padding-bottom: 0;
-		}
-	}
-
-	@media (max-width: 1024px) {
-		.nav {
-			/* Adjust width to allow for closer icons */
-			width: min(calc(var(--item-count, 5) * 50px + 55px), calc(100% - 20px));
-			padding: 8px 20px;
-			/* Use space-evenly for even distribution with minimal space */
-			justify-content: space-evenly;
-			/* Remove any existing gap */
-			gap: 0;
-			border-radius: 0.5rem;
-			box-shadow: 0 0px 7px rgba(0, 0, 0, 0.22);
-		}
-
-		.nav-item {
-			/* Remove horizontal padding */
-			padding: 5px 0;
-		}
-
-		.icon-background {
-			/* Keep original icon size */
-			width: 40px;
-			height: 40px;
-			border-radius: 50%;
-			background-color: #f0f0f0;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			transition: all 0.3s ease;
-			/* Remove inner shadow */
-			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-		}
-
-		.nav-item i {
-			font-size: 20px;
-			/* Add transition for color change */
-			transition: color 0.3s ease;
-		}
-
-		/* New styles for active state on mobile */
-		.nav-item.active .icon-background {
-			background-color: #000;
-		}
-
-		.nav-item.active i {
-			color: #fff;
-		}
-
-		/* Remove the existing active indicator */
-		.icon-container::before {
-			display: none;
-			transition: none;
-			transform: none;
-		}
-	}
-
-	@media (max-width: 360px) {
-		.nav {
-			/* Slightly reduce width for very small screens */
-			width: min(calc(var(--item-count, 5) * 45px + 30px), calc(100% - 20px));
-			padding: 6px 15px;
-		}
-
-		/* Keep icon sizes the same as above */
 	}
 
 	.global-container {
