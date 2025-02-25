@@ -140,7 +140,7 @@
 	async function loadPreset() {
 		try {
 			// Fetch the preset JSON file
-			const response = await fetch('/presets/flexi + amandio c - organic12-3d-2.json');
+			const response = await fetch('/presets/flexi_+_amandio_c_-_organic12-3d-2.json');
 			if (!response.ok) {
 				throw new Error(`Failed to load preset: ${response.status} ${response.statusText}`);
 			}
