@@ -1,210 +1,194 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import type { PageData } from './$types';
 	import { goto } from '$app/navigation';
+	import type { PageData } from './$types';
 
 	export let data: PageData;
 
-	$: ({ playlists, meditations, user } = data);
+	$: ({ meditations, totalMeditations, playlists, user } = data);
 
-	// Function to get time of day greeting
-	function getGreeting() {
-		const hour = new Date().getHours();
-		if (hour < 12) return 'Good morning';
-		if (hour < 17) return 'Good afternoon';
-		return 'Good evening';
+	// Calculate stats
+	$: daysInRow = calculateDaysInRow(meditations);
+	$: totalMinutes = user.minutesListened || 0;
+
+	function calculateDaysInRow(meditations: any[]) {
+		if (!meditations || meditations.length === 0) return 0;
+		let streak = 1;
+		const sortedDates = meditations
+			.map((m) => new Date(m.created_at))
+			.sort((a, b) => b.getTime() - a.getTime());
+		const today = new Date();
+		today.setHours(0, 0, 0, 0);
+
+		if (sortedDates[0].toDateString() !== today.toDateString()) return 0;
+
+		for (let i = 1; i < sortedDates.length; i++) {
+			const prevDate = new Date(sortedDates[i - 1]);
+			prevDate.setDate(prevDate.getDate() - 1);
+			if (sortedDates[i].toDateString() === prevDate.toDateString()) {
+				streak++;
+			} else {
+				break;
+			}
+		}
+		return streak;
 	}
 
-	// Function to format the date
-	function formatDate(dateString: string) {
-		const date = new Date(dateString);
-		return date.toLocaleDateString('en-US', {
-			month: 'short',
-			day: 'numeric'
-		});
-	}
-
-	// Function to get random grey color for playlist cards
-	function getRandomGrey() {
-		const greys = [
-			{ bg: '#4A4A4A', text: '#FFFFFF' },
-			{ bg: '#616161', text: '#FFFFFF' },
-			{ bg: '#757575', text: '#FFFFFF' },
-			{ bg: '#9E9E9E', text: '#FFFFFF' },
-			{ bg: '#BDBDBD', text: '#FFFFFF' }
-		];
-		return greys[Math.floor(Math.random() * greys.length)];
+	function handleNavigation(path: string) {
+		goto(path);
 	}
 </script>
 
-<div class="dashboard">
-	<!-- Welcome Section -->
-	<section class="welcome-section">
-		<h1>{getGreeting()}, {user?.user_metadata?.full_name?.split(' ')[0] ?? 'there'}</h1>
-		<p class="subtitle">How would you like to meditate today?</p>
-	</section>
+<svelte:head>
+	<title>Dashboard - Your Mindfulness Hub</title>
+	<link
+		href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
+		rel="stylesheet"
+	/>
+	<link
+		rel="stylesheet"
+		href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+	/>
+</svelte:head>
 
-	<!-- Main Actions -->
-	<section class="main-actions">
-		<button class="primary-action custom-session" on:click={() => goto('/new')}>
-			<div class="action-content">
-				<i class="fas fa-wand-magic-sparkles"></i>
-				<div class="action-text">
-					<span class="action-title">Custom Session</span>
-					<span class="action-description">Create a personalized meditation</span>
+<!-- Hero Section -->
+<header class="hero-section">
+	<h1>Welcome, {user.name}</h1>
+	<p class="tagline">Your daily mindfulness companion</p>
+</header>
+
+<!-- Quick Stats -->
+<section class="stats-section">
+	<div class="stats-strip">
+		<div class="stat-item">
+			<i class="fas fa-clock"></i>
+			<div class="stat-text">
+				<h3>{totalMinutes}</h3>
+				<p>Minutes</p>
+			</div>
+		</div>
+		<div class="divider"></div>
+		<div class="stat-item">
+			<i class="fas fa-fire"></i>
+			<div class="stat-text">
+				<h3>{daysInRow}</h3>
+				<p>Streak</p>
+			</div>
+		</div>
+		<div class="divider"></div>
+		<div class="stat-item">
+			<i class="fas fa-headphones"></i>
+			<div class="stat-text">
+				<h3>{totalMeditations}</h3>
+				<p>Sessions</p>
+			</div>
+		</div>
+	</div>
+</section>
+
+<!-- Playlists Grid -->
+<section class="playlists-section">
+	<div class="section-header">
+		<h2 class="section-title">Recommended Playlists</h2>
+		<button class="view-all-btn small" on:click={() => handleNavigation('/playlists')}>
+			See All
+		</button>
+	</div>
+	<div class="playlists-list">
+		{#each playlists.slice(0, 4) as playlist}
+			<div
+				class="playlist-item"
+				on:click={() => handleNavigation(`/playlists/${playlist.id}`)}
+				on:keydown={(e) => e.key === 'Enter' && handleNavigation(`/playlists/${playlist.id}`)}
+				tabindex="0"
+				role="button"
+			>
+				<div class="playlist-icon">
+					<i class="fas fa-play-circle"></i>
+				</div>
+				<div class="playlist-info">
+					<h3>{playlist.playlist_name}</h3>
+				</div>
+				<div class="playlist-arrow">
+					<i class="fas fa-arrow-right"></i>
 				</div>
 			</div>
-			<i class="fas fa-chevron-right action-arrow"></i>
-		</button>
-	</section>
+		{/each}
+	</div>
+</section>
 
-	<!-- Playlists Section -->
-	<section class="playlists-section">
-		<div class="section-header">
-			<h2>Quick Start</h2>
-			<button class="text-button" on:click={() => goto('/playlists')}>View All</button>
-		</div>
-		<div class="playlists-grid">
-			{#each playlists?.slice(0, 4) ?? [] as playlist}
-				{@const colors = getRandomGrey()}
-				<button
-					class="playlist-card"
-					style="--card-bg-color: {colors.bg}; --card-text-color: {colors.text};"
-					on:click={() => goto(`/playlists/${playlist.id}`)}
-				>
-					<div class="playlist-icon">
-						<i class="fas fa-play-circle"></i>
-					</div>
-					<span class="playlist-name">{playlist.playlist_name}</span>
-				</button>
-			{/each}
-		</div>
-	</section>
+<!-- Recent Sessions -->
+<section class="sessions-section">
+	<div class="section-header">
+		<h2 class="section-title">Recent Sessions</h2>
+		{#if meditations.length > 0}
+			<button class="view-all-btn small" on:click={() => handleNavigation('/library')}>
+				View All ({totalMeditations})
+			</button>
+		{/if}
+	</div>
 
-	<!-- Library Link -->
-	<section class="library-link">
-		<button class="secondary-action" on:click={() => goto('/library')}>
-			<div class="action-content">
-				<i class="fas fa-book"></i>
-				<div class="action-text">
-					<span class="action-title">Your Library</span>
-					<span class="action-description">View your past meditations</span>
-				</div>
-			</div>
-			<i class="fas fa-chevron-right action-arrow"></i>
-		</button>
-	</section>
-
-	<!-- Recent Sessions -->
-	{#if meditations && meditations.length > 0}
-		<section class="recent-sessions">
-			<div class="section-header">
-				<h2>Recent</h2>
-			</div>
-			<div class="sessions-list">
-				{#each meditations.slice(0, 3) as meditation}
-					<a href="/session/{meditation.id}" class="session-card">
-						<div class="session-icon">
+	{#if meditations.length > 0}
+		<ul class="sessions-list">
+			{#each meditations as meditation (meditation.id)}
+				<li>
+					<div
+						class="session-item"
+						on:click={() => handleNavigation(`/session/${meditation.id}`)}
+						on:keydown={(e) => e.key === 'Enter' && handleNavigation(`/session/${meditation.id}`)}
+						tabindex="0"
+						role="button"
+					>
+						<div class="play-button">
 							<i class="fas fa-play"></i>
 						</div>
 						<div class="session-info">
-							<span class="session-title">{meditation.title || 'Untitled Meditation'}</span>
-							<span class="session-meta">
-								{meditation.lesson_playlists?.playlist_name || meditation.theme || 'Custom'} •
-								{formatDate(meditation.created_at)}
-							</span>
+							<h3>{meditation.title || 'Untitled Meditation'}</h3>
+							<div class="session-meta">
+								<span><i class="far fa-clock"></i> {meditation.length || 'N/A'} min</span>
+								<span>{new Date(meditation.created_at).toLocaleDateString()}</span>
+							</div>
 						</div>
-					</a>
-				{/each}
-			</div>
-		</section>
+					</div>
+				</li>
+			{/each}
+		</ul>
+	{:else}
+		<div class="empty-state">
+			<i class="fas fa-music"></i>
+			<p>No recent sessions yet</p>
+			<button class="create-btn" on:click={() => handleNavigation('/new')}>
+				Create Your First Meditation
+			</button>
+		</div>
 	{/if}
-</div>
+</section>
 
 <style>
-	.dashboard {
-		padding-top: 1rem;
-		display: flex;
-		flex-direction: column;
-		gap: 2rem;
-	}
-
-	/* Welcome Section */
-	.welcome-section {
-		margin-bottom: 0.5rem;
-	}
-
-	.welcome-section h1 {
-		font-family: 'Poppins', sans-serif;
-		font-size: 1.75rem;
+	h1,
+	h2,
+	h3 {
+		font-family: 'Space Grotesk', sans-serif;
 		font-weight: 600;
-		margin: 0;
-		color: #333;
+		color: #1a1a1a;
 	}
 
-	.subtitle {
-		color: #666;
-		margin: 0.25rem 0 0 0;
+	/* Hero Section */
+	.hero-section {
+		padding: 1.5rem 0;
+		margin-bottom: 1.25rem;
 	}
 
-	/* Main Actions */
-	.main-actions {
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
+	.hero-section h1 {
+		font-size: clamp(1.75rem, 4vw, 2.25rem);
+		margin-bottom: 0.25rem;
+		color: #1a1a1a;
 	}
 
-	.primary-action {
-		background-color: #333;
-		color: white;
-		border: none;
-		border-radius: 12px;
-		padding: 1.25rem;
-		font-size: 1.1rem;
-		font-weight: 500;
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		width: 100%;
-		cursor: pointer;
-		transition: all 0.2s ease;
-	}
-
-	.action-content {
-		display: flex;
-		align-items: center;
-		gap: 1rem;
-	}
-
-	.action-text {
-		display: flex;
-		flex-direction: column;
-		align-items: flex-start;
-		gap: 0.25rem;
-	}
-
-	.action-title {
-		font-weight: 600;
-		font-size: 1.1rem;
-	}
-
-	.action-description {
-		font-size: 0.9rem;
-		opacity: 0.8;
-	}
-
-	.action-arrow {
+	.tagline {
 		font-size: 1rem;
-		opacity: 0.7;
-	}
-
-	.primary-action:hover {
-		background-color: #444;
-		transform: translateY(-2px);
-	}
-
-	.primary-action:hover .action-arrow {
-		opacity: 1;
+		color: #666;
+		margin: 0;
 	}
 
 	/* Section Headers */
@@ -215,145 +199,256 @@
 		margin-bottom: 1rem;
 	}
 
-	.section-header h2 {
-		font-size: 1.25rem;
-		font-weight: 600;
+	.section-title {
+		font-size: 1.5rem;
 		margin: 0;
+		color: #1a1a1a;
 	}
 
-	.text-button {
-		background: none;
-		border: none;
-		color: #666;
-		font-size: 0.9rem;
-		cursor: pointer;
-		padding: 0;
+	/* Stats Section - Redesigned as a strip */
+	.stats-section {
+		margin-bottom: 2rem;
 	}
 
-	.text-button:hover {
+	.stats-strip {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		background-color: #e8e8e8;
+		border-radius: 12px;
+		padding: 0.75rem 1.5rem;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+	}
+
+	.stat-item {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.stat-item i {
+		font-size: 1.4rem;
 		color: #333;
 	}
 
-	/* Playlists Grid */
-	.playlists-grid {
-		display: grid;
-		grid-template-columns: repeat(2, 1fr);
-		gap: 1rem;
-	}
-
-	.playlist-card {
-		background-color: var(--card-bg-color, #4a4a4a);
-		color: var(--card-text-color, #ffffff);
-		border: none;
-		border-radius: 12px;
-		padding: 1.25rem 1rem;
+	.stat-text {
 		display: flex;
 		flex-direction: column;
-		align-items: center;
-		gap: 0.75rem;
-		cursor: pointer;
-		transition: all 0.2s ease;
-		text-align: center;
-		aspect-ratio: 1;
 	}
 
-	.playlist-card:hover {
-		transform: translateY(-2px);
-	}
-
-	.playlist-icon {
-		font-size: 1.5rem;
-	}
-
-	.playlist-name {
-		font-size: 1rem;
-		font-weight: 500;
+	.stat-item h3 {
+		font-size: 1.3rem;
+		margin: 0;
 		line-height: 1.2;
 	}
 
-	/* Library Link */
-	.secondary-action {
-		background-color: #f5f5f5;
-		color: #333;
-		border: none;
-		border-radius: 12px;
-		padding: 1.25rem;
-		width: 100%;
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		cursor: pointer;
-		transition: all 0.2s ease;
+	.stat-item p {
+		font-size: 0.8rem;
+		color: #666;
+		margin: 0;
 	}
 
-	.secondary-action:hover {
-		background-color: #eee;
-		transform: translateY(-2px);
+	.divider {
+		width: 1px;
+		height: 40px;
+		background-color: #e0e0e0;
 	}
 
-	.secondary-action:hover .action-arrow {
-		opacity: 1;
+	/* Playlists Section - Redesigned as a list */
+	.playlists-section {
+		margin-bottom: 2rem;
 	}
 
-	/* Recent Sessions */
-	.sessions-list {
+	.playlists-list {
 		display: flex;
 		flex-direction: column;
-		gap: 0.5rem;
+		gap: 8px;
 	}
 
-	.session-card {
+	.playlist-item {
 		display: flex;
 		align-items: center;
-		gap: 0.75rem;
-		padding: 0.75rem;
-		background-color: #f5f5f5;
+		background-color: #e8e8e8;
 		border-radius: 12px;
-		text-decoration: none;
-		color: inherit;
-		transition: background-color 0.2s ease;
+		padding: 0.8rem 1rem;
+		cursor: pointer;
+		transition: all 0.2s ease;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 	}
 
-	.session-card:hover {
-		background-color: #eee;
+	.playlist-item:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 	}
 
-	.session-icon {
+	.playlist-icon {
+		font-size: 1.3rem;
+		color: #333;
+		margin-right: 1rem;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: 32px;
-		height: 32px;
-		background-color: #333;
-		color: white;
+		width: 40px;
+		height: 40px;
+		background-color: #f0f0f0;
 		border-radius: 50%;
 		flex-shrink: 0;
-		font-size: 0.8rem;
+	}
+
+	.playlist-info {
+		flex-grow: 1;
+		overflow: hidden;
+	}
+
+	.playlist-info h3 {
+		font-size: 1rem;
+		margin: 0;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.playlist-arrow {
+		font-size: 1rem;
+		color: #666;
+		transition: transform 0.3s ease;
+		margin-left: 0.75rem;
+	}
+
+	.playlist-item:hover .playlist-arrow {
+		transform: translateX(3px);
+		color: #333;
+	}
+
+	/* Sessions Section */
+	.sessions-section {
+		margin-bottom: 2rem;
+	}
+
+	.sessions-list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	.session-item {
+		display: flex;
+		align-items: center;
+		background-color: #e8e8e8;
+		border-radius: 12px;
+		padding: 1rem;
+		cursor: pointer;
+		transition: all 0.2s ease;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+	}
+
+	.session-item:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+	}
+
+	.play-button {
+		width: 40px;
+		height: 40px;
+		background-color: #000;
+		color: #e8e8e8;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin-right: 1rem;
+		flex-shrink: 0;
 	}
 
 	.session-info {
-		display: flex;
-		flex-direction: column;
-		gap: 0.25rem;
-		min-width: 0;
+		flex-grow: 1;
+		overflow: hidden;
 	}
 
-	.session-title {
-		font-weight: 500;
-		color: #333;
-		font-size: 0.95rem;
+	.session-info h3 {
+		font-size: 1.1rem;
+		margin: 0 0 0.3rem 0;
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
 	}
 
 	.session-meta {
+		display: flex;
+		gap: 1rem;
+		font-size: 0.85rem;
 		color: #666;
-		font-size: 0.8rem;
 	}
 
-	/* Global button styles */
-	button {
-		font-family: 'Poppins', sans-serif;
+	.session-meta i {
+		margin-right: 0.3rem;
+	}
+
+	.view-all-btn {
+		padding: 0.75rem 1.25rem;
+		background-color: #000;
+		color: #e8e8e8;
+		border: none;
+		border-radius: 12px;
+		cursor: pointer;
+		font-weight: 500;
+		transition: all 0.3s ease;
+		text-align: center;
+	}
+
+	.view-all-btn.small {
+		padding: 0.4rem 0.75rem;
+		font-size: 0.8rem;
+		border-radius: 8px;
+	}
+
+	.view-all-btn:hover {
+		background-color: #222;
+		transform: translateY(-2px);
+	}
+
+	.empty-state {
+		text-align: center;
+		padding: 2rem;
+		background-color: #e8e8e8;
+		border-radius: 16px;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+	}
+
+	.empty-state i {
+		font-size: 2rem;
+		color: #666;
+		margin-bottom: 1rem;
+	}
+
+	.empty-state p {
+		font-size: 1rem;
+		color: #666;
+		margin-bottom: 1rem;
+	}
+
+	@media (max-width: 480px) {
+		.stats-strip {
+			padding: 0.75rem 1rem;
+		}
+
+		.stat-item i {
+			font-size: 1.25rem;
+		}
+
+		.stat-item h3 {
+			font-size: 1.1rem;
+		}
+
+		.stat-item p {
+			font-size: 0.7rem;
+		}
+
+		.divider {
+			height: 30px;
+		}
 	}
 </style>

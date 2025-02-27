@@ -124,10 +124,6 @@
 </div>
 
 <style>
-	:global(body) {
-		font-family: 'Inter', sans-serif;
-	}
-
 	h1,
 	h2,
 	h3 {

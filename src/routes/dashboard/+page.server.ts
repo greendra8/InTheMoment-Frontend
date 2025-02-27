@@ -1,39 +1,45 @@
+import { error, redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import { getUserMeditations, supabaseAdmin } from '$lib/server/supabase';
+import { supabaseAdmin, getUserMeditations, getUserProfile } from '$lib/server/supabase';
 
 export const load: PageServerLoad = async ({ locals }) => {
-    const { session } = locals;
+  const { session } = locals;
 
-    if (!session) {
-        return {
-            status: 302,
-            redirect: '/login'
-        };
-    }
+  if (!session) {
+    throw redirect(303, '/login');
+  }
 
-    try {
-        // Fetch both meditations and playlists in parallel
-        const [meditationsResult, playlistsResult] = await Promise.all([
-            getUserMeditations(session.user.id),
-            supabaseAdmin
-                .from('lesson_playlists')
-                .select('id, playlist_name, playlist_order, playlist_description')
-                .order('playlist_order')
-        ]);
+  if (!session.user || !session.user.id) {
+    throw error(500, 'Invalid session data');
+  }
 
-        if (playlistsResult.error) throw playlistsResult.error;
+  try {
+    // Fetch recent meditations (limit to 5 for recency)
+    const { data: meditations, totalCount } = await getUserMeditations(session.user.id, 1, 5);
 
-        return {
-            meditations: meditationsResult.data,
-            playlists: playlistsResult.data,
-            user: session.user
-        };
-    } catch (error) {
-        console.error('Error loading dashboard data:', error);
-        return {
-            meditations: [],
-            playlists: [],
-            user: session.user
-        };
-    }
+    // Fetch all playlists
+    const { data: playlists, error: playlistsError } = await supabaseAdmin
+      .from('lesson_playlists')
+      .select('id, playlist_name, playlist_description')
+      .order('playlist_order');
+
+    if (playlistsError) throw playlistsError;
+
+    // Fetch user profile for stats using the helper function
+    const profile = await getUserProfile(session.user.id);
+
+    return {
+      meditations,
+      totalMeditations: totalCount,
+      playlists,
+      user: {
+        name: profile.name || 'User',
+        minutesListened: profile.minutes_listened || 0
+      },
+      session
+    };
+  } catch (err) {
+    console.error('Error loading dashboard data:', err);
+    throw error(500, 'Failed to load dashboard data');
+  }
 };
