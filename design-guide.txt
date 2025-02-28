@@ -1,0 +1,205 @@
+InTheMoment Design System Guide
+============================
+
+1. Typography
+------------
+Fonts:
+- Primary Display: 'Space Grotesk' (Headings)
+- Primary Text: 'Inter' (Body text)
+- Fallback: sans-serif
+
+Font Weights:
+- Light: 300
+- Regular: 400
+- Medium: 500
+- Semibold: 600
+- Bold: 700
+
+Font Sizes:
+- H1: clamp(1.75rem, 4vw, 2.25rem)
+- H2: 1.5rem
+- H3: 1.1rem
+- Body: 1rem
+- Small Text: 0.9rem
+- Extra Small: 0.8rem
+
+2. Colors
+---------
+Primary Colors:
+- Primary Text: #1a1a1a
+- Secondary Text: #666
+- Background: #ffffff
+- Card Background: #e8e8e8
+
+Interactive States:
+- Button Primary: #1a1a1a
+- Button Text: #ffffff
+- Button Hover: #000000
+- Success: #4caf50
+- Error: #c62828
+
+Feedback Colors:
+- Success Background: #e8f5e9
+- Success Text: #2e7d32
+- Error Background: #ffebee
+- Error Text: #c62828
+
+3. Spacing & Layout
+------------------
+Container:
+- Width: 100%
+- Padding: 1.5rem 0
+
+Margins:
+- Section Margin: 2rem
+- Element Margin: 1rem
+- Small Margin: 0.5rem
+
+Gaps:
+- Grid Gap: 1rem
+- Flex Gap: 0.75rem
+- Icon Gap: 0.5rem
+
+4. Components
+------------
+Cards:
+- Border Radius: 12px
+- Padding: 1.5rem
+- Background: #e8e8e8
+- Box Shadow: 0 2px 8px rgba(0, 0, 0, 0.04)
+- Hover Transform: translateY(-2px)
+- Hover Shadow: 0 4px 12px rgba(0, 0, 0, 0.08)
+
+Buttons:
+- Border Radius: 12px
+- Padding: 0.9rem 1rem
+- Font Weight: 500
+- Transition: all 0.3s ease
+
+Small Buttons:
+- Padding: 0.4rem 0.75rem
+- Border Radius: 8px
+- Font Size: 0.8rem
+
+Form Inputs:
+- Border Radius: 12px
+- Padding: 0.75rem
+- Border: 1px solid rgba(0, 0, 0, 0.1)
+- Focus Border: #1a1a1a
+
+5. Grid System
+-------------
+- Base Grid: repeat(auto-fill, minmax(250px, 1fr))
+- Grid Gap: 1rem
+- Container Max Width: 100%
+
+6. Shadows
+----------
+- Default: 0 2px 8px rgba(0, 0, 0, 0.04)
+- Hover: 0 4px 12px rgba(0, 0, 0, 0.08)
+- Elevated: 0 6px 12px rgba(0, 0, 0, 0.12)
+
+7. Transitions
+-------------
+- Duration: 0.3s
+- Timing Function: ease
+- Properties: all, transform, background-color, box-shadow
+
+8. Icons
+--------
+- Font Size Base: 1.2rem
+- Small Icons: 0.9rem
+- Large Icons: 1.4rem
+- Color: Inherits from parent
+- Spacing: 0.5rem margin/padding
+
+9. Responsive Breakpoints
+------------------------
+Mobile:
+- Small: max-width: 480px
+- Medium: max-width: 768px
+- Large: max-width: 1024px
+
+Adjustments:
+- Reduced Padding: 0.75rem
+- Smaller Font Sizes: -0.1rem to -0.2rem
+- Adjusted Grid: single column
+- Stack Elements: flex-direction: column
+
+10. Interactive States
+---------------------
+Hover:
+- Transform: translateY(-2px)
+- Shadow Increase
+- Color Darkening: 10%
+
+Active:
+- Transform: translateY(0)
+- Shadow Decrease
+- Background Darkening: 15%
+
+Focus:
+- Outline: none
+- Border Color: #1a1a1a
+
+11. Accessibility
+----------------
+- Minimum Contrast Ratio: 4.5:1
+- Focus Indicators: Visible
+- Interactive Element Size: Minimum 44x44px
+- Text Spacing: Minimum 1.5 line height
+
+12. Animation
+------------
+Transitions:
+- Duration: 300ms
+- Timing: ease
+- Properties: transform, opacity, background-color
+
+Hover Animations:
+- Scale: 1.05
+- Y-Translation: -2px
+- Shadow Expansion
+
+13. Lists and Grids
+------------------
+Lists:
+- No Bullets: list-style: none
+- Vertical Spacing: 8px gap
+- Horizontal Alignment: flex-start
+
+Grids:
+- Auto-fit Columns: minmax(250px, 1fr)
+- Gap: 1rem
+- Responsive: Single Column on Mobile
+
+14. Media
+---------
+Images:
+- Object Fit: cover
+- Border Radius: Matches Container
+- Max Width: 100%
+
+Background Images:
+- Size: cover
+- Position: center
+- No Repeat
+
+15. Status Indicators
+--------------------
+Success:
+- Icon: check-circle
+- Color: #4caf50
+- Background: #e8f5e9
+
+Error:
+- Icon: exclamation-circle
+- Color: #c62828
+- Background: #ffebee
+
+Loading:
+- Icon: spinner
+- Animation: spin 1s linear infinite
+- Color: Inherited
+
+Note: This design system should be consistently applied across all components and pages to maintain visual coherence and user experience consistency. 
