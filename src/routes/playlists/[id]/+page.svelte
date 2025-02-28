@@ -15,13 +15,20 @@
 
 <svelte:head>
 	<title>{data.playlist.playlist_name} - Course Playlist</title>
+	<link
+		href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
+		rel="stylesheet"
+	/>
 </svelte:head>
 
 <div class="playlist-page">
 	<h1>{data.playlist.playlist_name}</h1>
-	<p>{data.playlist.playlist_description}</p>
+	<p class="playlist-description">{data.playlist.playlist_description}</p>
 
-	<h2>Lessons</h2>
+	<div class="section-header">
+		<h2>Lessons</h2>
+	</div>
+
 	<ul class="lesson-list">
 		{#each data.lessons as lesson (lesson.id)}
 			{@const isAccessible = lesson.lesson_number <= nextLessonNumber}
@@ -41,32 +48,19 @@
 				>
 					<div class="lesson-info">
 						<h3>{lesson.lesson_title}</h3>
-						<p>Lesson {lesson.lesson_number}</p>
+						<p class="lesson-number">Lesson {lesson.lesson_number}</p>
 					</div>
 					{#if lesson.lesson_number === nextLessonNumber}
 						<div class="create-button">
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								width="24"
-								height="24"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="2"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-							>
-								<line x1="12" y1="5" x2="12" y2="19"></line>
-								<line x1="5" y1="12" x2="19" y2="12"></line>
-							</svg>
+							<i class="fas fa-plus"></i>
 							Create
 						</div>
 					{:else if lesson.lesson_number < nextLessonNumber}
 						<div class="completed-icon">
 							{#if lesson.meditationId}
-								<i class="fa-solid fa-headphones"></i>
+								<i class="fas fa-headphones"></i>
 							{:else}
-								?
+								<i class="fas fa-question"></i>
 							{/if}
 						</div>
 					{/if}
@@ -77,45 +71,66 @@
 </div>
 
 <style>
-	h1,
-	h2,
-	h3 {
-		font-family: 'Poppins', sans-serif;
-		margin-bottom: 0.5rem;
+	.playlist-page {
+		width: 100%;
+		padding: 1.5rem 0;
+	}
+
+	h1 {
+		font-family: 'Space Grotesk', sans-serif;
+		font-size: clamp(1.75rem, 4vw, 2.25rem);
+		font-weight: 600;
+		color: #1a1a1a;
+		margin-bottom: 1rem;
+	}
+
+	.playlist-description {
+		font-family: 'Inter', sans-serif;
+		font-size: 1rem;
+		color: #666;
+		margin-bottom: 2rem;
+		line-height: 1.5;
+	}
+
+	.section-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 1rem;
+	}
+
+	h2 {
+		font-family: 'Space Grotesk', sans-serif;
+		font-size: 1.5rem;
+		font-weight: 500;
+		color: #1a1a1a;
+		margin: 0;
 	}
 
 	.lesson-list {
-		list-style-type: none;
+		list-style: none;
 		padding: 0;
-	}
-
-	.lesson-list li {
-		margin-bottom: 0.5rem;
+		margin: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
 	}
 
 	.lesson-item {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		text-decoration: none;
-		color: #333;
-		padding: 0.5rem;
-		border-radius: 10px;
-		box-shadow: 0 4px 6px #0000001a;
-		border: 1px solid #706b5780;
-		transition:
-			background-color 0.3s,
-			transform 0.3s;
+		background-color: #e8e8e8;
+		border-radius: 12px;
+		padding: 1rem 1.5rem;
 		cursor: pointer;
+		transition: all 0.3s ease;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 	}
 
 	.lesson-item:hover:not(.disabled) {
-		background-color: #e0e0e0;
-	}
-
-	.lesson-item:active:not(.disabled) {
-		filter: brightness(0.97);
-		transform: scale(0.98);
+		transform: translateY(-2px);
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 	}
 
 	.lesson-info {
@@ -123,12 +138,16 @@
 	}
 
 	.lesson-info h3 {
-		font-size: 1rem;
-		margin: 0;
+		font-family: 'Space Grotesk', sans-serif;
+		font-size: 1.1rem;
+		font-weight: 500;
+		color: #1a1a1a;
+		margin: 0 0 0.2rem 0;
 	}
 
-	.lesson-info p {
-		font-size: 0.8rem;
+	.lesson-number {
+		font-family: 'Inter', sans-serif;
+		font-size: 0.9rem;
 		color: #666;
 		margin: 0;
 	}
@@ -136,34 +155,52 @@
 	.create-button {
 		display: flex;
 		align-items: center;
-		justify-content: center;
-		padding: 0.2rem 0.4rem;
-		background-color: #333;
-		color: #e1e1e1;
-		border-radius: 3px;
+		gap: 0.5rem;
+		padding: 0.4rem 0.75rem;
+		background-color: #1a1a1a;
+		color: #fff;
+		border-radius: 8px;
+		font-family: 'Inter', sans-serif;
 		font-size: 0.8rem;
-		min-width: 60px;
-		white-space: nowrap;
+		font-weight: 500;
+		transition: all 0.3s ease;
 	}
 
-	.create-button svg {
-		margin-right: 0.2rem;
-		width: 14px;
-		height: 14px;
+	.create-button:hover {
+		background-color: #000;
 	}
 
 	.completed-icon {
-		color: #333;
+		color: #1a1a1a;
 		font-size: 1.2rem;
-		margin-right: 0.5rem;
 	}
 
 	.disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
+		pointer-events: none;
 	}
 
-	.disabled:hover {
-		background-color: #f0f0f0 !important;
+	@media (max-width: 480px) {
+		.playlist-page {
+			padding: 1rem 0;
+		}
+
+		.lesson-item {
+			padding: 0.75rem 1rem;
+		}
+
+		.lesson-info h3 {
+			font-size: 1rem;
+		}
+
+		.lesson-number {
+			font-size: 0.8rem;
+		}
+
+		.create-button {
+			padding: 0.3rem 0.6rem;
+			font-size: 0.75rem;
+		}
 	}
 </style>
