@@ -225,6 +225,14 @@
 	});
 </script>
 
+<svelte:head>
+	<title>New Meditation</title>
+	<link
+		href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
+		rel="stylesheet"
+	/>
+</svelte:head>
+
 <div class="meditation-container">
 	<h1>New Meditation</h1>
 
@@ -360,26 +368,17 @@
 </div>
 
 <style>
-	:global(body) {
-		font-family: 'Inter', sans-serif;
-	}
-
-	h1,
-	h2,
-	h3 {
+	h1 {
 		font-family: 'Space Grotesk', sans-serif;
+		font-size: clamp(1.75rem, 4vw, 2.25rem);
+		font-weight: 600;
+		color: #1a1a1a;
+		margin-bottom: 1.5rem;
 	}
 
 	.meditation-container {
 		width: 100%;
 		padding: 1.5rem 0;
-	}
-
-	h1 {
-		font-size: 1.8rem;
-		margin-bottom: 1.5rem;
-		font-weight: 600;
-		letter-spacing: -0.02em;
 	}
 
 	/* Tabs */
@@ -406,7 +405,7 @@
 	}
 
 	.tabs button.active {
-		background-color: #000;
+		background-color: #1a1a1a;
 		color: #fff;
 	}
 
@@ -452,7 +451,7 @@
 
 	.playlist-selector select:focus {
 		outline: none;
-		border-color: #000;
+		border-color: #1a1a1a;
 	}
 
 	/* Options Container */
@@ -502,7 +501,7 @@
 		left: 0;
 		width: calc(100% / var(--option-count));
 		height: 100%;
-		background-color: #000;
+		background-color: #1a1a1a;
 		transition: transform 0.3s ease;
 	}
 
@@ -556,7 +555,7 @@
 
 	.duration-value {
 		font-weight: 600;
-		color: #000;
+		color: #1a1a1a;
 		background: #f8f8f8;
 		padding: 0.2rem 0.6rem;
 		border-radius: 12px;
@@ -586,7 +585,7 @@
 		top: 0;
 		left: 0;
 		height: 100%;
-		background: #000;
+		background: #1a1a1a;
 		border-radius: 4px;
 		pointer-events: none;
 	}
@@ -627,7 +626,7 @@
 		width: 20px;
 		height: 20px;
 		background: #fff;
-		border: 2px solid #000;
+		border: 2px solid #1a1a1a;
 		border-radius: 50%;
 		cursor: pointer;
 		margin-top: -6px;
@@ -638,11 +637,11 @@
 		width: 20px;
 		height: 20px;
 		background: #fff;
-		border: 2px solid #000;
+		border: 2px solid #1a1a1a;
 		border-radius: 50%;
 		cursor: pointer;
 		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-		border: 2px solid #000;
+		border: 2px solid #1a1a1a;
 	}
 
 	/* Generate Button */
@@ -650,7 +649,7 @@
 		width: 100%;
 		padding: 0.9rem 1rem;
 		font-size: 1rem;
-		background-color: #000;
+		background-color: #1a1a1a;
 		color: #fff;
 		border: none;
 		border-radius: 12px;
@@ -696,7 +695,7 @@
 	}
 
 	.generating-message i {
-		color: #000;
+		color: #1a1a1a;
 	}
 
 	.error {

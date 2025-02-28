@@ -12,7 +12,7 @@
 
 	// Reactive statement to update profile when data or form changes
 	$: {
-		if (form?.type === 'success') {
+		if (form?.type === 'success' && form.data) {
 			profile = form.data.profile;
 		}
 	}
@@ -47,12 +47,25 @@
 	}
 </script>
 
+<svelte:head>
+	<link
+		href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
+		rel="stylesheet"
+	/>
+</svelte:head>
+
 <div class="profile-container">
 	{#if profile}
 		<h1>Your Profile</h1>
 
-		<div class="stats">
-			<p>Minutes Listened: <span>{profile.minutes_listened}</span></p>
+		<div class="stats-strip">
+			<div class="stat-item">
+				<i class="fas fa-clock"></i>
+				<div class="stat-text">
+					<h3>{profile.minutes_listened}</h3>
+					<p>Minutes Listened</p>
+				</div>
+			</div>
 		</div>
 
 		<form
@@ -68,11 +81,11 @@
 			bind:this={formElement}
 		>
 			<div class="form-group">
-				<label for="name">Name:</label>
+				<label for="name">Name</label>
 				<input type="text" id="name" name="name" value={profile.name ?? ''} required />
 			</div>
 			<div class="form-group">
-				<label for="experience">Experience Level:</label>
+				<label for="experience">Experience Level</label>
 				<select id="experience" name="experience" required>
 					<option value="beginner" selected={profile.experience === 'beginner'}>Beginner</option>
 					<option value="intermediate" selected={profile.experience === 'intermediate'}
@@ -82,7 +95,7 @@
 				</select>
 			</div>
 			<div class="form-group">
-				<label for="voice_id">Preferred Voice:</label>
+				<label for="voice_id">Preferred Voice</label>
 				<select id="voice_id" name="voice_id" required>
 					{#each voiceOptions as option}
 						<option value={option.id} selected={profile.voice_id === option.id}
@@ -94,132 +107,211 @@
 			<button type="submit" class="update-button">Update Profile</button>
 		</form>
 
-		<br />
 		<button class="logout-button" on:click={handleLogout}>Logout</button>
 
 		{#if showSuccessMessage}
-			<p class="message success">Profile updated successfully!</p>
+			<div class="message success">
+				<i class="fas fa-check-circle"></i>
+				Profile updated successfully!
+			</div>
 		{/if}
 
 		{#if form?.type === 'error'}
-			<p class="message error">{form.error}</p>
+			<div class="message error">
+				<i class="fas fa-exclamation-circle"></i>
+				{form.error}
+			</div>
 		{/if}
 	{:else}
-		<p>Loading profile...</p>
+		<p class="loading">Loading profile...</p>
 	{/if}
 </div>
 
 <style>
+	.profile-container {
+		width: 100%;
+		padding: 1.5rem 0;
+	}
+
 	h1 {
-		font-family: 'Poppins', sans-serif;
-		color: #333;
-		margin-bottom: 1.5rem;
-	}
-
-	.stats {
-		background-color: #e1e1e1;
-		border: 1px solid #706b5780;
-		padding: 1rem;
-		border-radius: 8px;
-		margin-bottom: 1.5rem;
-		box-shadow: 0 4px 6px #0000001a;
-	}
-
-	.stats p {
-		margin: 0;
-		font-size: 1.1rem;
+		font-family: 'Space Grotesk', sans-serif;
+		font-size: clamp(1.75rem, 4vw, 2.25rem);
 		font-weight: 600;
+		color: #1a1a1a;
+		margin-bottom: 1.5rem;
 	}
 
-	.stats span {
-		font-weight: bold;
-		color: #4caf50;
+	.stats-strip {
+		display: flex;
+		justify-content: flex-start;
+		align-items: center;
+		background-color: #e8e8e8;
+		border-radius: 12px;
+		padding: 0.75rem 1.5rem;
+		margin-bottom: 2rem;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+	}
+
+	.stat-item {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.stat-item i {
+		font-size: 1.4rem;
+		color: #333;
+	}
+
+	.stat-text {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.stat-text h3 {
+		font-size: 1.3rem;
+		margin: 0;
+		line-height: 1.2;
+		font-family: 'Space Grotesk', sans-serif;
+		color: #1a1a1a;
+	}
+
+	.stat-text p {
+		font-size: 0.8rem;
+		color: #666;
+		margin: 0;
 	}
 
 	form {
-		background-color: #e1e1e1; /* Changed from #E1E1E1 to a light gray */
-		border: 1px solid #706b5780;
+		background-color: #e8e8e8;
+		border-radius: 12px;
 		padding: 1.5rem;
-		border-radius: 8px;
-		box-shadow: 0 4px 6px #0000001a;
+		margin-bottom: 1rem;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 	}
 
 	.form-group {
-		margin-bottom: 1rem;
+		margin-bottom: 1.25rem;
 	}
 
 	label {
 		display: block;
 		margin-bottom: 0.5rem;
-		color: #333;
+		color: #1a1a1a;
+		font-size: 0.9rem;
+		font-weight: 500;
 	}
 
 	input,
 	select {
 		width: 100%;
-		padding: 0.5rem;
-		background-color: #e1e1e1;
-		border: 1px solid #ccc;
-		border-radius: 4px;
-		font-size: 1rem;
-		box-sizing: border-box; /* Added to prevent overflow */
+		padding: 0.75rem;
+		background-color: #f8f8f8;
+		border: 1px solid rgba(0, 0, 0, 0.1);
+		border-radius: 12px;
+		font-size: 0.95rem;
+		font-family: 'Inter', sans-serif;
+		color: #1a1a1a;
+	}
+
+	input:focus,
+	select:focus {
+		outline: none;
+		border-color: #1a1a1a;
 	}
 
 	.update-button,
 	.logout-button {
 		width: 100%;
-		padding: 0.75rem;
+		padding: 0.9rem 1rem;
 		border: none;
-		border-radius: 4px;
+		border-radius: 12px;
 		font-size: 1rem;
 		cursor: pointer;
-		transition: background-color 0.3s ease;
+		transition: all 0.3s ease;
+		font-family: 'Inter', sans-serif;
+		font-weight: 500;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
 	}
 
 	.update-button {
-		background-color: #4caf50;
-		color: #e1e1e1;
+		background-color: #1a1a1a;
+		color: #fff;
 		margin-bottom: 1rem;
 	}
 
 	.update-button:hover {
-		background-color: #45a049;
+		transform: translateY(-2px);
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 	}
 
 	.logout-button {
-		background-color: #f44336;
-		color: #e1e1e1;
+		background-color: #e8e8e8;
+		color: #1a1a1a;
+		border: 1px solid rgba(0, 0, 0, 0.1);
 	}
 
 	.logout-button:hover {
-		background-color: #d32f2f;
+		background-color: #f0f0f0;
+		transform: translateY(-2px);
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 	}
 
 	.message {
 		margin-top: 1rem;
 		padding: 0.75rem;
-		border-radius: 4px;
+		border-radius: 12px;
 		text-align: center;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		font-size: 0.9rem;
 	}
 
 	.success {
-		background-color: #dff0d8;
-		color: #3c763d;
+		background-color: #e8f5e9;
+		color: #2e7d32;
 	}
 
 	.error {
-		background-color: #f2dede;
-		color: #a94442;
+		background-color: #ffebee;
+		color: #c62828;
 	}
 
-	@media (max-width: 600px) {
+	.loading {
+		text-align: center;
+		color: #666;
+		font-size: 0.9rem;
+	}
+
+	@media (max-width: 480px) {
+		.stats-strip {
+			padding: 0.75rem 1rem;
+		}
+
+		.stat-item i {
+			font-size: 1.25rem;
+		}
+
+		.stat-text h3 {
+			font-size: 1.1rem;
+		}
+
+		.stat-text p {
+			font-size: 0.7rem;
+		}
+
 		form {
 			padding: 1rem;
 		}
 
 		input,
 		select {
-			font-size: 16px; /* Increased font size for better mobile readability */
+			font-size: 16px;
 		}
 	}
 </style>
