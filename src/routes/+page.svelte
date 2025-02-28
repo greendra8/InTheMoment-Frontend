@@ -82,39 +82,6 @@
 		rendering = false;
 	}
 
-	// Create silent audio to drive the visualizer
-	function createSilentAudio() {
-		if (!audioContext || !visualizer) return;
-
-		try {
-			const bufferSize = audioContext.sampleRate; // 1 second of silence is enough
-			const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
-			const data = buffer.getChannelData(0);
-
-			for (let i = 0; i < bufferSize; i++) {
-				data[i] = Math.random() * 0.1 - 0.05; // Small random noise to drive visuals
-			}
-
-			sourceNode = audioContext.createBufferSource();
-			sourceNode.buffer = buffer;
-			sourceNode.loop = true;
-
-			const gainNode = audioContext.createGain();
-			gainNode.gain.value = 0; // Mute the output
-			sourceNode.connect(gainNode);
-			gainNode.connect(audioContext.destination);
-
-			visualizer.connectAudio(sourceNode); // Connect to visualizer directly
-			sourceNode.start(0);
-
-			if (!rendering) {
-				startRenderer();
-			}
-		} catch (error) {
-			console.error('Error creating silent audio:', error);
-		}
-	}
-
 	// Optimized resize function with debouncing
 	function resizeCanvas() {
 		if (!canvas) return;
@@ -199,9 +166,9 @@
 				visualizer.loadPreset(preset, 0);
 			}
 
-			// Start audio and rendering if visible
+			// Start rendering if visible
 			if (isVisible) {
-				createSilentAudio();
+				startRenderer();
 			}
 
 			// Set up visibility observer
@@ -304,17 +271,14 @@
 		if (!orbCanvas || !orbAudio) return;
 
 		try {
-			// Create audio context
 			orbAudioContext = new (window.AudioContext || window.webkitAudioContext)();
 			orbAnalyser = orbAudioContext.createAnalyser();
 			orbAnalyser.fftSize = 1024;
 
-			// Create silent audio source for visualization
-			const bufferSize = orbAudioContext.sampleRate * 2; // 2 seconds buffer
+			const bufferSize = orbAudioContext.sampleRate * 2;
 			const buffer = orbAudioContext.createBuffer(1, bufferSize, orbAudioContext.sampleRate);
 			const data = buffer.getChannelData(0);
 
-			// Fill with minimal noise to activate analyzer
 			for (let i = 0; i < bufferSize; i++) {
 				data[i] = (Math.random() * 2 - 1) * 0.001;
 			}
@@ -322,20 +286,23 @@
 			const source = orbAudioContext.createBufferSource();
 			source.buffer = buffer;
 			source.loop = true;
-			source.connect(orbAnalyser);
-			orbAnalyser.connect(orbAudioContext.destination);
+
+			// Add gain node to mute output
+			const gainNode = orbAudioContext.createGain();
+			gainNode.gain.value = 0;
+
+			source.connect(orbAnalyser); // For visualization
+			orbAnalyser.connect(gainNode); // Pass through analyser
+			gainNode.connect(orbAudioContext.destination); // Muted output
+
 			source.start(0);
 
-			// Setup canvas size
 			const orbContainer = orbCanvas.parentElement;
 			const size = Math.min(orbContainer.clientWidth, 300);
 			orbCanvas.width = size;
 			orbCanvas.height = size;
 
-			// Initialize visualizer
 			orbVisualizer = setupAudioVisualizer(orbAudio, orbCanvas, orbAnalyser, size, size);
-
-			// Set to breathing mode
 			if (orbVisualizer) {
 				orbVisualizer.setStandbyMode(true);
 			}
