@@ -901,8 +901,8 @@
 		position: absolute;
 		top: -50%;
 		left: -50%;
-		width: 200%;
-		height: 200%;
+		width: 300%;
+		height: 300%;
 		background: linear-gradient(
 			to right,
 			rgba(255, 255, 255, 0) 0%,

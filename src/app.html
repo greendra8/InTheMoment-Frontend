@@ -13,37 +13,30 @@
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
 		integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg=="
 		crossorigin="anonymous" referrerpolicy="no-referrer" />
-	<!-- Prevent FOUC (Flash of Unstyled Content) -->
-	<!-- <style>
-		.js-loading {
-			visibility: hidden;
+	<!-- Prevent FOUC -->
+	<script>
+		const theme = localStorage.getItem('theme') || 'light';
+		document.documentElement.classList.add(theme + '-theme');
+	</script>
+	<style>
+		/* Prevent content flash during theme transition */
+		html {
+			visibility: visible;
+			opacity: 1;
+		}
+
+		html.theme-transition {
+			visibility: visible;
 			opacity: 0;
+			transition: opacity 0.15s;
 		}
 
+		/* Ensure content is visible by default */
 		body {
-			transition: opacity 0.3s ease;
+			visibility: visible;
+			opacity: 1;
 		}
-	</style> -->
-	<!-- Prevent theme flash by setting theme class before page renders -->
-	<!-- <script>
-		(function () {
-			// Add js-loading class to body
-			document.documentElement.classList.add('js-loading');
-
-			// Set the theme from localStorage
-			const storedTheme = localStorage.getItem('theme');
-			if (storedTheme === 'dark') {
-				document.documentElement.classList.add('dark-theme');
-			} else if (storedTheme === 'cosmic') {
-				document.documentElement.classList.add('cosmic-theme');
-			}
-
-			// Remove js-loading class once DOM is ready
-			window.addEventListener('DOMContentLoaded', function () {
-				document.documentElement.classList.remove('js-loading');
-			});
-		})();
-	</script> -->
+	</style>
 	%sveltekit.head%
 </head>
 
