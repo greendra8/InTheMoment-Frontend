@@ -198,7 +198,6 @@
 	<!-- Mobile Navigation -->
 	<nav
 		class="mobile-nav"
-		class:hidden={!isMobile}
 		class:solid={mobileNavSolid}
 		on:touchstart={handleMobileNavInteraction}
 		on:mousedown={handleMobileNavInteraction}
@@ -238,20 +237,26 @@
 
 	/* Desktop Navigation Styles */
 	.desktop-nav {
-		position: fixed;
-		top: 20px;
-		left: 20px;
-		background-color: var(--background-card);
-		border-radius: 25px;
-		box-shadow: 0 2px 10px var(--ui-shadow);
-		display: flex;
-		flex-direction: column;
-		padding: 15px 10px;
-		gap: 15px;
-		z-index: 1000;
-		width: auto;
-		min-width: 60px;
-		transition: all 0.3s ease;
+		display: none; /* Hidden by default */
+	}
+
+	@media (min-width: 1025px) {
+		.desktop-nav {
+			display: flex; /* Only show on desktop */
+			position: fixed;
+			top: 20px;
+			left: 20px;
+			background-color: var(--background-card);
+			border-radius: 25px;
+			box-shadow: 0 2px 10px var(--ui-shadow);
+			flex-direction: column;
+			padding: 15px 10px;
+			gap: 15px;
+			z-index: 1000;
+			width: auto;
+			min-width: 60px;
+			transition: all 0.3s ease;
+		}
 	}
 
 	.desktop-nav .nav-item {
@@ -322,17 +327,23 @@
 
 	/* Mobile Navigation Styles */
 	.mobile-nav {
-		position: fixed;
-		bottom: 0;
-		left: 0;
-		right: 0;
-		display: flex;
-		justify-content: space-around;
-		background-color: var(--background-card);
-		z-index: 1000;
-		padding: 10px 0 20px 0; /* Extra padding at bottom for iOS home indicator */
-		transition: background-color 0.3s ease;
-		border-top: 1px solid var(--ui-border);
+		display: none; /* Hidden by default */
+	}
+
+	@media (max-width: 1024px) {
+		.mobile-nav {
+			display: flex; /* Only show on mobile */
+			position: fixed;
+			bottom: 0;
+			left: 0;
+			right: 0;
+			justify-content: space-around;
+			background-color: var(--background-card);
+			z-index: 1000;
+			padding: 10px 0 20px 0;
+			transition: background-color 0.3s ease;
+			border-top: 1px solid var(--ui-border);
+		}
 	}
 
 	.mobile-nav.solid {
