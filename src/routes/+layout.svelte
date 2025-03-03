@@ -2,175 +2,102 @@
 <script lang="ts">
 	import { onNavigate, goto } from '$app/navigation';
 	import '../app.css';
-	import { invalidate } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { appContext } from '$lib/stores/appContext';
 	import { supabase } from '$lib/supabaseClient';
 	import { session as sessionStore } from '$lib/stores/session';
 	import { get } from 'svelte/store';
-	import { text, background, ui, icon } from '$lib/theme';
 	import { theme, applyTheme, type ThemeType } from '$lib/stores/theme';
 
 	export let data;
 	$: ({ navItems, isNativeApp, session, theme: serverTheme, themeClass } = data);
 
 	// Initialize theme store with server value
-	$: if (serverTheme) {
-		theme.set(serverTheme as ThemeType);
-	}
+	$: if (serverTheme) theme.set(serverTheme as ThemeType);
 
 	// Update the session store with the initial session
-	sessionStore.set(session);
+	$: if (session) sessionStore.set(session);
 
 	$: appContext.setIsNativeApp(isNativeApp);
+	$: isHomePage = $page.url.pathname === '/';
+	$: isSessionPage = $page.url.pathname.includes('/session/');
 
-	// Only handle theme changes after initial load
+	// Mobile navigation state
+	let isMobile = false;
+	let lastScrollY = 0;
+	let mobileNavSolid = true;
+	let userInteracting = false;
+
 	onMount(() => {
-		const unsubscribe = theme.subscribe((newTheme) => {
-			if (newTheme !== serverTheme) {
-				applyTheme(newTheme);
-			}
+		// Theme handling
+		const unsubTheme = theme.subscribe((newTheme) => {
+			if (newTheme !== serverTheme) applyTheme(newTheme);
 		});
 
+		// Auth handling
 		const { data: authListener } = supabase.auth.onAuthStateChange((event, newSession) => {
-			const currentSession = get(sessionStore);
-			if (newSession?.expires_at !== currentSession?.expires_at) {
+			if (newSession?.expires_at !== get(sessionStore)?.expires_at) {
 				sessionStore.set(newSession);
-			} else {
-				console.log('No session update needed');
 			}
 		});
 
-		// Add event listener for messages from React Native
+		// Mobile handling
+		const handleResize = () => (isMobile = window.innerWidth <= 1024);
+		handleResize();
+		window.addEventListener('resize', handleResize);
+
+		// Scroll handling
+		const handleScroll = () => {
+			if (!isMobile) return;
+			const currentScrollY = window.scrollY;
+			mobileNavSolid = currentScrollY < lastScrollY || currentScrollY <= 50;
+			lastScrollY = currentScrollY;
+		};
+		window.addEventListener('scroll', handleScroll, { passive: true });
+
+		// React Native message handling
 		window.addEventListener('message', handleReactNativeMessage);
 
-		// Add this debugging listener
-		window.addEventListener('message', (event) => {
-			// Ignore messages from React DevTools
-			if (event.data && event.data.source === 'react-devtools-content-script') {
-				return;
-			}
-			console.log('Received message event:', event);
-			console.log('Message data:', event.data);
-		});
-
 		return () => {
-			unsubscribe();
+			unsubTheme();
 			authListener?.subscription.unsubscribe();
+			window.removeEventListener('resize', handleResize);
+			window.removeEventListener('scroll', handleScroll);
 			window.removeEventListener('message', handleReactNativeMessage);
 		};
 	});
 
 	function handleReactNativeMessage(event: MessageEvent) {
-		// Ignore messages from React DevTools
-		if (event.data && event.data.source === 'react-devtools-content-script') {
-			return;
-		}
+		if (event.data?.source === 'react-devtools-content-script') return;
 
 		try {
-			// Check if the event data is a string and attempt to parse it
-			if (typeof event.data === 'string') {
-				const message = JSON.parse(event.data);
-				if (message.type === 'navigation') {
-					goto(message.path);
-				}
-			} else if (typeof event.data === 'object' && event.data !== null) {
-				// Handle object messages directly
-				if (event.data.type === 'navigation') {
-					goto(event.data.path);
-				}
-			} else {
-				console.warn('Received unexpected message format:', event.data);
-			}
+			const message = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+			if (message?.type === 'navigation') goto(message.path);
 		} catch (error) {
-			console.warn('Error parsing message:', event.data);
-			console.error('Parse error details:', error);
+			console.warn('Error handling message:', error);
 		}
 	}
 
-	onNavigate((navigation) => {
-		if (!document.startViewTransition) {
-			console.log('View transitions not supported');
-			return;
-		}
+	function handleMobileNavInteraction() {
+		userInteracting = true;
+		mobileNavSolid = true;
+		setTimeout(() => {
+			userInteracting = false;
+			if (window.scrollY > 50) mobileNavSolid = false;
+		}, 3000);
+	}
 
-		console.log('Starting view transition');
+	onNavigate((navigation) => {
+		if (!document.startViewTransition) return;
+
 		return new Promise((resolve) => {
 			document.startViewTransition(async () => {
 				resolve();
 				await navigation.complete;
-				console.log('View transition completed');
 			});
 		});
 	});
-
-	$: isHomePage = $page.url.pathname === '/';
-	$: isSessionPage = $page.url.pathname.includes('/session/');
-	$: navItemCount = navItems ? navItems.length : 5;
-
-	// Determine if we're on mobile or desktop for different nav rendering
-	// Set initial value based on window width if available
-	let isMobile = typeof window !== 'undefined' ? window.innerWidth <= 1024 : false;
-	let lastScrollY = 0;
-	let mobileNavSolid = true;
-	let userInteracting = false;
-
-	// Track scroll position for mobile nav transparency
-	function handleScroll() {
-		if (!isMobile) return;
-
-		const currentScrollY = window.scrollY;
-
-		// Scrolling down - make transparent
-		if (currentScrollY > lastScrollY && currentScrollY > 50) {
-			mobileNavSolid = false;
-		}
-		// Scrolling up - make solid
-		else if (currentScrollY < lastScrollY) {
-			mobileNavSolid = true;
-		}
-
-		lastScrollY = currentScrollY;
-	}
-
-	// Handle mobile nav interaction
-	function handleMobileNavInteraction() {
-		userInteracting = true;
-		mobileNavSolid = true;
-
-		// Reset after interaction
-		setTimeout(() => {
-			userInteracting = false;
-			// Only make transparent again if we've scrolled down
-			if (window.scrollY > 50 && lastScrollY > 50) {
-				mobileNavSolid = false;
-			}
-		}, 3000);
-	}
-
-	onMount(() => {
-		// Update mobile check on mount to ensure it's accurate
-		checkMobile();
-
-		// Set initial scroll position
-		lastScrollY = window.scrollY;
-
-		// Listen for resize events
-		window.addEventListener('resize', checkMobile);
-
-		// Listen for scroll events
-		window.addEventListener('scroll', handleScroll, { passive: true });
-
-		return () => {
-			window.removeEventListener('resize', checkMobile);
-			window.removeEventListener('scroll', handleScroll);
-		};
-	});
-
-	function checkMobile() {
-		isMobile = window.innerWidth <= 1024;
-	}
 </script>
 
 <svelte:head>
@@ -196,9 +123,7 @@
 			</a>
 		{/each}
 	</nav>
-{/if}
 
-{#if !$appContext.isNativeApp && !isHomePage && !isSessionPage}
 	<!-- Mobile Navigation -->
 	<nav
 		class="mobile-nav"
