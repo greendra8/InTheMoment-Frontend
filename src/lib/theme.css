@@ -1,0 +1,144 @@
+/* Theme CSS Variables */
+:root {
+    /* Text colors */
+    --text-primary: #1a1a1a;
+    --text-secondary: #666;
+    --text-light: #e8e8e8;
+    --text-error: #c62828;
+    --text-success: #2e7d32;
+
+    /* Background colors */
+    --background-main: #e1e1e1;
+    --background-card: #e8e8e8;
+    --background-cardHover: #f0f0f0;
+    --background-button: #000;
+    --background-buttonHover: #222;
+    --background-input: #f8f8f8;
+    --background-error: #ffebee;
+
+    /* UI element colors */
+    --ui-divider: #e0e0e0;
+    --ui-shadow: rgba(0, 0, 0, 0.04);
+    --ui-shadowHover: rgba(0, 0, 0, 0.08);
+    --ui-border: rgba(0, 0, 0, 0.1);
+    --ui-focus: #1a1a1a;
+    --ui-success: #4CAF50;
+    --ui-success-hover: #45a049;
+    --ui-danger: #f44336;
+    --ui-danger-hover: #d32f2f;
+    --ui-disabled: #cccccc;
+
+    /* Icon colors */
+    --icon-primary: #333;
+    --icon-secondary: #666;
+    --icon-danger: #e53935;
+
+    /* RGB values for transparency */
+    --background-card-rgb: 232, 232, 232;
+    --icon-primary-rgb: 51, 51, 51;
+    --text-primary-rgb: 26, 26, 26;
+
+    /* Add smooth transition for theme changes */
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Apply transitions to common elements to make theme switching smoother */
+body,
+button,
+input,
+textarea,
+.card,
+.stats-strip,
+.playlist-item,
+.session-item,
+.hero-section,
+.stats-section,
+.playlists-section,
+.sessions-section,
+.empty-state,
+.divider,
+i {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Dark theme - can be enabled by adding class "dark-theme" to an element */
+.dark-theme {
+    /* Text colors */
+    --text-primary: #e8e8e8;
+    --text-secondary: #a0a0a0;
+    --text-light: #1a1a1a;
+    --text-error: #ef5350;
+    --text-success: #66bb6a;
+
+    /* Background colors */
+    --background-main: #121212;
+    --background-card: #1e1e1e;
+    --background-cardHover: #2a2a2a;
+    --background-button: #e8e8e8;
+    --background-buttonHover: #d0d0d0;
+    --background-input: #2a2a2a;
+    --background-error: #4a1515;
+
+    /* UI element colors */
+    --ui-divider: #333333;
+    --ui-shadow: rgba(0, 0, 0, 0.2);
+    --ui-shadowHover: rgba(0, 0, 0, 0.4);
+    --ui-border: rgba(255, 255, 255, 0.1);
+    --ui-focus: #e8e8e8;
+    --ui-success: #43a047;
+    --ui-success-hover: #388e3c;
+    --ui-danger: #e53935;
+    --ui-danger-hover: #c62828;
+    --ui-disabled: #555555;
+
+    /* Icon colors */
+    --icon-primary: #d0d0d0;
+    --icon-secondary: #909090;
+    --icon-danger: #ef5350;
+
+    /* RGB values for transparency */
+    --background-card-rgb: 30, 30, 30;
+    --icon-primary-rgb: 208, 208, 208;
+    --text-primary-rgb: 232, 232, 232;
+}
+
+/* Cosmic theme - deep space inspired theme */
+.cosmic-theme {
+    /* Text colors */
+    --text-primary: #e0e4fc;
+    --text-secondary: #a0a8e0;
+    --text-light: #1a1a2e;
+    --text-error: #ff6b6b;
+    --text-success: #72efdd;
+
+    /* Background colors */
+    --background-main: #0f0f2d;
+    --background-card: #1a1a3a;
+    --background-cardHover: #252550;
+    --background-button: #7b68ee;
+    --background-buttonHover: #9370db;
+    --background-input: #252550;
+    --background-error: #4a1530;
+
+    /* UI element colors */
+    --ui-divider: #2d2d6d;
+    --ui-shadow: rgba(0, 0, 50, 0.3);
+    --ui-shadowHover: rgba(0, 0, 50, 0.5);
+    --ui-border: rgba(123, 104, 238, 0.3);
+    --ui-focus: #7b68ee;
+    --ui-success: #72efdd;
+    --ui-success-hover: #64dfcb;
+    --ui-danger: #ff6b6b;
+    --ui-danger-hover: #ff5252;
+    --ui-disabled: #444464;
+
+    /* Icon colors */
+    --icon-primary: #c8c8ff;
+    --icon-secondary: #8080c0;
+    --icon-danger: #ff6b6b;
+
+    /* RGB values for transparency */
+    --background-card-rgb: 26, 26, 58;
+    --icon-primary-rgb: 200, 200, 255;
+    --text-primary-rgb: 224, 228, 252;
+}

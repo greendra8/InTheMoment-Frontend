@@ -43,7 +43,7 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
       { href: '/new', label: 'New', icon: 'fa-plus' },
       { href: '/playlists', label: 'Learn', icon: 'fa-book' },
       { href: '/profile', label: 'Profile', icon: 'fa-user' },
-      ...(isAdmin ? [{ href: '/admin', label: 'Admin', icon: 'fa-cog' }] : []),
+      //...(isAdmin ? [{ href: '/admin', label: 'Admin', icon: 'fa-cog' }] : []),
     ]
     : [
       { href: '/', label: 'Home', icon: 'fa-home' },

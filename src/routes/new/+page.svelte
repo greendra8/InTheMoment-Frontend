@@ -5,6 +5,7 @@
 	import type { PageData } from './$types';
 	import { onMount, onDestroy } from 'svelte';
 	import { spring } from 'svelte/motion';
+	import { text, background, ui, icon } from '$lib/theme';
 
 	export let data: PageData;
 
@@ -372,7 +373,7 @@
 		font-family: 'Space Grotesk', sans-serif;
 		font-size: clamp(1.75rem, 4vw, 2.25rem);
 		font-weight: 600;
-		color: #1a1a1a;
+		color: var(--text-primary);
 		margin-bottom: 1.5rem;
 	}
 
@@ -388,25 +389,26 @@
 		border-radius: 12px;
 		overflow: hidden;
 		border: 1px solid rgba(0, 0, 0, 0.1);
-		background-color: #f8f8f8;
+		background-color: var(--background-card);
 	}
 
 	.tabs button {
 		flex: 1;
 		padding: 0.75rem 1rem;
 		border: none;
-		background-color: transparent;
+		background-color: var(--background-card);
+		border-radius: 12px;
 		cursor: pointer;
 		transition: all 0.3s ease;
 		font-size: 0.95rem;
 		font-weight: 500;
-		color: #555;
+		color: var(--text-secondary);
 		font-family: 'Inter', sans-serif;
 	}
 
 	.tabs button.active {
-		background-color: #1a1a1a;
-		color: #fff;
+		background-color: var(--background-button);
+		color: var(--text-light);
 	}
 
 	/* Playlist Selector */
@@ -419,7 +421,7 @@
 		margin-bottom: 0.5rem;
 		font-weight: 500;
 		font-size: 0.9rem;
-		color: #555;
+		color: var(--text-secondary);
 	}
 
 	.select-wrapper {
@@ -434,7 +436,7 @@
 		transform: translateY(-50%);
 		pointer-events: none;
 		font-size: 0.8rem;
-		color: #555;
+		color: var(--text-secondary);
 	}
 
 	.playlist-selector select {
@@ -442,16 +444,17 @@
 		padding: 0.75rem 1rem;
 		border: 1px solid rgba(0, 0, 0, 0.1);
 		border-radius: 12px;
-		background-color: #f8f8f8;
+		background-color: var(--background-cardHover);
 		font-size: 0.95rem;
 		appearance: none;
 		cursor: pointer;
 		font-family: 'Inter', sans-serif;
+		color: var(--text-primary);
 	}
 
 	.playlist-selector select:focus {
 		outline: none;
-		border-color: #1a1a1a;
+		border-color: var(--text-primary);
 	}
 
 	/* Options Container */
@@ -474,7 +477,7 @@
 
 	.option-note {
 		font-size: 0.7rem;
-		color: #777;
+		color: var(--text-secondary);
 		font-style: italic;
 	}
 
@@ -482,12 +485,12 @@
 		margin: 0;
 		font-size: 0.9rem;
 		font-weight: 500;
-		color: #555;
+		color: var(--text-secondary);
 	}
 
 	.sliding-checkbox {
 		display: flex;
-		background-color: #f8f8f8;
+		background-color: var(--background-cardHover);
 		border: 1px solid rgba(0, 0, 0, 0.1);
 		border-radius: 12px;
 		overflow: hidden;
@@ -501,7 +504,7 @@
 		left: 0;
 		width: calc(100% / var(--option-count));
 		height: 100%;
-		background-color: #1a1a1a;
+		background-color: var(--background-button);
 		transition: transform 0.3s ease;
 	}
 
@@ -519,11 +522,11 @@
 		flex-direction: column;
 		align-items: center;
 		transition: color 0.3s ease;
-		color: #555;
+		color: var(--text-secondary);
 	}
 
 	.option-content.selected {
-		color: #fff;
+		color: var(--text-light);
 	}
 
 	.option i {
@@ -550,13 +553,13 @@
 		margin-bottom: 0.5rem;
 		font-size: 0.9rem;
 		font-weight: 500;
-		color: #555;
+		color: var(--text-secondary);
 	}
 
 	.duration-value {
 		font-weight: 600;
-		color: #1a1a1a;
-		background: #f8f8f8;
+		color: var(--text-primary);
+		background: var(--background-cardHover);
 		padding: 0.2rem 0.6rem;
 		border-radius: 12px;
 		font-size: 0.85rem;
@@ -574,7 +577,7 @@
 		left: 0;
 		right: 0;
 		height: 8px;
-		background: #f0f0f0;
+		background: var(--background-cardHover);
 		border-radius: 4px;
 		transform: translateY(-50%);
 		pointer-events: none;
@@ -585,7 +588,7 @@
 		top: 0;
 		left: 0;
 		height: 100%;
-		background: #1a1a1a;
+		background: var(--background-button);
 		border-radius: 4px;
 		pointer-events: none;
 	}
@@ -625,23 +628,22 @@
 		appearance: none;
 		width: 20px;
 		height: 20px;
-		background: #fff;
-		border: 2px solid #1a1a1a;
+		background: var(--background-card);
+		border: 2px solid var(--text-primary);
 		border-radius: 50%;
 		cursor: pointer;
 		margin-top: -6px;
-		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+		box-shadow: 0 2px 4px var(--ui-shadow);
 	}
 
 	.duration-slider input::-moz-range-thumb {
 		width: 20px;
 		height: 20px;
-		background: #fff;
-		border: 2px solid #1a1a1a;
+		background: var(--background-card);
+		border: 2px solid var(--text-primary);
 		border-radius: 50%;
 		cursor: pointer;
-		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-		border: 2px solid #1a1a1a;
+		box-shadow: 0 2px 4px var(--ui-shadow);
 	}
 
 	/* Generate Button */
@@ -649,8 +651,8 @@
 		width: 100%;
 		padding: 0.9rem 1rem;
 		font-size: 1rem;
-		background-color: #1a1a1a;
-		color: #fff;
+		background-color: var(--background-button);
+		color: var(--text-light);
 		border: none;
 		border-radius: 12px;
 		cursor: pointer;
@@ -661,21 +663,21 @@
 		gap: 0.5rem;
 		font-family: 'Inter', sans-serif;
 		font-weight: 500;
-		box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+		box-shadow: 0 4px 10px var(--ui-shadow);
 	}
 
 	.generate-btn:hover {
 		transform: translateY(-2px);
-		box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+		box-shadow: 0 6px 15px var(--ui-shadowHover);
 	}
 
 	.generate-btn:active {
 		transform: translateY(1px);
-		box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+		box-shadow: 0 2px 5px var(--ui-shadow);
 	}
 
 	.generate-btn:disabled {
-		background-color: #ccc;
+		background-color: var(--ui-disabled);
 		cursor: not-allowed;
 		transform: none;
 		box-shadow: none;
@@ -690,12 +692,12 @@
 		margin-top: 1rem;
 		padding: 0.75rem;
 		font-size: 0.9rem;
-		color: #555;
+		color: var(--text-secondary);
 		text-align: center;
 	}
 
 	.generating-message i {
-		color: #1a1a1a;
+		color: var(--text-primary);
 	}
 
 	.error {

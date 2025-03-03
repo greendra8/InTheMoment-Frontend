@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import { goto } from '$app/navigation';
+	import { text, background, ui, icon } from '$lib/theme';
 
 	export let data: PageData;
 </script>
@@ -56,13 +57,13 @@
 		font-family: 'Space Grotesk', sans-serif;
 		font-size: clamp(1.75rem, 4vw, 2.25rem);
 		font-weight: 600;
-		color: #1a1a1a;
+		color: var(--text-primary);
 		margin-bottom: 1.5rem;
 	}
 
 	.info-label {
 		font-size: 0.9rem;
-		color: #666;
+		color: var(--text-secondary);
 		margin-bottom: 1.5rem;
 		display: flex;
 		align-items: center;
@@ -76,15 +77,15 @@
 	}
 
 	.playlist-card {
-		background-color: #e8e8e8;
-		color: #1a1a1a;
+		background-color: var(--background-card);
+		color: var(--text-primary);
 		border-radius: 12px;
 		padding: 1.5rem;
 		cursor: pointer;
 		transition: all 0.3s ease;
 		position: relative;
 		overflow: hidden;
-		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+		box-shadow: 0 2px 8px var(--ui-shadow);
 	}
 
 	.playlist-card.full-width {
@@ -121,13 +122,13 @@
 
 	.playlist-card:hover {
 		transform: translateY(-2px);
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+		box-shadow: 0 4px 12px var(--ui-shadowHover);
 	}
 
 	.playlist-icon {
 		font-size: 2rem;
 		margin-bottom: 0.5rem;
-		color: #1a1a1a;
+		color: var(--icon-primary);
 	}
 
 	.playlist-card h2 {
@@ -136,7 +137,7 @@
 		font-weight: 500;
 		margin: 0;
 		line-height: 1.2;
-		color: #1a1a1a;
+		color: var(--text-primary);
 	}
 
 	.playlist-arrow {
@@ -146,7 +147,7 @@
 		font-size: 1rem;
 		opacity: 0;
 		transition: all 0.3s ease;
-		color: #1a1a1a;
+		color: var(--icon-primary);
 	}
 
 	.full-width .playlist-arrow {

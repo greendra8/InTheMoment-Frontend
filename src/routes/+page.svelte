@@ -585,34 +585,6 @@
 </div>
 
 <style>
-	/* Base Styles */
-	:global(body) {
-		/* These styles are now in app.css */
-	}
-
-	/* Homepage specific background override */
-	:global(.homepage-content) {
-		background-color: #fff !important;
-	}
-
-	/* Ensure the homepage has proper bottom padding */
-	:global(.homepage-content) {
-		padding-bottom: 80px !important;
-	}
-
-	/* Ensure homepage styles don't leak to other pages */
-	:global(.homepage-content) h1,
-	:global(.homepage-content) h2,
-	:global(.homepage-content) h3,
-	:global(.homepage-content) h4,
-	h1,
-	h2,
-	h3,
-	h4 {
-		font-family: 'Space Grotesk', sans-serif;
-		font-weight: 600;
-	}
-
 	.container {
 		max-width: 1200px;
 		margin: 0 auto;
@@ -663,7 +635,6 @@
 		z-index: 2;
 		padding: 2rem;
 		box-sizing: border-box;
-		color: white;
 		background: rgba(0, 0, 0, 0.25);
 	}
 
@@ -679,6 +650,7 @@
 	}
 
 	.hero-content h1 {
+		color: #fff;
 		font-size: clamp(3rem, 6vw, 5rem);
 		margin-bottom: 1.5rem;
 		text-align: center;
@@ -924,6 +896,7 @@
 
 	.benefit-tag {
 		background-color: #f0f0f0;
+		color: #1a1a1a;
 		border-radius: 50px;
 		padding: 0.8rem 1.5rem;
 		display: flex;

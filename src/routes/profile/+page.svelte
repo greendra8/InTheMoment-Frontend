@@ -3,6 +3,8 @@
 	import { enhance } from '$app/forms';
 	import { invalidate } from '$app/navigation';
 	import { supabase } from '$lib/supabaseClient';
+	import ThemeToggle from '../../components/ThemeToggle.svelte';
+	import { theme } from '$lib/stores/theme';
 
 	export let data: PageData;
 	export let form: ActionData;
@@ -107,6 +109,18 @@
 			<button type="submit" class="update-button">Update Profile</button>
 		</form>
 
+		<div class="theme-section">
+			<h2>Appearance</h2>
+			<div class="theme-toggle-wrapper">
+				<span class="theme-label">Theme</span>
+				<div class="theme-toggle-container">
+					<span class="theme-mode-label">Light</span>
+					<ThemeToggle />
+					<span class="theme-mode-label">Dark</span>
+				</div>
+			</div>
+		</div>
+
 		<button class="logout-button" on:click={handleLogout}>Logout</button>
 
 		{#if showSuccessMessage}
@@ -133,23 +147,32 @@
 		padding: 1.5rem 0;
 	}
 
-	h1 {
+	h1,
+	h2 {
 		font-family: 'Space Grotesk', sans-serif;
-		font-size: clamp(1.75rem, 4vw, 2.25rem);
 		font-weight: 600;
-		color: #1a1a1a;
+		color: var(--text-primary);
+	}
+
+	h1 {
+		font-size: clamp(1.75rem, 4vw, 2.25rem);
 		margin-bottom: 1.5rem;
+	}
+
+	h2 {
+		font-size: 1.3rem;
+		margin-bottom: 1rem;
 	}
 
 	.stats-strip {
 		display: flex;
 		justify-content: flex-start;
 		align-items: center;
-		background-color: #e8e8e8;
+		background-color: var(--background-card);
 		border-radius: 12px;
 		padding: 0.75rem 1.5rem;
 		margin-bottom: 2rem;
-		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+		box-shadow: 0 2px 8px var(--ui-shadow);
 	}
 
 	.stat-item {
@@ -160,7 +183,7 @@
 
 	.stat-item i {
 		font-size: 1.4rem;
-		color: #333;
+		color: var(--icon-primary);
 	}
 
 	.stat-text {
@@ -173,21 +196,21 @@
 		margin: 0;
 		line-height: 1.2;
 		font-family: 'Space Grotesk', sans-serif;
-		color: #1a1a1a;
+		color: var(--text-primary);
 	}
 
 	.stat-text p {
 		font-size: 0.8rem;
-		color: #666;
+		color: var(--text-secondary);
 		margin: 0;
 	}
 
 	form {
-		background-color: #e8e8e8;
+		background-color: var(--background-card);
 		border-radius: 12px;
 		padding: 1.5rem;
 		margin-bottom: 1rem;
-		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+		box-shadow: 0 2px 8px var(--ui-shadow);
 	}
 
 	.form-group {
@@ -197,7 +220,7 @@
 	label {
 		display: block;
 		margin-bottom: 0.5rem;
-		color: #1a1a1a;
+		color: var(--text-primary);
 		font-size: 0.9rem;
 		font-weight: 500;
 	}
@@ -206,18 +229,52 @@
 	select {
 		width: 100%;
 		padding: 0.75rem;
-		background-color: #f8f8f8;
+		background-color: var(--background-cardHover);
 		border: 1px solid rgba(0, 0, 0, 0.1);
 		border-radius: 12px;
 		font-size: 0.95rem;
 		font-family: 'Inter', sans-serif;
-		color: #1a1a1a;
+		color: var(--text-primary);
 	}
 
 	input:focus,
 	select:focus {
 		outline: none;
-		border-color: #1a1a1a;
+		border-color: var(--text-primary);
+	}
+
+	.theme-section {
+		background-color: var(--background-card);
+		border-radius: 12px;
+		padding: 1.5rem;
+		margin-bottom: 1rem;
+		box-shadow: 0 2px 8px var(--ui-shadow);
+	}
+
+	.theme-toggle-wrapper {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	.theme-label {
+		font-size: 0.9rem;
+		font-weight: 500;
+		color: var(--text-primary);
+	}
+
+	.theme-toggle-container {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		background-color: var(--background-cardHover);
+		border-radius: 12px;
+		padding: 0.75rem 1.25rem;
+	}
+
+	.theme-mode-label {
+		font-size: 0.9rem;
+		color: var(--text-secondary);
 	}
 
 	.update-button,
@@ -238,26 +295,26 @@
 	}
 
 	.update-button {
-		background-color: #1a1a1a;
-		color: #fff;
+		background-color: var(--background-button);
+		color: var(--text-light);
 		margin-bottom: 1rem;
 	}
 
 	.update-button:hover {
 		transform: translateY(-2px);
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+		box-shadow: 0 4px 12px var(--ui-shadowHover);
 	}
 
 	.logout-button {
-		background-color: #e8e8e8;
-		color: #1a1a1a;
+		background-color: var(--background-card);
+		color: var(--text-primary);
 		border: 1px solid rgba(0, 0, 0, 0.1);
 	}
 
 	.logout-button:hover {
-		background-color: #f0f0f0;
+		background-color: var(--background-cardHover);
 		transform: translateY(-2px);
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+		box-shadow: 0 4px 12px var(--ui-shadowHover);
 	}
 
 	.message {
@@ -284,7 +341,7 @@
 
 	.loading {
 		text-align: center;
-		color: #666;
+		color: var(--text-secondary);
 		font-size: 0.9rem;
 	}
 
@@ -305,7 +362,8 @@
 			font-size: 0.7rem;
 		}
 
-		form {
+		form,
+		.theme-section {
 			padding: 1rem;
 		}
 

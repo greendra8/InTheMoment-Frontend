@@ -9,6 +9,7 @@
 	import { writable } from 'svelte/store';
 	import { fly, slide } from 'svelte/transition';
 	import AudioPlayer from './AudioPlayer.svelte';
+	import { text, background, ui, icon } from '$lib/theme';
 
 	export let data: PageData;
 	const { meditation, userId, feedback } = data;
@@ -227,6 +228,10 @@
 			padding-bottom: 0 !important;
 		}
 	</style>
+	<link
+		href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
+		rel="stylesheet"
+	/>
 </svelte:head>
 
 <div class="meditation-page" style="height: {realViewportHeight}px; --background-image: url({bg});">
@@ -392,19 +397,21 @@
 	}
 
 	h2 {
+		font-family: 'Space Grotesk', sans-serif;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		font-size: 1.6rem;
+		font-size: clamp(1.25rem, 4vw, 1.6rem);
 		font-weight: 600;
 		color: #333;
-		margin-bottom: 0.5rem;
+		margin-bottom: clamp(0.3rem, 2vw, 0.5rem);
 	}
 
 	.title-wrapper {
+		font-family: 'Space Grotesk', sans-serif;
 		position: relative;
 		display: inline-block;
-		padding-top: 2rem; /* Space above the title */
+		padding-top: clamp(1.5rem, 4vw, 2rem);
 	}
 
 	.listened-icon {
@@ -412,7 +419,7 @@
 		top: 0;
 		left: 50%;
 		transform: translateX(-50%);
-		font-size: 0.9rem;
+		font-size: clamp(0.8rem, 2.5vw, 0.9rem);
 		color: #4caf50;
 	}
 
@@ -425,8 +432,8 @@
 		display: flex;
 		justify-content: center;
 		flex-wrap: wrap;
-		gap: 1rem;
-		font-size: 0.9rem;
+		gap: clamp(0.5rem, 2vw, 1rem);
+		font-size: clamp(0.875rem, 2.5vw, 1rem);
 		color: #666;
 	}
 
@@ -449,11 +456,11 @@
    ======================= */
 	.navigation-controls {
 		position: absolute;
-		top: 1.3rem;
-		left: 1.5rem;
-		right: 1.5rem;
+		top: clamp(1rem, 3vw, 1.3rem);
+		left: clamp(1rem, 3vw, 1.5rem);
+		right: clamp(1rem, 3vw, 1.5rem);
 		display: flex;
-		justify-content: flex-end; /* Change this to align menu to the right */
+		justify-content: flex-end;
 		align-items: center;
 		z-index: 1;
 	}
@@ -462,9 +469,9 @@
 	.back-icon {
 		display: none;
 		background-color: #f5f5f5;
-		border-radius: 1rem;
-		height: 2rem;
-		padding: 0 0.8rem;
+		border-radius: clamp(0.75rem, 2vw, 1rem);
+		height: clamp(1.75rem, 5vw, 2rem);
+		padding: 0 clamp(0.6rem, 2vw, 0.8rem);
 		color: #333;
 		justify-content: center;
 		align-items: center;
@@ -473,7 +480,8 @@
 		transition:
 			background-color 0.3s ease,
 			opacity 0.3s ease;
-		margin-right: auto; /* Push it to the left */
+		margin-right: auto;
+		font-size: clamp(0.875rem, 2.5vw, 1rem);
 	}
 
 	.back-icon:hover {
@@ -487,10 +495,10 @@
 
 	/* Menu Icon - Always Visible */
 	.menu-icon {
-		background-color: #f5f5f5;
-		border-radius: 1rem;
-		height: 2rem;
-		padding: 0 0.8rem;
+		background-color: var(--background-card);
+		border-radius: clamp(0.75rem, 2vw, 1rem);
+		height: clamp(1.75rem, 5vw, 2rem);
+		padding: 0 clamp(0.6rem, 2vw, 0.8rem);
 		color: #333;
 		display: flex;
 		justify-content: center;
@@ -501,24 +509,24 @@
 	}
 
 	.menu-icon:active {
-		background-color: #e0e0e0;
+		background-color: var(--ui-divider);
 	}
 
 	.menu-icon i {
-		font-size: 1.2rem;
-		color: #333;
+		font-size: clamp(1rem, 3vw, 1.2rem);
+		color: var(--icon-primary);
 	}
 
 	/* Dropdown Menu */
 	.menu {
 		position: absolute;
-		top: 3.5rem;
-		right: 1.5rem;
-		background-color: #efefef;
-		border-radius: 0.5rem;
-		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+		top: clamp(3rem, 8vw, 3.5rem);
+		right: clamp(1rem, 3vw, 1.5rem);
+		background-color: var(--background-card);
+		border-radius: clamp(0.4rem, 1.5vw, 0.5rem);
+		box-shadow: 0 2px 8px var(--ui-shadow);
 		z-index: 2;
-		overflow: hidden; /* This ensures the child elements don't overflow the rounded corners */
+		overflow: hidden;
 	}
 
 	.menu ul {
@@ -528,7 +536,8 @@
 	}
 
 	.menu li {
-		padding: 0.8rem 1.2rem;
+		padding: clamp(0.6rem, 2vw, 0.8rem) clamp(0.8rem, 3vw, 1.2rem);
+		font-size: clamp(0.875rem, 2.5vw, 1rem);
 		cursor: pointer;
 		transition: background-color 0.2s ease;
 		position: relative;
@@ -542,11 +551,11 @@
 		transform: translateX(-50%);
 		width: 30%;
 		height: 1px;
-		background-color: #e0e0e0;
+		background-color: var(--ui-divider);
 	}
 
 	.menu li:hover {
-		background-color: #e9e9e9;
+		background-color: var(--background-cardHover);
 	}
 
 	/* =======================
@@ -584,7 +593,7 @@
 		max-width: 40rem;
 		height: 100%;
 		padding: 0 1rem 0.5rem;
-		background-color: #efefef;
+		background-color: var(--background-card);
 		border-radius: 0.5rem 0.5rem 0 0;
 		box-sizing: border-box;
 		margin-top: 0;
@@ -592,12 +601,14 @@
 
 	.show-feedback-button,
 	.hide-feedback-button {
-		margin-bottom: 2rem;
-		padding: 0.5rem 1rem;
-		background-color: #f5f5f5;
-		color: #333;
+		margin-bottom: clamp(1.5rem, 4vw, 2rem);
+		padding: clamp(0.4rem, 1.5vw, 0.5rem) clamp(0.8rem, 2.5vw, 1rem);
+		font-size: clamp(0.875rem, 2.5vw, 1rem);
+		font-family: 'Space Grotesk', sans-serif;
+		background-color: var(--background-cardHover);
+		color: var(--text-primary);
 		border: none;
-		border-radius: 1rem;
+		border-radius: clamp(0.4rem, 1.5vw, 0.5rem);
 		cursor: pointer;
 		transition: background-color 0.3s ease;
 		opacity: 0.9;
@@ -635,16 +646,16 @@
    ======================= */
 	@media (max-width: 600px) {
 		.meditation-page {
-			margin: 0 -1.875rem;
+			margin: 0 -1rem;
 		}
 
 		.meditation-content {
-			padding: 0.625rem;
+			padding: clamp(0.5rem, 2vw, 0.625rem);
 		}
 
 		.navigation-controls {
-			left: 1rem;
-			right: 1rem;
+			left: clamp(0.75rem, 2vw, 1rem);
+			right: clamp(0.75rem, 2vw, 1rem);
 		}
 
 		/* Show Back Icon on Mobile */
@@ -653,8 +664,12 @@
 		}
 
 		.feedback-controls-wrapper {
-			max-width: 85%;
-			bottom: 9rem;
+			max-width: clamp(80%, 85vw, 85%);
+			bottom: 7rem;
+		}
+
+		.feedback-container {
+			padding: 0 clamp(0.75rem, 2vw, 1.25rem) clamp(0.75rem, 2vw, 1.25rem);
 		}
 	}
 

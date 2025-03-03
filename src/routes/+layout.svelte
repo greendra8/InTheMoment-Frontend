@@ -9,6 +9,8 @@
 	import { supabase } from '$lib/supabaseClient';
 	import { session as sessionStore } from '$lib/stores/session';
 	import { get } from 'svelte/store';
+	import { text, background, ui, icon } from '$lib/theme';
+	import { theme, applyTheme } from '$lib/stores/theme';
 
 	export let data;
 	$: ({ navItems, isNativeApp, session } = data);
@@ -18,7 +20,16 @@
 
 	$: appContext.setIsNativeApp(isNativeApp);
 
+	// Ensure theme is applied on initial load and when theme changes
 	onMount(() => {
+		// Apply current theme from store
+		applyTheme($theme);
+
+		// Subscribe to theme changes
+		const unsubscribe = theme.subscribe((newTheme) => {
+			applyTheme(newTheme);
+		});
+
 		const { data: authListener } = supabase.auth.onAuthStateChange((event, newSession) => {
 			const currentSession = get(sessionStore);
 			if (newSession?.expires_at !== currentSession?.expires_at) {
@@ -42,6 +53,7 @@
 		});
 
 		return () => {
+			unsubscribe();
 			authListener?.subscription.unsubscribe();
 			window.removeEventListener('message', handleReactNativeMessage);
 		};
@@ -91,6 +103,7 @@
 	});
 
 	$: isHomePage = $page.url.pathname === '/';
+	$: isSessionPage = $page.url.pathname.includes('/session/');
 	$: navItemCount = navItems ? navItems.length : 5;
 
 	// Determine if we're on mobile or desktop for different nav rendering
@@ -174,7 +187,9 @@
 			</a>
 		{/each}
 	</nav>
+{/if}
 
+{#if !$appContext.isNativeApp && !isHomePage && !isSessionPage}
 	<!-- Mobile Navigation -->
 	<nav
 		class="mobile-nav"
@@ -219,9 +234,9 @@
 		position: fixed;
 		top: 20px;
 		left: 20px;
-		background-color: #eaeaea;
+		background-color: var(--background-card);
 		border-radius: 25px;
-		box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+		box-shadow: 0 2px 10px var(--ui-shadow);
 		display: flex;
 		flex-direction: column;
 		padding: 15px 10px;
@@ -235,7 +250,7 @@
 	.desktop-nav .nav-item {
 		display: flex;
 		align-items: center;
-		color: #333;
+		color: var(--text-primary);
 		text-decoration: none;
 		transition: all 0.2s ease;
 		position: relative;
@@ -245,7 +260,7 @@
 	}
 
 	.desktop-nav .nav-item:hover {
-		background-color: rgba(0, 0, 0, 0.05);
+		background-color: var(--background-card-hover);
 	}
 
 	.desktop-nav .icon-container {
@@ -256,7 +271,7 @@
 		justify-content: center;
 		align-items: center;
 		background-color: transparent;
-		color: #333;
+		color: var(--icon-primary);
 		transition:
 			background-color 0.3s ease,
 			color 0.3s ease;
@@ -265,8 +280,8 @@
 	}
 
 	.desktop-nav .nav-item.active .icon-container {
-		background-color: #000;
-		color: #fff;
+		background-color: var(--background-button);
+		color: var(--text-light);
 	}
 
 	.desktop-nav .nav-item i {
@@ -276,7 +291,7 @@
 	.desktop-nav .nav-label {
 		font-family: 'Poppins', sans-serif;
 		font-weight: 500;
-		color: #4c4c4c;
+		color: var(--text-secondary);
 		transition:
 			opacity 0.3s ease,
 			max-width 0.3s ease,
@@ -294,7 +309,7 @@
 	}
 
 	.desktop-nav .nav-item.active .nav-label {
-		color: #000;
+		color: var(--text-primary);
 		font-weight: 600;
 	}
 
@@ -306,19 +321,19 @@
 		right: 0;
 		display: flex;
 		justify-content: space-around;
-		background-color: rgba(225, 225, 225, 1);
+		background-color: var(--background-card);
 		z-index: 1000;
 		padding: 10px 0 20px 0; /* Extra padding at bottom for iOS home indicator */
 		transition: background-color 0.3s ease;
-		border-top: 1px solid rgba(0, 0, 0, 0.1);
+		border-top: 1px solid var(--ui-border);
 	}
 
 	.mobile-nav.solid {
-		background-color: rgba(225, 225, 225, 1);
+		background-color: var(--background-card);
 	}
 
 	.mobile-nav:not(.solid) {
-		background-color: rgba(225, 225, 225, 0.8);
+		background-color: var(--background-card-transparent);
 	}
 
 	.mobile-nav .nav-item {
@@ -326,7 +341,7 @@
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		color: #777;
+		color: var(--text-secondary);
 		text-decoration: none;
 		padding: 8px 0;
 		flex: 1;
@@ -348,7 +363,7 @@
 		justify-content: center;
 		align-items: center;
 		margin-bottom: 5px;
-		color: #777;
+		color: var(--icon-secondary);
 		transition: all 0.3s ease;
 		will-change: color, opacity;
 	}
@@ -365,24 +380,24 @@
 	}
 
 	.mobile-nav .nav-item.active {
-		color: #000;
+		color: var(--text-primary);
 	}
 
 	.mobile-nav .nav-item.active i {
-		color: #000;
+		color: var(--icon-primary);
 	}
 
 	.mobile-nav .nav-item.active.faded i {
-		color: rgba(0, 0, 0, 0.85);
+		color: var(--icon-primary-faded);
 	}
 
 	.mobile-nav .nav-item.active .nav-label {
-		color: #000;
+		color: var(--text-primary);
 		font-weight: 600;
 	}
 
 	.mobile-nav .nav-item.active.faded .nav-label {
-		color: rgba(0, 0, 0, 0.85);
+		color: var(--text-primary-faded);
 	}
 
 	main.full-width .content-container {
@@ -456,5 +471,18 @@
 		::view-transition-new(*) {
 			animation: none !important;
 		}
+	}
+
+	/* Define CSS variables for transparent and faded variants */
+	:root {
+		--background-card-transparent: rgba(var(--background-card-rgb), 0.8);
+		--icon-primary-faded: rgba(var(--icon-primary-rgb), 0.85);
+		--text-primary-faded: rgba(var(--text-primary-rgb), 0.85);
+	}
+
+	.theme-toggle-container {
+		display: flex;
+		justify-content: center;
+		margin-top: 10px;
 	}
 </style>

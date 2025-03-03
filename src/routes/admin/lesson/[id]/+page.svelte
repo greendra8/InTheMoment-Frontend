@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { goto, invalidateAll } from '$app/navigation';
 	import type { PageData, ActionData } from './$types';
+	import { text, background, ui, icon } from '$lib/theme';
 
 	export let data: PageData;
 	export let form: ActionData;
@@ -10,11 +11,17 @@
 	let isUpdating = false;
 	let updateSuccess = false;
 
-	function handleUpdate({ form, data, action, cancel }) {
+	function handleUpdate() {
 		isUpdating = true;
 		updateSuccess = false;
 
-		return async ({ result, update }) => {
+		return async ({
+			result,
+			update
+		}: {
+			result: any;
+			update: (options?: { reset: boolean }) => Promise<void>;
+		}) => {
 			isUpdating = false;
 			if (result.type === 'success') {
 				updateSuccess = true;
@@ -105,8 +112,8 @@
 			class="delete-button"
 			on:click|preventDefault={() => {
 				if (confirm('Are you sure you want to delete this lesson?')) {
-					const form = document.querySelector('form[action="?/deleteLesson"]');
-					form?.requestSubmit();
+					const form = document.querySelector('form[action="?/deleteLesson"]') as HTMLFormElement;
+					if (form) form.submit();
 				}
 			}}
 		>
@@ -123,7 +130,7 @@
 	.back-link {
 		display: inline-block;
 		margin-bottom: 20px;
-		color: #333;
+		color: var(--text-primary);
 		text-decoration: none;
 	}
 
@@ -140,15 +147,17 @@
 	textarea {
 		width: 100%;
 		padding: 10px;
-		border: 1px solid #ccc;
+		border: 1px solid var(--ui-border);
 		border-radius: 4px;
 		box-sizing: border-box;
+		background-color: var(--background-input);
+		color: var(--text-primary);
 	}
 
 	button {
 		padding: 10px 15px;
-		background-color: #4caf50;
-		color: #e1e1e1;
+		background-color: var(--ui-success);
+		color: var(--text-light);
 		border: none;
 		cursor: pointer;
 		transition: background-color 0.3s;
@@ -156,11 +165,11 @@
 	}
 
 	button:hover {
-		background-color: #45a049;
+		background-color: var(--ui-success-hover);
 	}
 
 	button:disabled {
-		background-color: #cccccc;
+		background-color: var(--ui-disabled);
 		cursor: not-allowed;
 	}
 
@@ -170,20 +179,20 @@
 
 	.delete-button {
 		float: left;
-		background-color: #f44336;
+		background-color: var(--ui-danger);
 	}
 
 	.delete-button:hover {
-		background-color: #d32f2f;
+		background-color: var(--ui-danger-hover);
 	}
 
 	.error {
-		color: #f44336;
+		color: var(--text-error);
 		margin-top: 20px;
 	}
 
 	.success {
-		color: #4caf50;
+		color: var(--text-success);
 		margin-top: 20px;
 	}
 </style>

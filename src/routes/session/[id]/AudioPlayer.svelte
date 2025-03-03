@@ -562,7 +562,7 @@
 	@media (max-width: 600px) {
 		.controls-wrapper {
 			max-width: 85%;
-			bottom: 8rem;
+			bottom: 6rem;
 		}
 
 		.volume-control {

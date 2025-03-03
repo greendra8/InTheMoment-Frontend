@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { getUserMeditations } from '$lib/api';
 	import type { PageData } from './$types';
+	import { text, background, ui, icon } from '$lib/theme';
 
 	export let data: PageData;
 
@@ -130,7 +131,7 @@
 		font-family: 'Space Grotesk', sans-serif;
 		font-size: clamp(1.75rem, 4vw, 2.25rem);
 		font-weight: 600;
-		color: #1a1a1a;
+		color: var(--text-primary);
 		margin-bottom: 1.5rem;
 	}
 
@@ -145,14 +146,14 @@
 		font-family: 'Space Grotesk', sans-serif;
 		font-size: 1.5rem;
 		font-weight: 500;
-		color: #1a1a1a;
+		color: var(--text-primary);
 		margin: 0;
 	}
 
 	.meditation-count {
 		font-size: 0.9rem;
-		color: #666;
-		background-color: #e8e8e8;
+		color: var(--text-secondary);
+		background-color: var(--background-card);
 		padding: 0.4rem 0.75rem;
 		border-radius: 8px;
 	}
@@ -169,16 +170,16 @@
 	li {
 		display: flex;
 		align-items: center;
-		background-color: #e8e8e8;
+		background-color: var(--background-card);
 		border-radius: 12px;
 		padding: 1rem;
 		transition: all 0.2s ease;
-		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+		box-shadow: 0 2px 8px var(--ui-shadow);
 	}
 
 	li:hover {
 		transform: translateY(-2px);
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+		box-shadow: 0 4px 12px var(--ui-shadowHover);
 	}
 
 	li.processing {
@@ -193,12 +194,12 @@
 	.meditation-info h3 {
 		font-size: 1.1rem;
 		margin: 0 0 0.3rem 0;
-		color: #1a1a1a;
+		color: var(--text-primary);
 	}
 
 	.meditation-info p {
 		font-size: 0.9rem;
-		color: #666;
+		color: var(--text-secondary);
 		margin: 0.2rem 0;
 	}
 
@@ -206,7 +207,7 @@
 		display: flex;
 		gap: 1rem;
 		font-size: 0.85rem;
-		color: #666;
+		color: var(--text-secondary);
 	}
 
 	.meditation-meta i {
@@ -216,8 +217,8 @@
 	.play-button {
 		width: 40px;
 		height: 40px;
-		background-color: #1a1a1a;
-		color: #fff;
+		background-color: var(--background-button);
+		color: var(--text-light);
 		border-radius: 50%;
 		display: flex;
 		align-items: center;
@@ -230,14 +231,14 @@
 
 	.play-button:hover {
 		transform: scale(1.05);
-		background-color: #000;
+		background-color: var(--background-buttonHover);
 	}
 
 	.processing-icon {
 		width: 40px;
 		height: 40px;
-		background-color: #f0f0f0;
-		color: #666;
+		background-color: var(--background-cardHover);
+		color: var(--text-secondary);
 		border-radius: 50%;
 		display: flex;
 		align-items: center;
@@ -255,8 +256,8 @@
 	.load-more-btn {
 		width: 100%;
 		padding: 0.9rem 1rem;
-		background-color: #1a1a1a;
-		color: #fff;
+		background-color: var(--background-button);
+		color: var(--text-light);
 		border: none;
 		border-radius: 12px;
 		cursor: pointer;
@@ -272,7 +273,7 @@
 
 	.load-more-btn:hover {
 		transform: translateY(-2px);
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+		box-shadow: 0 4px 12px var(--ui-shadowHover);
 	}
 
 	.load-more-btn:disabled {
@@ -285,9 +286,9 @@
 	.empty-state {
 		text-align: center;
 		padding: 2rem;
-		background-color: #e8e8e8;
+		background-color: var(--background-card);
 		border-radius: 12px;
-		color: #666;
+		color: var(--text-secondary);
 		margin-top: 1rem;
 	}
 
@@ -304,8 +305,8 @@
 	.create-new-btn {
 		display: inline-block;
 		padding: 0.9rem 1.5rem;
-		background-color: #1a1a1a;
-		color: #fff;
+		background-color: var(--background-button);
+		color: var(--text-light);
 		text-decoration: none;
 		border-radius: 12px;
 		font-family: 'Inter', sans-serif;
@@ -315,7 +316,7 @@
 
 	.create-new-btn:hover {
 		transform: translateY(-2px);
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+		box-shadow: 0 4px 12px var(--ui-shadowHover);
 	}
 
 	.message {

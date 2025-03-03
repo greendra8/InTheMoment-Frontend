@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 	import type { PageData } from './$types';
+	import { text, background, ui, icon } from '$lib/theme';
 
 	export let data: PageData;
 	export let form;
@@ -95,7 +96,7 @@
 		font-family: 'Space Grotesk', sans-serif;
 		font-size: clamp(1.75rem, 4vw, 2.25rem);
 		font-weight: 600;
-		color: #1a1a1a;
+		color: var(--text-primary);
 		margin-bottom: 1.5rem;
 	}
 
@@ -103,7 +104,7 @@
 		font-family: 'Space Grotesk', sans-serif;
 		font-size: 1.5rem;
 		font-weight: 500;
-		color: #1a1a1a;
+		color: var(--text-primary);
 		margin: 0;
 	}
 
@@ -111,7 +112,7 @@
 		font-family: 'Space Grotesk', sans-serif;
 		font-size: 1.1rem;
 		font-weight: 500;
-		color: #1a1a1a;
+		color: var(--text-primary);
 		margin-bottom: 1rem;
 	}
 
@@ -131,22 +132,22 @@
 		justify-content: space-between;
 		align-items: center;
 		margin-bottom: 0.5rem;
-		background-color: #e8e8e8;
+		background-color: var(--background-card);
 		border-radius: 12px;
 		overflow: hidden;
-		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+		box-shadow: 0 2px 8px var(--ui-shadow);
 		transition: all 0.2s ease;
 	}
 
 	.playlist-item:hover {
 		transform: translateY(-2px);
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+		box-shadow: 0 4px 12px var(--ui-shadow);
 	}
 
 	.playlist-item a {
 		padding: 1rem 1.5rem;
 		text-decoration: none;
-		color: #1a1a1a;
+		color: var(--text-primary);
 		flex-grow: 1;
 		font-family: 'Inter', sans-serif;
 		transition: all 0.3s ease;
@@ -160,24 +161,24 @@
 	.input-group input {
 		flex-grow: 1;
 		padding: 0.75rem 1rem;
-		background-color: #f8f8f8;
-		border: 1px solid rgba(0, 0, 0, 0.1);
+		background-color: var(--background-input);
+		border: 1px solid var(--ui-border);
 		border-right: none;
 		border-radius: 12px 0 0 12px;
 		font-family: 'Inter', sans-serif;
 		font-size: 0.95rem;
-		color: #1a1a1a;
+		color: var(--text-primary);
 	}
 
 	.input-group input:focus {
 		outline: none;
-		border-color: #1a1a1a;
+		border-color: var(--ui-focus);
 	}
 
 	button {
 		padding: 0.75rem 1.25rem;
-		background-color: #1a1a1a;
-		color: #fff;
+		background-color: var(--background-button);
+		color: var(--text-light);
 		border: none;
 		cursor: pointer;
 		font-family: 'Inter', sans-serif;
@@ -190,26 +191,26 @@
 	}
 
 	button:hover {
-		background-color: #000;
+		background-color: var(--background-button-hover);
 	}
 
 	.delete-btn {
-		color: #666;
+		color: var(--icon-secondary);
 		background-color: transparent;
 		padding: 1rem;
 		transition: all 0.3s ease;
 	}
 
 	.delete-btn:hover {
-		color: #e53935;
+		color: var(--icon-danger);
 		background-color: transparent;
 	}
 
 	.error {
 		margin-top: 1rem;
 		padding: 0.75rem;
-		background-color: #ffebee;
-		color: #c62828;
+		background-color: var(--background-error);
+		color: var(--text-error);
 		border-radius: 12px;
 		font-family: 'Inter', sans-serif;
 		font-size: 0.9rem;
