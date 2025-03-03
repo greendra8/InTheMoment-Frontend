@@ -174,9 +174,6 @@
 	}
 </script>
 
-<svelte:head>
-	{@html `<script>document.documentElement.classList.remove("js-loading");document.documentElement.classList.add("${data.theme}");</script>`}
-</svelte:head>
 
 {#if !$appContext.isNativeApp && !isHomePage}
 	<!-- Desktop Navigation -->
