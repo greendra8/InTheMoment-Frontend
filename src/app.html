@@ -15,28 +15,51 @@
 		crossorigin="anonymous" referrerpolicy="no-referrer" />
 	<!-- Prevent FOUC -->
 	<script>
-		const theme = localStorage.getItem('theme') || 'light';
-		document.documentElement.classList.add(theme + '-theme');
+		(function () {
+			// Start with light theme class to prevent flash
+			document.documentElement.classList.add('light-theme');
+
+			// Safely try to get theme from localStorage
+			try {
+				const theme = localStorage.getItem('theme');
+				if (theme && theme !== 'light') {
+					document.documentElement.classList.remove('light-theme');
+					document.documentElement.classList.add(theme + '-theme');
+				}
+			} catch (e) {
+				// localStorage not available, stick with light theme
+				console.debug('localStorage not available');
+			}
+		})();
 	</script>
 	<style>
-		/* Prevent content flash during theme transition */
+		/* Initially hide content */
 		html {
-			visibility: visible;
-			opacity: 1;
+			visibility: hidden;
 		}
 
-		html.theme-transition {
+		/* Show content once DOM is ready */
+		html.ready {
 			visibility: visible;
+		}
+
+		/* Theme transition */
+		html.theme-transition {
 			opacity: 0;
 			transition: opacity 0.15s;
 		}
 
-		/* Ensure content is visible by default */
+		/* Ensure content is visible by default once ready */
 		body {
-			visibility: visible;
 			opacity: 1;
 		}
 	</style>
+	<script>
+		// Mark as ready once DOM is loaded
+		document.addEventListener('DOMContentLoaded', function () {
+			document.documentElement.classList.add('ready');
+		});
+	</script>
 	%sveltekit.head%
 </head>
 
