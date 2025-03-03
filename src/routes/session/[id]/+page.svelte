@@ -7,9 +7,10 @@
 	import FeedbackForm from '$lib/components/FeedbackForm.svelte';
 	import bg from '$lib/assets/med-bg.webp';
 	import { writable } from 'svelte/store';
-	import { fly, slide } from 'svelte/transition';
+	import { fly, slide, fade } from 'svelte/transition';
 	import AudioPlayer from './AudioPlayer.svelte';
 	import { text, background, ui, icon } from '$lib/theme';
+	import { theme as themeStore } from '$lib/stores/theme';
 
 	export let data: PageData;
 	const { meditation, userId, feedback } = data;
@@ -30,6 +31,27 @@
 	let audioPlayerComponent: AudioPlayer;
 
 	let isMenuOpen = false;
+
+	// Current theme
+	let currentTheme = 'light';
+
+	// Background image loading state
+	let bgImageLoaded = false;
+
+	themeStore.subscribe((value) => {
+		currentTheme = value;
+	});
+
+	// Preload the background image
+	function preloadBackgroundImage() {
+		if (browser) {
+			const img = new Image();
+			img.src = bg;
+			img.onload = () => {
+				bgImageLoaded = true;
+			};
+		}
+	}
 
 	function setRealViewportHeight() {
 		realViewportHeight = window.innerHeight;
@@ -180,6 +202,8 @@
 
 		if (browser) {
 			window.addEventListener('resize', handleResize);
+			// Preload the background image
+			preloadBackgroundImage();
 		}
 		setRealViewportHeight();
 		window.addEventListener('resize', setRealViewportHeight);
@@ -234,7 +258,18 @@
 	/>
 </svelte:head>
 
-<div class="meditation-page" style="height: {realViewportHeight}px; --background-image: url({bg});">
+<!-- Preload the background image -->
+<link rel="preload" as="image" href={bg} />
+
+<div class="meditation-page {currentTheme}-theme" style="height: {realViewportHeight}px;">
+	{#if browser}
+		<div
+			class="bg-image"
+			class:loaded={bgImageLoaded}
+			style="--background-image: url({bg});"
+			in:fade={{ duration: 400, delay: 100 }}
+		></div>
+	{/if}
 	<div class="navigation-controls">
 		<div class="back-icon" on:click={() => window.history.back()}>
 			<i class="fas fa-arrow-left"></i> &nbsp; Back
@@ -295,18 +330,6 @@
 						<i class="fas fa-signal"></i>{' '}
 						{meditation.difficulty.charAt(0).toUpperCase() + meditation.difficulty.slice(1)}
 					</span>
-					<!-- <span class="info-item">
-            <i class="far fa-clock"></i> {meditation.length} minutes
-          </span> -->
-					<!-- <span
-            id="download-button-{meditation.id}"
-            class="info-item {isDownloaded ? 'download-status' : 'download-icon'}"
-            on:click|stopPropagation={isDownloaded ? null : triggerDownload}
-            title={isDownloaded ? 'Meditation downloaded' : 'Download meditation'}
-          >
-            <i class="fas {isDownloaded ? 'fa-check-circle' : 'fa-download'}"></i>
-            {isDownloaded ? 'Downloaded' : 'Download'}
-          </span> -->
 				</div>
 			</div>
 		</header>
@@ -359,10 +382,37 @@
 		flex-direction: column;
 		justify-content: space-between;
 		overflow: hidden;
+		position: relative;
+		background-color: var(--background-main);
+		height: var(--real-viewport-height, 100vh);
+	}
+
+	.bg-image {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
 		background-image: var(--background-image);
 		background-size: cover;
 		background-position: center;
-		height: var(--real-viewport-height, 100vh);
+		opacity: 0; /* Start with opacity 0 */
+		z-index: 0;
+		transition: opacity 0.4s ease-in-out;
+	}
+
+	/* Show the image when loaded */
+	.bg-image.loaded {
+		opacity: 1;
+	}
+
+	/* Theme-specific background image adjustments */
+	.dark-theme .bg-image {
+		mix-blend-mode: soft-light;
+	}
+
+	.cosmic-theme .bg-image {
+		mix-blend-mode: overlay;
 	}
 
 	.meditation-content {
@@ -374,6 +424,8 @@
 		padding: 1.25rem;
 		height: var(--real-viewport-height, 100vh);
 		box-sizing: border-box;
+		position: relative;
+		z-index: 1;
 	}
 
 	/* =======================
@@ -403,7 +455,7 @@
 		justify-content: center;
 		font-size: clamp(1.25rem, 4vw, 1.6rem);
 		font-weight: 600;
-		color: #333;
+		color: var(--text-primary);
 		margin-bottom: clamp(0.3rem, 2vw, 0.5rem);
 	}
 
@@ -434,7 +486,7 @@
 		flex-wrap: wrap;
 		gap: clamp(0.5rem, 2vw, 1rem);
 		font-size: clamp(0.875rem, 2.5vw, 1rem);
-		color: #666;
+		color: var(--text-secondary);
 	}
 
 	.info-item {
@@ -445,10 +497,10 @@
 
 	.info-item a {
 		text-decoration: none;
-		background: #666;
+		background: var(--text-secondary);
 		border-radius: 1rem;
 		padding: 0 8px;
-		color: #e1e1e1;
+		color: var(--background-card);
 	}
 
 	/* =======================
@@ -462,21 +514,21 @@
 		display: flex;
 		justify-content: flex-end;
 		align-items: center;
-		z-index: 1;
+		z-index: 2;
 	}
 
 	/* Back Icon - Hidden by Default */
 	.back-icon {
 		display: none;
-		background-color: #f5f5f5;
+		background-color: var(--background-card);
 		border-radius: clamp(0.75rem, 2vw, 1rem);
 		height: clamp(1.75rem, 5vw, 2rem);
 		padding: 0 clamp(0.6rem, 2vw, 0.8rem);
-		color: #333;
+		color: var(--text-primary);
 		justify-content: center;
 		align-items: center;
 		cursor: pointer;
-		box-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.08);
+		box-shadow: 0 0 0.5rem var(--ui-shadow);
 		transition:
 			background-color 0.3s ease,
 			opacity 0.3s ease;
@@ -490,7 +542,7 @@
 
 	.back-icon i {
 		font-size: 1.2rem;
-		color: #333;
+		color: var(--icon-primary);
 	}
 
 	/* Menu Icon - Always Visible */
@@ -499,12 +551,12 @@
 		border-radius: clamp(0.75rem, 2vw, 1rem);
 		height: clamp(1.75rem, 5vw, 2rem);
 		padding: 0 clamp(0.6rem, 2vw, 0.8rem);
-		color: #333;
+		color: var(--text-primary);
 		display: flex;
 		justify-content: center;
 		align-items: center;
 		cursor: pointer;
-		box-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.08);
+		box-shadow: 0 0 0.5rem var(--ui-shadow);
 		transition: background-color 0.3s ease;
 	}
 
@@ -541,6 +593,7 @@
 		cursor: pointer;
 		transition: background-color 0.2s ease;
 		position: relative;
+		color: var(--text-primary);
 	}
 
 	.menu li:not(:last-child)::after {
@@ -616,7 +669,7 @@
 
 	.show-feedback-button:hover,
 	.hide-feedback-button:hover {
-		background-color: #e5e5e5;
+		background-color: var(--ui-divider);
 	}
 
 	.feedback-controls-wrapper {
@@ -637,7 +690,7 @@
    ======================= */
 	.no-audio {
 		text-align: center;
-		color: #666;
+		color: var(--text-secondary);
 		font-style: italic;
 	}
 
