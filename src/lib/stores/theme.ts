@@ -4,37 +4,64 @@ import { browser } from '$app/environment';
 // Theme types
 export type ThemeType = 'light' | 'dark' | 'cosmic';
 
-// Create theme store with default light theme
-export const theme = writable<ThemeType>('light');
+// Initialize theme from localStorage or default to light
+const storedTheme = browser && localStorage.getItem('theme');
+const initialTheme: ThemeType = (storedTheme === 'dark' || storedTheme === 'cosmic')
+    ? storedTheme as ThemeType
+    : 'light';
+
+// Create theme store
+export const theme = writable<ThemeType>(initialTheme);
 
 // Apply theme to document
 export function applyTheme(newTheme: ThemeType) {
-    if (!browser) return;
+    if (browser) {
+        // Save to localStorage
+        localStorage.setItem('theme', newTheme);
 
-    localStorage.setItem('theme', newTheme);
-    document.cookie = `theme=${newTheme}; path=/; max-age=31536000`; // 1 year
+        // Save theme to cookie
+        document.cookie = `theme=${newTheme}; path=/; max-age=31536000`;
 
-    // Only remove/add classes if they're different from current
-    const html = document.documentElement;
-    const currentClass = html.classList.contains('dark-theme') ? 'dark-theme' :
-        html.classList.contains('cosmic-theme') ? 'cosmic-theme' : '';
-    const newClass = newTheme === 'dark' ? 'dark-theme' :
-        newTheme === 'cosmic' ? 'cosmic-theme' : '';
+        // Remove all theme classes first
+        document.documentElement.classList.remove('dark-theme', 'cosmic-theme');
 
-    if (currentClass !== newClass) {
-        if (currentClass) html.classList.remove(currentClass);
-        if (newClass) html.classList.add(newClass);
+        // Apply theme class to document
+        if (newTheme === 'dark') {
+            document.documentElement.classList.add('dark-theme');
+        } else if (newTheme === 'cosmic') {
+            document.documentElement.classList.add('cosmic-theme');
+        }
     }
 }
 
 // Toggle theme function
 export function toggleTheme() {
-    theme.update(current => {
-        const newTheme: ThemeType = current === 'light' ? 'dark' :
-            current === 'dark' ? 'cosmic' : 'light';
+    theme.update(currentTheme => {
+        let newTheme: ThemeType;
+        if (currentTheme === 'light') {
+            newTheme = 'dark';
+        } else if (currentTheme === 'dark') {
+            newTheme = 'cosmic';
+        } else {
+            newTheme = 'light';
+        }
         applyTheme(newTheme);
         return newTheme;
     });
+}
+
+// Initialize theme on load - only if the theme classes don't match the stored theme
+// This prevents unnecessary DOM manipulations on initial load
+if (browser) {
+    const hasCosmicClass = document.documentElement.classList.contains('cosmic-theme');
+    const hasDarkClass = document.documentElement.classList.contains('dark-theme');
+
+    // Only apply if there's a mismatch between the class and the stored theme
+    if ((initialTheme === 'cosmic' && !hasCosmicClass) ||
+        (initialTheme === 'dark' && !hasDarkClass) ||
+        (initialTheme === 'light' && (hasCosmicClass || hasDarkClass))) {
+        applyTheme(initialTheme);
+    }
 }
 
 export default theme; 
