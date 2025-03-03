@@ -6,7 +6,7 @@ import { isUserProfileComplete } from '$lib/server/supabase';
 const THEME_CLASSES = {
   dark: 'dark-theme',
   cosmic: 'cosmic-theme',
-  light: ''
+  light: 'light-theme'
 } as const;
 
 export const load: LayoutServerLoad = async ({ locals, url, cookies }) => {
