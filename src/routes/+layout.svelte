@@ -10,24 +10,27 @@
 	import { session as sessionStore } from '$lib/stores/session';
 	import { get } from 'svelte/store';
 	import { text, background, ui, icon } from '$lib/theme';
-	import { theme, applyTheme } from '$lib/stores/theme';
+	import { theme, applyTheme, type ThemeType } from '$lib/stores/theme';
 
 	export let data;
-	$: ({ navItems, isNativeApp, session } = data);
+	$: ({ navItems, isNativeApp, session, theme: serverTheme, themeClass } = data);
+
+	// Initialize theme store with server value
+	$: if (serverTheme) {
+		theme.set(serverTheme as ThemeType);
+	}
 
 	// Update the session store with the initial session
 	sessionStore.set(session);
 
 	$: appContext.setIsNativeApp(isNativeApp);
 
-	// Ensure theme is applied on initial load and when theme changes
+	// Only handle theme changes after initial load
 	onMount(() => {
-		// Apply current theme from store
-		applyTheme($theme);
-
-		// Subscribe to theme changes
 		const unsubscribe = theme.subscribe((newTheme) => {
-			applyTheme(newTheme);
+			if (newTheme !== serverTheme) {
+				applyTheme(newTheme);
+			}
 		});
 
 		const { data: authListener } = supabase.auth.onAuthStateChange((event, newSession) => {
@@ -169,6 +172,12 @@
 		isMobile = window.innerWidth <= 1024;
 	}
 </script>
+
+<svelte:head>
+	{#if themeClass}
+		{@html `<script>document.documentElement.className = "${themeClass}";</script>`}
+	{/if}
+</svelte:head>
 
 {#if !$appContext.isNativeApp && !isHomePage}
 	<!-- Desktop Navigation -->

@@ -3,9 +3,13 @@ import type { LayoutServerLoad } from './$types';
 import { redirect } from '@sveltejs/kit';
 import { isUserProfileComplete } from '$lib/server/supabase';
 
-export const load: LayoutServerLoad = async ({ locals, url }) => {
+export const load: LayoutServerLoad = async ({ locals, url, cookies }) => {
   const session = locals.session;
   const isAdmin = session?.user?.id === 'cf39c581-6b6f-44b7-8c56-f7f64a26637c';
+  const theme = cookies.get('theme') || 'light';
+
+  // Inject theme class into HTML
+  const themeClass = theme === 'dark' ? 'dark-theme' : theme === 'cosmic' ? 'cosmic-theme' : '';
 
   if (session?.user) {
     const isComplete = await isUserProfileComplete(session.user.id);
@@ -55,6 +59,8 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
     user: session?.user ? { id: session.user.id, email: session.user.email } : null,
     navItems,
     isNativeApp: locals.isNativeApp,
-    session, // Add this line
+    session,
+    theme,
+    themeClass,
   };
 };

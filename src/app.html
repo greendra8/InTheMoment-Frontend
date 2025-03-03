@@ -13,15 +13,26 @@
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
 		integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg=="
 		crossorigin="anonymous" referrerpolicy="no-referrer" />
-	<!-- Prevent theme flash -->
+	<!-- Prevent FOUC (Flash of Unstyled Content) -->
+	<style>
+		.js-loading {
+			visibility: hidden;
+			opacity: 0;
+		}
+
+		body {
+			transition: opacity 0.3s ease;
+		}
+	</style>
 	<script>
 		(function () {
-			const storedTheme = localStorage.getItem('theme');
-			if (storedTheme === 'dark') {
-				document.documentElement.classList.add('dark-theme');
-			} else if (storedTheme === 'cosmic') {
-				document.documentElement.classList.add('cosmic-theme');
-			}
+			// Add js-loading class to body
+			document.documentElement.classList.add('js-loading');
+
+			// Remove js-loading class once DOM is ready
+			window.addEventListener('DOMContentLoaded', function () {
+				document.documentElement.classList.remove('js-loading');
+			});
 		})();
 	</script>
 	%sveltekit.head%
