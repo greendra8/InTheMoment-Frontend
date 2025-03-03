@@ -13,52 +13,36 @@
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
 		integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg=="
 		crossorigin="anonymous" referrerpolicy="no-referrer" />
-	<!-- Prevent FOUC -->
-	<script>
-		(function () {
-			// Start with light theme class to prevent flash
-			// document.documentElement.classList.add('light-theme');
-
-			// Safely try to get theme from localStorage
-			try {
-				const theme = localStorage.getItem('theme');
-				if (theme && theme !== 'light') {
-					document.documentElement.classList.remove('light-theme');
-					document.documentElement.classList.add(theme + '-theme');
-				}
-			} catch (e) {
-				// localStorage not available, stick with light theme
-				console.debug('localStorage not available');
-			}
-		})();
-	</script>
+	<!-- Prevent FOUC (Flash of Unstyled Content) -->
 	<style>
-		/* Initially hide content */
-		html {
+		html.js-loading {
 			visibility: hidden;
-		}
-
-		/* Show content once DOM is ready */
-		html.ready {
-			visibility: visible;
-		}
-
-		/* Theme transition */
-		html.theme-transition {
 			opacity: 0;
-			transition: opacity 0s;
 		}
 
-		/* Ensure content is visible by default once ready */
-		body {
-			opacity: 1;
+		html {
+			transition: opacity 0.3s ease;
 		}
 	</style>
+	<!-- Prevent theme flash by setting theme class before page renders -->
 	<script>
-		// Mark as ready once DOM is loaded
-		document.addEventListener('DOMContentLoaded', function () {
-			document.documentElement.classList.add('ready');
-		});
+		(function () {
+			// Add js-loading class to body
+			document.documentElement.classList.add('js-loading');
+
+			// Set the theme from localStorage
+			const storedTheme = localStorage.getItem('theme');
+			if (storedTheme === 'dark') {
+				document.documentElement.classList.add('dark-theme');
+			} else if (storedTheme === 'cosmic') {
+				document.documentElement.classList.add('cosmic-theme');
+			}
+
+			// Remove js-loading class once DOM is ready
+			window.addEventListener('DOMContentLoaded', function () {
+				document.documentElement.classList.remove('js-loading');
+			});
+		})();
 	</script>
 	%sveltekit.head%
 </head>
