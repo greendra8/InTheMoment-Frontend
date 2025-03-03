@@ -1,4 +1,4 @@
-<!-- A floating notification that shows meditation generation status -->
+<!-- A floating notification that shows meditation generation status
 <script lang="ts">
 	import { meditationGeneration } from '$lib/stores/meditationGeneration';
 	import { goto } from '$app/navigation';
@@ -126,15 +126,21 @@
 		display: flex;
 		align-items: center;
 		gap: 0.75rem;
+		flex-wrap: nowrap;
+		min-width: 0;
 	}
 
 	.content i {
 		font-size: 1.1rem;
+		flex-shrink: 0;
 	}
 
 	.content span {
 		font-size: 0.9rem;
 		font-weight: 500;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
 	.action {
@@ -142,16 +148,35 @@
 		opacity: 0.9;
 		padding-left: 0.75rem;
 		border-left: 1px solid rgba(255, 255, 255, 0.2);
+		flex-shrink: 0;
 	}
 
 	@media (max-width: 480px) {
 		.notification {
 			bottom: calc(
-				4.5rem + env(safe-area-inset-bottom, 1rem)
+				6.5rem + env(safe-area-inset-bottom, 1rem)
 			); /* Account for nav bar + safe area */
 			right: 1rem;
 			left: 1rem;
 			max-width: unset;
+			padding: 0.75rem 1rem;
+		}
+
+		.content span {
+			font-size: 0.85rem;
+		}
+
+		.action {
+			font-size: 0.75rem;
+			padding-left: 0.5rem;
+		}
+
+		.content i {
+			font-size: 1rem;
+		}
+
+		.content {
+			gap: 0.5rem;
 		}
 	}
-</style>
+</style> -->

@@ -151,8 +151,9 @@
 
 	@media (max-width: 480px) {
 		.notifications-container {
+			font-size: 0.8rem;
 			top: unset;
-			bottom: calc(4.5rem + env(safe-area-inset-bottom, 1rem));
+			bottom: calc(6.5rem + env(safe-area-inset-bottom, 1rem));
 			right: 1rem;
 			left: 1rem;
 		}

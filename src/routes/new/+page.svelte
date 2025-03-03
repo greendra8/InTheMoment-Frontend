@@ -197,7 +197,7 @@
 							notifications.clear();
 							showSuccess('Your meditation is ready!', {
 								action: {
-									label: 'View Meditation',
+									label: 'View',
 									onClick: () => {
 										notifications.clear(); // Clear the notification when user clicks to view
 										meditationGeneration.reset();

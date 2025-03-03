@@ -482,7 +482,7 @@
 
 	/* Define CSS variables for transparent and faded variants */
 	:root {
-		--background-card-transparent: rgba(var(--background-card-rgb), 0.8);
+		--background-card-transparent: rgba(var(--background-card-rgb), 0.5);
 		--icon-primary-faded: rgba(var(--icon-primary-rgb), 0.85);
 		--text-primary-faded: rgba(var(--text-primary-rgb), 0.85);
 	}
