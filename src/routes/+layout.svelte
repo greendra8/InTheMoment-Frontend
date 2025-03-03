@@ -11,6 +11,7 @@
 	import { get } from 'svelte/store';
 	import { text, background, ui, icon } from '$lib/theme';
 	import { theme, applyTheme } from '$lib/stores/theme';
+	import Notifications from '$lib/components/Notifications.svelte';
 
 	export let data;
 	$: ({ navItems, isNativeApp, session } = data);
@@ -174,7 +175,6 @@
 	}
 </script>
 
-
 {#if !$appContext.isNativeApp && !isHomePage}
 	<!-- Desktop Navigation -->
 	<nav class="desktop-nav" class:hidden={isMobile}>
@@ -228,6 +228,8 @@
 	</div>
 </main>
 
+<Notifications />
+
 <style>
 	/* Hide nav based on screen size */
 	.hidden {
@@ -262,10 +264,6 @@
 		padding: 8px 10px;
 		border-radius: 12px;
 		white-space: nowrap;
-	}
-
-	.desktop-nav .nav-item:hover {
-		background-color: var(--background-card-hover);
 	}
 
 	.desktop-nav .icon-container {
@@ -316,6 +314,10 @@
 	.desktop-nav .nav-item.active .nav-label {
 		color: var(--text-primary);
 		font-weight: 600;
+	}
+
+	.desktop-nav .nav-item:hover {
+		background-color: var(--background-cardHover);
 	}
 
 	/* Mobile Navigation Styles */

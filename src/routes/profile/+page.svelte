@@ -5,6 +5,7 @@
 	import { supabase } from '$lib/supabaseClient';
 	import ThemeToggle from '../../components/ThemeToggle.svelte';
 	import { theme } from '$lib/stores/theme';
+	import { showSuccess, showError } from '$lib/stores/notifications';
 
 	export let data: PageData;
 	export let form: ActionData;
@@ -35,17 +36,13 @@
 	}
 
 	let formElement: HTMLFormElement;
-	let showSuccessMessage = false;
 
-	function handleSubmit(event: SubmitEvent) {
-		showSuccessMessage = false;
+	function handleSubmit() {
+		// Clear any existing notifications if needed
 	}
 
 	function handleUpdateSuccess() {
-		showSuccessMessage = true;
-		setTimeout(() => {
-			showSuccessMessage = false;
-		}, 3000); // Hide the message after 3 seconds
+		showSuccess('Profile updated successfully!');
 	}
 </script>
 
@@ -76,6 +73,8 @@
 				return ({ result }) => {
 					if (result.type === 'success') {
 						handleUpdateSuccess();
+					} else if (result.type === 'error') {
+						showError(result.error);
 					}
 				};
 			}}
@@ -114,28 +113,32 @@
 			<div class="theme-toggle-wrapper">
 				<span class="theme-label">Theme</span>
 				<div class="theme-toggle-container">
-					<span class="theme-mode-label">Light</span>
-					<ThemeToggle />
-					<span class="theme-mode-label">Dark</span>
+					<button
+						class="theme-option {$theme === 'light' ? 'active' : ''}"
+						on:click={() => ($theme = 'light')}
+					>
+						<i class="fas fa-sun"></i>
+						Light
+					</button>
+					<button
+						class="theme-option {$theme === 'dark' ? 'active' : ''}"
+						on:click={() => ($theme = 'dark')}
+					>
+						<i class="fas fa-moon"></i>
+						Dark
+					</button>
+					<button
+						class="theme-option {$theme === 'cosmic' ? 'active' : ''}"
+						on:click={() => ($theme = 'cosmic')}
+					>
+						<i class="fas fa-rocket"></i>
+						Cosmic
+					</button>
 				</div>
 			</div>
 		</div>
 
 		<button class="logout-button" on:click={handleLogout}>Logout</button>
-
-		{#if showSuccessMessage}
-			<div class="message success">
-				<i class="fas fa-check-circle"></i>
-				Profile updated successfully!
-			</div>
-		{/if}
-
-		{#if form?.type === 'error'}
-			<div class="message error">
-				<i class="fas fa-exclamation-circle"></i>
-				{form.error}
-			</div>
-		{/if}
 	{:else}
 		<p class="loading">Loading profile...</p>
 	{/if}
@@ -235,6 +238,25 @@
 		font-size: 0.95rem;
 		font-family: 'Inter', sans-serif;
 		color: var(--text-primary);
+		box-sizing: border-box;
+	}
+
+	/* Remove dropdown arrow from text input */
+	input[type='text'] {
+		appearance: none;
+		-webkit-appearance: none;
+		-moz-appearance: none;
+	}
+
+	/* Style select dropdowns */
+	select {
+		appearance: none;
+		-webkit-appearance: none;
+		-moz-appearance: none;
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L2 4h8z'/%3E%3C/svg%3E");
+		background-repeat: no-repeat;
+		background-position: right 1rem center;
+		padding-right: 2.5rem;
 	}
 
 	input:focus,
@@ -264,17 +286,36 @@
 	}
 
 	.theme-toggle-container {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		background-color: var(--background-cardHover);
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 0.5rem;
 		border-radius: 12px;
-		padding: 0.75rem 1.25rem;
+		padding: 0.5rem;
 	}
 
-	.theme-mode-label {
+	.theme-option {
+		padding: 0.75rem;
+		border-radius: 8px;
+		text-align: center;
+		cursor: pointer;
 		font-size: 0.9rem;
 		color: var(--text-secondary);
+		transition: all 0.2s ease;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		background-color: var(--background-cardHover);
+	}
+
+	.theme-option.active {
+		background-color: var(--background-card);
+		color: var(--text-primary);
+		box-shadow: 0 2px 4px var(--ui-shadow);
+	}
+
+	.theme-option i {
+		font-size: 1rem;
 	}
 
 	.update-button,
@@ -315,28 +356,6 @@
 		background-color: var(--background-cardHover);
 		transform: translateY(-2px);
 		box-shadow: 0 4px 12px var(--ui-shadowHover);
-	}
-
-	.message {
-		margin-top: 1rem;
-		padding: 0.75rem;
-		border-radius: 12px;
-		text-align: center;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: 0.5rem;
-		font-size: 0.9rem;
-	}
-
-	.success {
-		background-color: #e8f5e9;
-		color: #2e7d32;
-	}
-
-	.error {
-		background-color: #ffebee;
-		color: #c62828;
 	}
 
 	.loading {

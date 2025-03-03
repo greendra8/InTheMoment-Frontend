@@ -6,6 +6,8 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { spring } from 'svelte/motion';
 	import { text, background, ui, icon } from '$lib/theme';
+	import { meditationGeneration } from '$lib/stores/meditationGeneration';
+	import { showError, showLoading, notifications, showSuccess } from '$lib/stores/notifications';
 
 	export let data: PageData;
 
@@ -21,13 +23,13 @@
 	}
 
 	let form: CustomActionData | null = null;
+	let formElement: HTMLFormElement;
 
-	let isGenerating = false;
+	// Compute button disabled state based on global generation state and form state
+	$: buttonDisabled =
+		$meditationGeneration.isGenerating || (activeTab === 'lesson' && !selectedPlaylist);
+
 	let duration = 15;
-	let generationStatus = '';
-	let buttonDisabled = false;
-	let unsubscribe: (() => void) | null = null;
-	let currentMeditationId: string | null = null;
 
 	let postureOptions = [
 		{ value: 'sitting', display: 'Sitting', icon: 'fa-chair' },
@@ -83,7 +85,6 @@
 	}
 
 	function getStatusMessage(status: string): string {
-		console.log('status', status);
 		switch (status) {
 			case 'Queued':
 			case '':
@@ -112,40 +113,25 @@
 	}
 
 	function handleMeditationStatus(status: string) {
-		generationStatus = status;
+		meditationGeneration.updateStatus(status);
 
-		switch (status) {
-			case 'Queued':
-			case 'Fetching':
-			case 'Scripting':
-			case 'Reviewing':
-			case 'Generating':
-			case 'Audio Generation':
-			case 'Processing':
-			case 'Uploading':
-			case 'Saving':
-				isGenerating = true;
-				buttonDisabled = true;
-				break;
-			case 'Completed':
-				isGenerating = false;
-				buttonDisabled = false;
-				if (unsubscribe) unsubscribe();
-				if (currentMeditationId) {
-					goto(`/session/${currentMeditationId}`);
-				} else {
-					console.error('No meditation ID available for navigation');
-				}
-				break;
-			case 'Failed':
-				isGenerating = false;
-				buttonDisabled = false;
-				if (unsubscribe) unsubscribe();
-				form = { type: 'error', message: 'Meditation generation failed. Please try again.' };
-				break;
-			default:
-				isGenerating = true;
-				buttonDisabled = true;
+		// Update the loading notification with the current status
+		if ($meditationGeneration.isGenerating) {
+			showLoading(getStatusMessage(status), {
+				dismissible: false,
+				autoClose: status === 'Completed' ? 0 : undefined
+			});
+		}
+
+		if (status === 'Completed' && $meditationGeneration.meditationId) {
+			const meditationId = $meditationGeneration.meditationId;
+			notifications.clear(); // Clear all notifications
+			meditationGeneration.reset();
+			goto(`/session/${meditationId}`);
+		} else if (status === 'Failed') {
+			notifications.clear(); // Clear all notifications
+			showError('Meditation generation failed. Please try again.');
+			meditationGeneration.failGeneration();
 		}
 	}
 
@@ -160,14 +146,9 @@
 		return params;
 	}
 
-	let formElement: HTMLFormElement;
-
 	async function handleFormSubmit(event: Event) {
 		console.log('Client: handleFormSubmit called');
 		event.preventDefault();
-		buttonDisabled = true;
-		isGenerating = true;
-		generationStatus = 'Queued'; // Set initial status
 
 		const formData = new FormData(formElement);
 		formData.set('userLocalTime', getUserLocalTime());
@@ -202,27 +183,59 @@
 				const meditationId = parsedData[3]; // The meditation ID is the fourth element in the array
 				if (typeof meditationId === 'string') {
 					console.log('Client: Valid meditation ID:', meditationId);
-					currentMeditationId = meditationId;
-					unsubscribe = subscribeMeditationStatus(meditationId, handleMeditationStatus);
+					meditationGeneration.startGeneration(meditationId);
+					const loadingNotificationId = showLoading('Starting your meditation generation...', {
+						dismissible: false
+					});
+
+					// Subscribe to status updates
+					const unsubscribe = subscribeMeditationStatus(meditationId, (status) => {
+						meditationGeneration.updateStatus(status);
+
+						// Update the loading notification with the current status
+						if (status === 'Completed') {
+							notifications.clear();
+							showSuccess('Your meditation is ready!', {
+								action: {
+									label: 'View Meditation',
+									onClick: () => {
+										notifications.clear(); // Clear the notification when user clicks to view
+										meditationGeneration.reset();
+										goto(`/session/${meditationId}`);
+									}
+								},
+								dismissible: false, // Remove close button since we have the action arrow
+								autoClose: 0 // Ensure notification persists until clicked (0 means no auto-close)
+							});
+							meditationGeneration.completeGeneration();
+							if (unsubscribe) unsubscribe();
+						} else if (status === 'Failed') {
+							notifications.clear();
+							showError('Meditation generation failed. Please try again.');
+							meditationGeneration.failGeneration();
+							if (unsubscribe) unsubscribe();
+						} else {
+							// Update the existing notification instead of creating a new one
+							notifications.update(loadingNotificationId, {
+								message: getStatusMessage(status)
+							});
+						}
+					});
 				} else {
-					throw new Error('Invalid server response. We might be offline.'); // Invalid meditation ID
+					throw new Error('Invalid server response. We might be offline.');
 				}
 			} else {
 				throw new Error(result.message || 'Failed to generate meditation');
 			}
 		} catch (error: unknown) {
 			console.error('Client: Error in handleFormSubmit:', error);
-			form = {
-				type: 'error',
-				message: error instanceof Error ? error.message : 'An unexpected error occurred'
-			};
-			isGenerating = false;
-			buttonDisabled = false;
+			showError(error instanceof Error ? error.message : 'An unexpected error occurred');
+			meditationGeneration.failGeneration();
 		}
 	}
 
 	onDestroy(() => {
-		if (unsubscribe) unsubscribe();
+		// No need to unsubscribe as the global state handles the subscription
 	});
 </script>
 
@@ -356,12 +369,6 @@
 			<span>Generate Meditation</span>
 		</button>
 	</form>
-
-	{#if isGenerating}
-		<div class="generating-message">
-			<p><i class="fas fa-spinner fa-spin"></i> &nbsp; {getStatusMessage(generationStatus)}</p>
-		</div>
-	{/if}
 
 	{#if form?.type === 'error'}
 		<p class="error">{form.message}</p>

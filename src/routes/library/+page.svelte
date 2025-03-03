@@ -57,21 +57,7 @@
 						<a href="/session/{meditation.id}" class="play-button">
 							<i class="fas fa-play"></i>
 						</a>
-					{:else}
-						<div class="processing-icon">
-							<i class="fas fa-spinner fa-spin"></i>
-						</div>
-					{/if}
-					<div class="meditation-info">
-						{#if meditation.status === 'processing'}
-							<h3>Processing Meditation...</h3>
-							<p>
-								{meditation.lesson_playlists
-									? `Playlist: ${meditation.lesson_playlists.playlist_name}`
-									: `Theme: ${meditation.theme || 'N/A'}`}
-							</p>
-							<p>Length: {meditation.length || 'N/A'} min</p>
-						{:else}
+						<a href="/session/{meditation.id}" class="meditation-info">
 							<h3 class="title-wrapper">
 								<span class="title-text">{meditation.title || 'Untitled Meditation'}</span>
 								{#if meditation.listened}
@@ -91,8 +77,21 @@
 								>
 								<span class="date">{new Date(meditation.created_at).toLocaleDateString()}</span>
 							</div>
-						{/if}
-					</div>
+						</a>
+					{:else}
+						<div class="processing-icon">
+							<i class="fas fa-spinner fa-spin"></i>
+						</div>
+						<div class="meditation-info">
+							<h3>Processing Meditation...</h3>
+							<p>
+								{meditation.lesson_playlists
+									? `Playlist: ${meditation.lesson_playlists.playlist_name}`
+									: `Theme: ${meditation.theme || 'N/A'}`}
+							</p>
+							<p>Length: {meditation.length || 'N/A'} min</p>
+						</div>
+					{/if}
 				</li>
 			{/each}
 		</ul>
@@ -189,6 +188,12 @@
 	.meditation-info {
 		flex-grow: 1;
 		overflow: hidden;
+		text-decoration: none;
+		color: inherit;
+	}
+
+	.meditation-info:hover {
+		text-decoration: none;
 	}
 
 	.meditation-info h3 {
