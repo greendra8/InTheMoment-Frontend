@@ -8,18 +8,18 @@
     --text-success: #2e7d32;
 
     /* Background colors */
-    --background-main: #e1e1e1;
-    --background-card: #e8e8e8;
-    --background-cardHover: #dfdfdf;
+    --background-main: #f5f5f5;
+    --background-card: rgba(255, 255, 255, 0.9);
+    --background-cardHover: rgba(255, 255, 255, 0.95);
     --background-button: #000;
     --background-buttonHover: #222;
-    --background-input: #f8f8f8;
+    --background-input: #fff;
     --background-error: #ffebee;
 
     /* UI element colors */
-    --ui-divider: #e0e0e0;
-    --ui-shadow: rgba(0, 0, 0, 0.04);
-    --ui-shadowHover: rgba(0, 0, 0, 0.08);
+    --ui-divider: rgba(0, 0, 0, 0.1);
+    --ui-shadow: rgba(0, 0, 0, 0.05);
+    --ui-shadowHover: rgba(0, 0, 0, 0.1);
     --ui-border: rgba(0, 0, 0, 0.1);
     --ui-focus: #1a1a1a;
     --ui-success: #4CAF50;
@@ -34,12 +34,30 @@
     --icon-danger: #e53935;
 
     /* RGB values for transparency */
-    --background-card-rgb: 232, 232, 232;
+    --background-card-rgb: 255, 255, 255;
     --icon-primary-rgb: 51, 51, 51;
     --text-primary-rgb: 26, 26, 26;
 
+    /* Gradient colors */
+    --gradient-1: 79, 172, 254;
+    --gradient-2: 0, 242, 254;
+    --gradient-3: 250, 112, 154;
+    --gradient-4: 254, 225, 64;
+    --gradient-5: 102, 126, 234;
+    --gradient-6: 118, 75, 162;
+    --gradient-7: 67, 233, 123;
+    --gradient-8: 56, 249, 215;
+
+    /* Interactive element gradients */
+    --interactive-gradient-1: 79, 172, 254;
+    --interactive-gradient-2: 0, 242, 254;
+    --interactive-opacity-1: 0.15;
+    --interactive-opacity-2: 0.3;
+    --interactive-hover-opacity-1: 0.25;
+    --interactive-hover-opacity-2: 0.4;
+
     /* Add smooth transition for theme changes */
-    transition: background-color 0.3s ease, color 0.3s ease;
+    transition: all 0.3s ease;
 }
 
 /* Apply transitions to common elements to make theme switching smoother */
@@ -72,17 +90,17 @@ i {
 
     /* Background colors */
     --background-main: #121212;
-    --background-card: #1e1e1e;
-    --background-cardHover: #2a2a2a;
+    --background-card: rgba(30, 30, 30, 0.9);
+    --background-cardHover: rgba(42, 42, 42, 0.95);
     --background-button: #e8e8e8;
     --background-buttonHover: #d0d0d0;
     --background-input: #2a2a2a;
     --background-error: #4a1515;
 
     /* UI element colors */
-    --ui-divider: #333333;
-    --ui-shadow: rgba(0, 0, 0, 0.2);
-    --ui-shadowHover: rgba(0, 0, 0, 0.4);
+    --ui-divider: rgba(255, 255, 255, 0.1);
+    --ui-shadow: rgba(0, 0, 0, 0.3);
+    --ui-shadowHover: rgba(0, 0, 0, 0.5);
     --ui-border: rgba(255, 255, 255, 0.1);
     --ui-focus: #e8e8e8;
     --ui-success: #43a047;
@@ -100,6 +118,24 @@ i {
     --background-card-rgb: 30, 30, 30;
     --icon-primary-rgb: 208, 208, 208;
     --text-primary-rgb: 232, 232, 232;
+
+    /* Gradient colors - adjusted for dark theme */
+    --gradient-1: 79, 172, 254;
+    --gradient-2: 0, 242, 254;
+    --gradient-3: 250, 112, 154;
+    --gradient-4: 254, 225, 64;
+    --gradient-5: 102, 126, 234;
+    --gradient-6: 118, 75, 162;
+    --gradient-7: 67, 233, 123;
+    --gradient-8: 56, 249, 215;
+
+    /* Interactive element gradients */
+    --interactive-gradient-1: 79, 172, 254;
+    --interactive-gradient-2: 0, 242, 254;
+    --interactive-opacity-1: 0.2;
+    --interactive-opacity-2: 0.4;
+    --interactive-hover-opacity-1: 0.3;
+    --interactive-hover-opacity-2: 0.5;
 }
 
 /* Cosmic theme - deep space inspired theme */
@@ -113,15 +149,15 @@ i {
 
     /* Background colors */
     --background-main: #0f0f2d;
-    --background-card: #1a1a3a;
-    --background-cardHover: #252550;
+    --background-card: rgba(26, 26, 58, 0.9);
+    --background-cardHover: rgba(37, 37, 80, 0.95);
     --background-button: #7b68ee;
     --background-buttonHover: #9370db;
     --background-input: #252550;
     --background-error: #4a1530;
 
     /* UI element colors */
-    --ui-divider: #2d2d6d;
+    --ui-divider: rgba(123, 104, 238, 0.2);
     --ui-shadow: rgba(0, 0, 50, 0.3);
     --ui-shadowHover: rgba(0, 0, 50, 0.5);
     --ui-border: rgba(123, 104, 238, 0.3);
@@ -141,4 +177,22 @@ i {
     --background-card-rgb: 26, 26, 58;
     --icon-primary-rgb: 200, 200, 255;
     --text-primary-rgb: 224, 228, 252;
+
+    /* Gradient colors - cosmic themed */
+    --gradient-1: 123, 104, 238;
+    --gradient-2: 147, 112, 219;
+    --gradient-3: 250, 112, 154;
+    --gradient-4: 255, 182, 193;
+    --gradient-5: 102, 126, 234;
+    --gradient-6: 138, 95, 182;
+    --gradient-7: 114, 239, 221;
+    --gradient-8: 100, 223, 223;
+
+    /* Interactive element gradients */
+    --interactive-gradient-1: 123, 104, 238;
+    --interactive-gradient-2: 147, 112, 219;
+    --interactive-opacity-1: 0.2;
+    --interactive-opacity-2: 0.4;
+    --interactive-hover-opacity-1: 0.3;
+    --interactive-hover-opacity-2: 0.5;
 }

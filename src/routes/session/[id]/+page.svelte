@@ -453,7 +453,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		font-size: clamp(1.25rem, 4vw, 1.6rem);
+		font-size: clamp(1.5rem, 4vw, 1.8rem);
 		font-weight: 600;
 		color: var(--text-primary);
 		margin-bottom: clamp(0.3rem, 2vw, 0.5rem);
