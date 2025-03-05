@@ -68,15 +68,18 @@
 		<div class="hero-content">
 			<div class="user-greeting">
 				<h1>Welcome, {user.name}</h1>
-				<p class="tagline">Your mindfulness journey</p>
 			</div>
 
-			<div class="hero-actions">
-				<!-- Quick Action Button -->
-				<button class="primary-action-btn" on:click={() => handleNavigation('/new')}>
-					<i class="fas fa-plus"></i>
-					<span>New Session</span>
-				</button>
+			<div class="hero-bottom-row">
+				<p class="tagline">Your mindfulness journey</p>
+
+				<div class="hero-actions">
+					<!-- Quick Action Button -->
+					<button class="primary-action-btn" on:click={() => handleNavigation('/new')}>
+						<i class="fas fa-plus"></i>
+						<span>New Session</span>
+					</button>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -326,20 +329,27 @@
 
 	.hero-content {
 		display: flex;
-		justify-content: space-between;
-		align-items: center;
+		flex-direction: column;
 		padding: 2rem;
 		position: relative;
 		z-index: 1;
 	}
 
 	.user-greeting {
-		flex: 1;
+		width: 100%;
+		margin-bottom: 0;
+	}
+
+	.hero-bottom-row {
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-end;
+		width: 100%;
 	}
 
 	.tagline {
 		font-size: 1rem;
-		margin: 0.5rem 0 0 0;
+		margin: 0;
 		opacity: 0.8;
 	}
 
@@ -807,12 +817,24 @@
 			padding: 1.25rem 1rem;
 		}
 
-		h1 {
-			font-size: 1.5rem;
+		.hero-bottom-row {
+			flex-direction: row;
+			justify-content: space-between;
+			align-items: flex-end;
 		}
 
 		.tagline {
 			font-size: 0.8rem;
+			max-width: 60%;
+		}
+
+		.primary-action-btn {
+			padding: 0.5rem 0.8rem;
+			font-size: 0.8rem;
+		}
+
+		h1 {
+			font-size: 1.5rem;
 		}
 	}
 </style>
