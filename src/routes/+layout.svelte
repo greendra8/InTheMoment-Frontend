@@ -27,8 +27,8 @@
 		// Sync with localStorage for client side navigation
 		localStorage.setItem('theme', themeValue);
 
-		// Apply current theme from store
-		applyTheme(themeValue);
+		// Apply current theme from store - cast to ThemeType to fix the type error
+		applyTheme(themeValue as 'light' | 'dark' | 'cosmic');
 
 		// Subscribe to theme changes
 		const unsubscribe = theme.subscribe((newTheme) => {
@@ -115,8 +115,9 @@
 	// Set initial value based on window width if available
 	let isMobile = typeof window !== 'undefined' ? window.innerWidth <= 1024 : false;
 	let lastScrollY = 0;
-	let mobileNavSolid = true;
+	let mobileNavSolid = true; // Start with solid nav
 	let userInteracting = false;
+	let scrollThreshold = 50; // Threshold for when to change transparency
 
 	// Track scroll position for mobile nav transparency
 	function handleScroll() {
@@ -124,8 +125,8 @@
 
 		const currentScrollY = window.scrollY;
 
-		// Scrolling down - make transparent
-		if (currentScrollY > lastScrollY && currentScrollY > 50) {
+		// Scrolling down - make transparent after threshold
+		if (currentScrollY > lastScrollY && currentScrollY > scrollThreshold) {
 			mobileNavSolid = false;
 		}
 		// Scrolling up - make solid
@@ -144,8 +145,8 @@
 		// Reset after interaction
 		setTimeout(() => {
 			userInteracting = false;
-			// Only make transparent again if we've scrolled down
-			if (window.scrollY > 50 && lastScrollY > 50) {
+			// Only make transparent again if we've scrolled down past threshold
+			if (window.scrollY > scrollThreshold) {
 				mobileNavSolid = false;
 			}
 		}, 3000);
@@ -157,6 +158,9 @@
 
 		// Set initial scroll position
 		lastScrollY = window.scrollY;
+
+		// Ensure nav is solid on initial load
+		mobileNavSolid = true;
 
 		// Listen for resize events
 		window.addEventListener('resize', checkMobile);
@@ -347,11 +351,13 @@
 	}
 
 	.mobile-nav.solid {
-		background-color: var(--background-card);
+		background-color: rgb(var(--background-card-rgb));
+		border-top: 1px solid var(--ui-border);
 	}
 
 	.mobile-nav:not(.solid) {
-		background-color: var(--background-card-transparent);
+		background-color: rgba(var(--background-card-rgb), 0.9);
+		backdrop-filter: blur(1px);
 	}
 
 	.mobile-nav .nav-item {
