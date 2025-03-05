@@ -495,56 +495,58 @@
 	.featured-session {
 		display: flex;
 		align-items: center;
-		padding: 1.2rem;
+		padding: 1.5rem;
 		border-radius: 16px;
 		background: linear-gradient(
 			135deg,
-			rgba(var(--background-card-rgb), 0.9) 0%,
-			rgba(var(--background-card-rgb), 0.7) 100%
+			rgba(var(--interactive-gradient-1), 0.1) 0%,
+			rgba(var(--interactive-gradient-2), 0.15) 100%
 		);
-		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
+		border: 1px solid rgba(var(--interactive-gradient-1), 0.15);
 		cursor: pointer;
 		transition: all 0.3s ease;
 		position: relative;
 		overflow: hidden;
 		backdrop-filter: blur(5px);
+		box-shadow: 0 4px 15px var(--ui-shadow);
 	}
 
 	.featured-session:hover {
-		border-color: rgba(var(--interactive-gradient-1), 0.2);
+		border-color: rgba(var(--interactive-gradient-1), 0.3);
 		transform: translateY(-2px);
-		box-shadow: 0 6px 15px var(--ui-shadowHover);
+		box-shadow: 0 8px 20px var(--ui-shadowHover);
 	}
 
 	.featured-play-button {
-		width: 48px;
-		height: 48px;
+		width: 54px;
+		height: 54px;
 		background: linear-gradient(
 			135deg,
-			rgba(var(--interactive-gradient-1), 0.4) 0%,
-			rgba(var(--interactive-gradient-2), 0.4) 100%
+			rgba(var(--interactive-gradient-1), 0.5) 0%,
+			rgba(var(--interactive-gradient-2), 0.5) 100%
 		);
 		color: var(--text-primary);
 		border-radius: 50%;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		margin-right: 1.2rem;
+		margin-right: 1.5rem;
 		flex-shrink: 0;
-		box-shadow: 0 0 15px rgba(var(--interactive-gradient-1), 0.2);
+		box-shadow: 0 0 20px rgba(var(--interactive-gradient-1), 0.25);
 		transition: all 0.3s ease;
 		position: relative;
 		z-index: 1;
+		font-size: 1.2rem;
 	}
 
 	.featured-session:hover .featured-play-button {
 		background: linear-gradient(
 			135deg,
-			rgba(var(--interactive-gradient-1), 0.7) 0%,
-			rgba(var(--interactive-gradient-2), 0.8) 100%
+			rgba(var(--interactive-gradient-1), 0.8) 0%,
+			rgba(var(--interactive-gradient-2), 0.9) 100%
 		);
-		box-shadow: 0 0 20px rgba(var(--interactive-gradient-1), 0.3);
-		transform: scale(1.05);
+		box-shadow: 0 0 25px rgba(var(--interactive-gradient-1), 0.4);
+		transform: scale(1.08);
 	}
 
 	.featured-info {
@@ -554,11 +556,18 @@
 		z-index: 1;
 	}
 
+	.featured-info h3 {
+		font-size: 1.2rem;
+		font-weight: 600;
+		margin-bottom: 0.3rem;
+		color: var(--text-primary);
+	}
+
 	.featured-meta {
 		display: flex;
 		align-items: center;
 		flex-wrap: wrap;
-		font-size: 0.8rem;
+		font-size: 0.9rem;
 		color: var(--text-secondary);
 		margin-top: 0.4rem;
 	}
@@ -603,9 +612,10 @@
 		z-index: 1;
 		height: 100%;
 		display: flex;
-		flex-direction: row;
-		align-items: center;
-		padding: 1rem;
+		flex-direction: column;
+		align-items: flex-start;
+		justify-content: flex-start;
+		padding: 1.2rem;
 	}
 
 	.playlist-icon {
@@ -618,7 +628,7 @@
 		justify-content: center;
 		background: rgba(var(--interactive-gradient-1), 0.15);
 		border-radius: 50%;
-		margin-right: 1rem;
+		margin-bottom: 0.8rem;
 		flex-shrink: 0;
 		transition: all 0.3s ease;
 		position: relative;
@@ -633,15 +643,18 @@
 	}
 
 	.playlist-name {
-		font-size: 0.9rem;
+		font-size: 1.1rem;
 		font-weight: 500;
 		color: var(--text-primary);
 		text-align: left;
-		max-width: 100%;
+		width: 100%;
+		position: relative;
+		line-height: 1.3;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
 		overflow: hidden;
 		text-overflow: ellipsis;
-		white-space: nowrap;
-		position: relative;
 	}
 
 	/* Sessions List */
@@ -802,15 +815,20 @@
 			gap: 0.5rem;
 		}
 
+		.playlist-content {
+			padding: 0.8rem;
+		}
+
 		.playlist-icon {
-			width: 30px;
-			height: 30px;
+			width: 32px;
+			height: 32px;
 			font-size: 1rem;
-			margin-right: 0.5rem;
+			margin-bottom: 0.5rem;
 		}
 
 		.playlist-name {
-			font-size: 0.75rem;
+			font-size: 0.9rem;
+			-webkit-line-clamp: 2;
 		}
 
 		.hero-content {
