@@ -521,8 +521,8 @@
 		height: 48px;
 		background: linear-gradient(
 			135deg,
-			rgba(var(--interactive-gradient-1), 0.6) 0%,
-			rgba(var(--interactive-gradient-2), 0.7) 100%
+			rgba(var(--interactive-gradient-1), 0.4) 0%,
+			rgba(var(--interactive-gradient-2), 0.4) 100%
 		);
 		color: var(--text-primary);
 		border-radius: 50%;

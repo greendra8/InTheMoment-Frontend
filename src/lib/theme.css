@@ -50,12 +50,12 @@
     --gradient-8: 56, 249, 215;
 
     /* Interactive element gradients */
-    --interactive-gradient-1: 25, 118, 210;
-    /* Darker blue */
-    --interactive-gradient-2: 3, 169, 244;
-    /* More saturated blue */
+    --interactive-gradient-1: 0, 0, 0;
+    /* Black */
+    --interactive-gradient-2: 34, 34, 34;
+    /* Dark gray */
     --interactive-opacity-1: 0.2;
-    --interactive-opacity-2: 0.35;
+    --interactive-opacity-2: 0.2;
     --interactive-hover-opacity-1: 0.3;
     --interactive-hover-opacity-2: 0.45;
 
