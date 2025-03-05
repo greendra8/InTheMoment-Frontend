@@ -22,7 +22,7 @@
 		message?: string;
 	}
 
-	let form: CustomActionData | null = null;
+	let formResult: CustomActionData | null = null;
 	let formElement: HTMLFormElement;
 
 	// Compute button disabled state based on global generation state and form state
@@ -250,11 +250,15 @@
 <div class="meditation-container">
 	<h1>New Meditation</h1>
 
-	<div class="tabs">
-		<button class:active={activeTab === 'custom'} on:click={() => (activeTab = 'custom')}
+	<div class="tabs" style="--option-count: 2;">
+		<div
+			class="slider-background"
+			style="transform: translateX({activeTab === 'custom' ? '0%' : '100%'});"
+		></div>
+		<button on:click={() => (activeTab = 'custom')} class:active={activeTab === 'custom'}
 			>Custom Session</button
 		>
-		<button class:active={activeTab === 'lesson'} on:click={() => (activeTab = 'lesson')}
+		<button on:click={() => (activeTab = 'lesson')} class:active={activeTab === 'lesson'}
 			>Lesson</button
 		>
 	</div>
@@ -370,8 +374,8 @@
 		</button>
 	</form>
 
-	{#if form?.type === 'error'}
-		<p class="error">{form.message}</p>
+	{#if formResult !== null && 'type' in formResult && formResult.type === 'error'}
+		<p class="error">{formResult.message}</p>
 	{/if}
 </div>
 
@@ -382,6 +386,8 @@
 		font-weight: 600;
 		color: var(--text-primary);
 		margin-bottom: 1.5rem;
+		letter-spacing: -0.5px;
+		text-shadow: 0 0 20px rgba(var(--icon-primary-rgb), 0.1);
 	}
 
 	.meditation-container {
@@ -392,29 +398,53 @@
 	/* Tabs */
 	.tabs {
 		display: flex;
+		position: relative;
 		margin-bottom: 1.5rem;
 		border-radius: 12px;
 		overflow: hidden;
-		border: 1px solid rgba(0, 0, 0, 0.1);
-		background-color: var(--background-card);
+		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
+		background: linear-gradient(
+			135deg,
+			rgba(var(--background-card-rgb), 0.9) 0%,
+			rgba(var(--background-card-rgb), 0.7) 100%
+		);
+		backdrop-filter: blur(5px);
+		box-shadow: 0 4px 15px var(--ui-shadow);
+	}
+
+	/* Slider background element for tabs */
+	.tabs .slider-background {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: calc(100% / var(--option-count));
+		height: 100%;
+		background: linear-gradient(
+			135deg,
+			rgba(var(--interactive-gradient-1), 0.6) 0%,
+			rgba(var(--interactive-gradient-2), 0.7) 100%
+		);
+		transition: transform 0.3s ease;
+		z-index: 0;
+		border-radius: 12px;
 	}
 
 	.tabs button {
 		flex: 1;
-		padding: 0.75rem 1rem;
+		padding: 0.9rem 1rem;
 		border: none;
-		background-color: var(--background-card);
-		border-radius: 12px;
+		background: transparent;
 		cursor: pointer;
-		transition: all 0.3s ease;
+		transition: color 0.3s ease;
 		font-size: 0.95rem;
 		font-weight: 500;
 		color: var(--text-secondary);
 		font-family: 'Inter', sans-serif;
+		position: relative;
+		z-index: 1;
 	}
 
 	.tabs button.active {
-		background-color: var(--background-button);
 		color: var(--text-light);
 	}
 
@@ -444,24 +474,67 @@
 		pointer-events: none;
 		font-size: 0.8rem;
 		color: var(--text-secondary);
+		transition: transform 0.3s ease;
+	}
+
+	.select-wrapper:hover::after {
+		transform: translateY(-50%) translateY(2px);
 	}
 
 	.playlist-selector select {
 		width: 100%;
-		padding: 0.75rem 1rem;
-		border: 1px solid rgba(0, 0, 0, 0.1);
+		padding: 0.9rem 1rem;
+		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
 		border-radius: 12px;
-		background-color: var(--background-cardHover);
+		background: linear-gradient(
+			135deg,
+			rgba(var(--background-card-rgb), 0.9) 0%,
+			rgba(var(--background-card-rgb), 0.7) 100%
+		);
 		font-size: 0.95rem;
 		appearance: none;
 		cursor: pointer;
 		font-family: 'Inter', sans-serif;
 		color: var(--text-primary);
+		transition: all 0.3s ease;
+		box-shadow: 0 4px 15px var(--ui-shadow);
+		backdrop-filter: blur(5px);
+		background-color: var(--background-card);
+	}
+
+	.playlist-selector select:hover {
+		border-color: rgba(var(--interactive-gradient-1), 0.2);
+		transform: translateY(-2px);
+		box-shadow: 0 6px 15px var(--ui-shadowHover);
 	}
 
 	.playlist-selector select:focus {
 		outline: none;
-		border-color: var(--text-primary);
+		border-color: rgba(var(--interactive-gradient-1), 0.3);
+	}
+
+	.playlist-selector select option {
+		background-color: var(--background-card);
+		color: var(--text-primary);
+		padding: 0.5rem;
+	}
+
+	/* Style the first (placeholder) option differently */
+	.playlist-selector select option:first-child {
+		color: var(--text-secondary);
+	}
+
+	/* Ensure proper styling in Firefox */
+	.playlist-selector select:-moz-focusring {
+		color: transparent;
+		text-shadow: 0 0 0 var(--text-primary);
+	}
+
+	/* Ensure proper styling in dark mode for Webkit */
+	@media (prefers-color-scheme: dark) {
+		.playlist-selector select option {
+			background-color: var(--background-card);
+		}
 	}
 
 	/* Options Container */
@@ -479,7 +552,7 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		margin-bottom: 0.5rem;
+		margin-bottom: 0.75rem;
 	}
 
 	.option-note {
@@ -497,12 +570,18 @@
 
 	.sliding-checkbox {
 		display: flex;
-		background-color: var(--background-cardHover);
-		border: 1px solid rgba(0, 0, 0, 0.1);
+		background: linear-gradient(
+			135deg,
+			rgba(var(--background-card-rgb), 0.9) 0%,
+			rgba(var(--background-card-rgb), 0.7) 100%
+		);
+		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
 		border-radius: 12px;
 		overflow: hidden;
 		position: relative;
-		transition: opacity 0.3s ease;
+		transition: all 0.3s ease;
+		box-shadow: 0 4px 15px var(--ui-shadow);
+		backdrop-filter: blur(5px);
 	}
 
 	.slider-background {
@@ -511,13 +590,17 @@
 		left: 0;
 		width: calc(100% / var(--option-count));
 		height: 100%;
-		background-color: var(--background-button);
-		transition: transform 0.3s ease;
+		background: linear-gradient(
+			135deg,
+			rgba(var(--interactive-gradient-1), 0.6) 0%,
+			rgba(var(--interactive-gradient-2), 0.7) 100%
+		);
+		transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 	}
 
 	.option {
 		flex: 1;
-		padding: 0.75rem 0.25rem;
+		padding: 0.9rem 0.25rem;
 		text-align: center;
 		cursor: pointer;
 		position: relative;
@@ -528,18 +611,24 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		transition: color 0.3s ease;
+		transition: all 0.3s ease;
 		color: var(--text-secondary);
 	}
 
 	.option-content.selected {
 		color: var(--text-light);
+		transform: scale(1.05);
 	}
 
 	.option i {
 		display: block;
 		font-size: 1.2rem;
 		margin-bottom: 0.25rem;
+		transition: transform 0.3s ease;
+	}
+
+	.option:hover i {
+		transform: scale(1.1);
 	}
 
 	.option span {
@@ -551,13 +640,23 @@
 	/* Duration Slider */
 	.duration-slider {
 		margin-bottom: 1.5rem;
+		padding: 1rem;
+		background: linear-gradient(
+			135deg,
+			rgba(var(--background-card-rgb), 0.9) 0%,
+			rgba(var(--background-card-rgb), 0.7) 100%
+		);
+		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
+		border-radius: 12px;
+		box-shadow: 0 4px 15px var(--ui-shadow);
+		backdrop-filter: blur(5px);
 	}
 
 	.duration-slider label {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		margin-bottom: 0.5rem;
+		margin-bottom: 1rem;
 		font-size: 0.9rem;
 		font-weight: 500;
 		color: var(--text-secondary);
@@ -566,25 +665,31 @@
 	.duration-value {
 		font-weight: 600;
 		color: var(--text-primary);
-		background: var(--background-cardHover);
-		padding: 0.2rem 0.6rem;
-		border-radius: 12px;
+		background: linear-gradient(
+			135deg,
+			rgba(var(--interactive-gradient-1), 0.1) 0%,
+			rgba(var(--interactive-gradient-2), 0.05) 100%
+		);
+		padding: 0.4rem 0.75rem;
+		border-radius: 8px;
 		font-size: 0.85rem;
+		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
 	}
 
 	.slider-container {
 		position: relative;
 		width: 100%;
 		height: 30px;
+		padding: 0 10px;
 	}
 
 	.slider-track {
 		position: absolute;
 		top: 50%;
-		left: 0;
-		right: 0;
+		left: 10px;
+		right: 10px;
 		height: 8px;
-		background: var(--background-cardHover);
+		background: rgba(var(--interactive-gradient-1), 0.1);
 		border-radius: 4px;
 		transform: translateY(-50%);
 		pointer-events: none;
@@ -595,7 +700,11 @@
 		top: 0;
 		left: 0;
 		height: 100%;
-		background: var(--background-button);
+		background: linear-gradient(
+			90deg,
+			rgba(var(--interactive-gradient-1), 0.6),
+			rgba(var(--interactive-gradient-2), 0.7)
+		);
 		border-radius: 4px;
 		pointer-events: none;
 	}
@@ -614,53 +723,56 @@
 		z-index: 1;
 	}
 
-	.duration-slider input::-webkit-slider-runnable-track {
-		width: 100%;
-		height: 8px;
-		background: transparent;
-		border-radius: 4px;
-		cursor: pointer;
-	}
-
-	.duration-slider input::-moz-range-track {
-		width: 100%;
-		height: 8px;
-		background: transparent;
-		border-radius: 4px;
-		cursor: pointer;
-	}
-
 	.duration-slider input::-webkit-slider-thumb {
 		-webkit-appearance: none;
 		appearance: none;
 		width: 20px;
 		height: 20px;
 		background: var(--background-card);
-		border: 2px solid var(--text-primary);
+		border: 2px solid rgba(var(--interactive-gradient-1), 0.6);
 		border-radius: 50%;
 		cursor: pointer;
-		margin-top: -6px;
+		margin-top: -4px;
 		box-shadow: 0 2px 4px var(--ui-shadow);
+		transition: all 0.3s ease;
 	}
 
 	.duration-slider input::-moz-range-thumb {
 		width: 20px;
 		height: 20px;
 		background: var(--background-card);
-		border: 2px solid var(--text-primary);
+		border: 2px solid rgba(var(--interactive-gradient-1), 0.6);
 		border-radius: 50%;
 		cursor: pointer;
 		box-shadow: 0 2px 4px var(--ui-shadow);
+		transition: all 0.3s ease;
+		margin-top: -4px;
+	}
+
+	.duration-slider input::-webkit-slider-thumb:hover {
+		transform: scale(1.1);
+		box-shadow: 0 4px 8px var(--ui-shadowHover);
+		border-color: rgba(var(--interactive-gradient-1), 0.8);
+	}
+
+	.duration-slider input::-moz-range-thumb:hover {
+		transform: scale(1.1);
+		box-shadow: 0 4px 8px var(--ui-shadowHover);
+		border-color: rgba(var(--interactive-gradient-1), 0.8);
 	}
 
 	/* Generate Button */
 	.generate-btn {
 		width: 100%;
-		padding: 0.9rem 1rem;
-		font-size: 1rem;
-		background-color: var(--background-button);
-		color: var(--text-light);
-		border: none;
+		padding: 1rem;
+		font-size: 0.95rem;
+		background: linear-gradient(
+			135deg,
+			rgba(var(--interactive-gradient-1), var(--interactive-opacity-1)) 0%,
+			rgba(var(--interactive-gradient-2), var(--interactive-opacity-2)) 100%
+		);
+		color: var(--text-primary);
+		border: 1px solid rgba(var(--interactive-gradient-1), 0.2);
 		border-radius: 12px;
 		cursor: pointer;
 		transition: all 0.3s ease;
@@ -670,51 +782,76 @@
 		gap: 0.5rem;
 		font-family: 'Inter', sans-serif;
 		font-weight: 500;
-		box-shadow: 0 4px 10px var(--ui-shadow);
+		box-shadow: 0 0 15px rgba(var(--interactive-gradient-1), 0.15);
+		position: relative;
+		overflow: hidden;
 	}
 
-	.generate-btn:hover {
+	.generate-btn::after {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: -100%;
+		width: 50%;
+		height: 100%;
+		background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+		transform: skewX(-25deg);
+		transition: all 0.75s ease;
+	}
+
+	.generate-btn:not(:disabled):hover {
+		background: linear-gradient(
+			135deg,
+			rgba(var(--interactive-gradient-1), var(--interactive-hover-opacity-1)) 0%,
+			rgba(var(--interactive-gradient-2), var(--interactive-hover-opacity-2)) 100%
+		);
 		transform: translateY(-2px);
-		box-shadow: 0 6px 15px var(--ui-shadowHover);
+		box-shadow: 0 5px 15px rgba(var(--interactive-gradient-1), 0.25);
+		border-color: rgba(var(--interactive-gradient-1), 0.3);
 	}
 
-	.generate-btn:active {
+	.generate-btn:not(:disabled):hover::after {
+		left: 100%;
+	}
+
+	.generate-btn:not(:disabled):active {
 		transform: translateY(1px);
-		box-shadow: 0 2px 5px var(--ui-shadow);
+		box-shadow: 0 2px 10px rgba(var(--interactive-gradient-1), 0.15);
 	}
 
 	.generate-btn:disabled {
-		background-color: var(--ui-disabled);
+		background: var(--ui-disabled);
 		cursor: not-allowed;
 		transform: none;
 		box-shadow: none;
+		border-color: transparent;
+		opacity: 0.7;
+	}
+
+	.generate-btn:disabled::after {
+		display: none;
 	}
 
 	.generate-btn i {
 		font-size: 1rem;
+		transition: transform 0.3s ease;
 	}
 
-	/* Status Messages */
-	.generating-message {
-		margin-top: 1rem;
-		padding: 0.75rem;
-		font-size: 0.9rem;
-		color: var(--text-secondary);
-		text-align: center;
+	.generate-btn:not(:disabled):hover i {
+		transform: translateX(3px);
 	}
 
-	.generating-message i {
-		color: var(--text-primary);
-	}
-
+	/* Error Message */
 	.error {
-		color: #e53935;
 		margin-top: 1rem;
-		padding: 0.75rem;
-		background-color: rgba(229, 57, 53, 0.1);
+		padding: 1rem;
 		border-radius: 12px;
+		background: var(--background-error);
+		color: var(--text-error);
 		font-size: 0.9rem;
 		text-align: center;
+		border: 1px solid rgba(var(--ui-danger), 0.2);
+		box-shadow: 0 4px 15px rgba(var(--ui-danger), 0.1);
 	}
 
 	@media (max-width: 480px) {
@@ -729,6 +866,20 @@
 		h1 {
 			font-size: 1.6rem;
 			margin-bottom: 1.2rem;
+		}
+
+		.tabs button {
+			padding: 0.75rem 0.5rem;
+			font-size: 0.9rem;
+		}
+
+		.duration-slider {
+			padding: 0.75rem;
+		}
+
+		.generate-btn {
+			padding: 0.9rem;
+			font-size: 0.95rem;
 		}
 	}
 </style>

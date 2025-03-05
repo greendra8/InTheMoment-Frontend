@@ -123,43 +123,50 @@
 <style>
 	.meditations-list-container {
 		width: 100%;
-		padding: 1.5rem 0;
+		padding: 2rem 0;
+		position: relative;
 	}
 
 	h1 {
-		font-family: 'Space Grotesk', sans-serif;
-		font-size: clamp(1.75rem, 4vw, 2.25rem);
+		font-family: 'Poppins', sans-serif;
+		font-size: 2rem;
 		font-weight: 600;
 		color: var(--text-primary);
-		margin-bottom: 1.5rem;
-		text-shadow: 0 0 10px rgba(var(--icon-primary-rgb), 0.2);
+		margin-bottom: 2rem;
+		letter-spacing: -0.5px;
+		text-shadow: 0 0 20px rgba(var(--icon-primary-rgb), 0.1);
 	}
 
 	.section-header {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		margin-bottom: 1rem;
+		margin-bottom: 1.5rem;
 		position: relative;
 	}
 
 	.section-header::after {
 		content: '';
 		position: absolute;
-		bottom: -8px;
+		bottom: -4px;
 		left: 0;
-		width: 60px;
+		width: 30px;
 		height: 2px;
-		background: linear-gradient(90deg, rgba(var(--gradient-1), 0.8), rgba(var(--gradient-2), 0));
+		background: linear-gradient(
+			90deg,
+			rgba(var(--interactive-gradient-1), 0.6),
+			rgba(var(--interactive-gradient-1), 0)
+		);
 		border-radius: 2px;
 	}
 
 	h2 {
-		font-family: 'Space Grotesk', sans-serif;
+		font-family: 'Poppins', sans-serif;
 		font-size: 1.5rem;
 		font-weight: 500;
 		color: var(--text-primary);
 		margin: 0;
+		letter-spacing: -0.3px;
 	}
 
 	.meditation-count {
@@ -167,12 +174,12 @@
 		color: var(--text-secondary);
 		background: linear-gradient(
 			135deg,
-			rgba(var(--gradient-1), 0.15) 0%,
-			rgba(var(--gradient-2), 0.1) 100%
+			rgba(var(--interactive-gradient-1), 0.1) 0%,
+			rgba(var(--interactive-gradient-2), 0.05) 100%
 		);
 		padding: 0.4rem 0.75rem;
 		border-radius: 8px;
-		border: 1px solid rgba(var(--gradient-1), 0.2);
+		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
 		backdrop-filter: blur(5px);
 	}
 
@@ -182,7 +189,7 @@
 		margin: 0;
 		display: flex;
 		flex-direction: column;
-		gap: 12px;
+		gap: 0.75rem;
 	}
 
 	li {
@@ -190,19 +197,20 @@
 		align-items: center;
 		background: linear-gradient(
 			135deg,
-			rgba(var(--background-card-rgb), 0.8) 0%,
-			rgba(var(--background-card-rgb), 0.6) 100%
+			rgba(var(--background-card-rgb), 0.9) 0%,
+			rgba(var(--background-card-rgb), 0.7) 100%
 		);
 		border-radius: 12px;
-		padding: 1rem;
+		padding: 0.9rem;
 		transition: all 0.3s ease;
-		box-shadow: 0 4px 12px var(--ui-shadow);
-		border: 1px solid rgba(var(--icon-primary-rgb), 0.1);
+		box-shadow: 0 4px 15px var(--ui-shadow);
+		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
 		position: relative;
 		overflow: hidden;
 		backdrop-filter: blur(5px);
 	}
 
+	/* Add subtle variations to list items */
 	li:nth-child(4n + 1)::before {
 		content: '';
 		position: absolute;
@@ -212,8 +220,8 @@
 		bottom: 0;
 		background: linear-gradient(
 			135deg,
-			rgba(var(--gradient-1), 0.1) 0%,
-			rgba(var(--gradient-2), 0.05) 100%
+			rgba(var(--gradient-1), 0.1),
+			rgba(var(--gradient-2), 0.05)
 		);
 		opacity: 0;
 		transition: opacity 0.3s ease;
@@ -229,8 +237,8 @@
 		bottom: 0;
 		background: linear-gradient(
 			135deg,
-			rgba(var(--gradient-3), 0.1) 0%,
-			rgba(var(--gradient-4), 0.05) 100%
+			rgba(var(--gradient-3), 0.1),
+			rgba(var(--gradient-4), 0.05)
 		);
 		opacity: 0;
 		transition: opacity 0.3s ease;
@@ -246,8 +254,8 @@
 		bottom: 0;
 		background: linear-gradient(
 			135deg,
-			rgba(var(--gradient-5), 0.1) 0%,
-			rgba(var(--gradient-6), 0.05) 100%
+			rgba(var(--gradient-5), 0.1),
+			rgba(var(--gradient-6), 0.05)
 		);
 		opacity: 0;
 		transition: opacity 0.3s ease;
@@ -263,340 +271,275 @@
 		bottom: 0;
 		background: linear-gradient(
 			135deg,
-			rgba(var(--gradient-7), 0.1) 0%,
-			rgba(var(--gradient-8), 0.05) 100%
+			rgba(var(--gradient-7), 0.1),
+			rgba(var(--gradient-8), 0.05)
 		);
 		opacity: 0;
 		transition: opacity 0.3s ease;
 		z-index: 0;
 	}
 
+	li:hover {
+		border-color: rgba(var(--interactive-gradient-1), 0.2);
+		transform: translateY(-2px);
+		box-shadow: 0 6px 15px var(--ui-shadowHover);
+	}
+
 	li:hover::before {
 		opacity: 1;
-	}
-
-	li:nth-child(4n + 1) {
-		border-left: 2px solid rgba(var(--gradient-1), 0.3);
-	}
-
-	li:nth-child(4n + 2) {
-		border-left: 2px solid rgba(var(--gradient-3), 0.3);
-	}
-
-	li:nth-child(4n + 3) {
-		border-left: 2px solid rgba(var(--gradient-5), 0.3);
-	}
-
-	li:nth-child(4n + 4) {
-		border-left: 2px solid rgba(var(--gradient-7), 0.3);
-	}
-
-	li.processing {
-		border: 1px dashed rgba(var(--icon-primary-rgb), 0.2);
-	}
-
-	.meditation-info {
-		flex-grow: 1;
-		overflow: hidden;
-		text-decoration: none;
-		color: inherit;
-		position: relative;
-		z-index: 1;
-	}
-
-	.meditation-info h3 {
-		font-size: 1.1rem;
-		margin: 0 0 0.3rem 0;
-		color: var(--text-primary);
-		text-shadow: 0 0 10px rgba(var(--icon-primary-rgb), 0.1);
-	}
-
-	.meditation-info p {
-		font-size: 0.9rem;
-		color: var(--text-secondary);
-		margin: 0.2rem 0;
-	}
-
-	.meditation-meta {
-		display: flex;
-		gap: 1rem;
-		font-size: 0.85rem;
-		color: var(--text-secondary);
-		margin-top: 0.3rem;
-	}
-
-	.meditation-meta i {
-		margin-right: 0.3rem;
 	}
 
 	.play-button {
 		width: 40px;
 		height: 40px;
-		background: var(--background-button);
-		color: var(--text-light);
+		background: linear-gradient(
+			135deg,
+			rgba(var(--interactive-gradient-1), 0.6) 0%,
+			rgba(var(--interactive-gradient-2), 0.7) 100%
+		);
+		color: var(--text-primary);
 		border-radius: 50%;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		margin-right: 1rem;
 		flex-shrink: 0;
-		text-decoration: none;
+		box-shadow: 0 0 15px rgba(var(--interactive-gradient-1), 0.2);
 		transition: all 0.3s ease;
 		position: relative;
 		z-index: 1;
-		box-shadow: 0 2px 8px var(--ui-shadow);
+		text-decoration: none;
 	}
 
-	.play-button::after {
+	li:hover .play-button {
+		background: linear-gradient(
+			135deg,
+			rgba(var(--interactive-gradient-1), 0.7) 0%,
+			rgba(var(--interactive-gradient-2), 0.8) 100%
+		);
+		box-shadow: 0 0 20px rgba(var(--interactive-gradient-1), 0.3);
+		transform: scale(1.05);
+	}
+
+	/* Add subtle shine effect */
+	li::after {
 		content: '';
 		position: absolute;
-		top: -50%;
-		left: -50%;
-		width: 200%;
-		height: 200%;
-		background: linear-gradient(
-			to right,
-			rgba(255, 255, 255, 0) 0%,
-			rgba(255, 255, 255, 0.1) 50%,
-			rgba(255, 255, 255, 0) 100%
-		);
-		transform: rotate(30deg) translateY(100%);
-		transition: transform 0.6s ease;
+		top: 0;
+		left: -100%;
+		width: 50%;
+		height: 100%;
+		background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+		transform: skewX(-25deg);
+		transition: all 0.75s ease;
 	}
 
-	.play-button:hover {
-		transform: scale(1.05);
-		background: var(--background-buttonHover);
-		box-shadow: 0 4px 12px var(--ui-shadowHover);
+	li:hover::after {
+		left: 100%;
 	}
 
-	.play-button:hover::after {
-		transform: rotate(30deg) translateY(-100%);
+	.meditation-info {
+		flex-grow: 1;
+		text-decoration: none;
+		color: var(--text-primary);
+		position: relative;
+		z-index: 1;
+	}
+
+	.title-wrapper {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		margin: 0;
+		font-size: 1rem;
+		font-weight: 500;
+	}
+
+	.title-text {
+		flex: 1;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.icon-wrapper {
+		flex-shrink: 0;
+	}
+
+	.listened-icon {
+		color: var(--ui-success);
+		font-size: 0.9rem;
+	}
+
+	.meditation-info p {
+		color: var(--text-secondary);
+		margin: 0.3rem 0;
+		font-size: 0.85rem;
+	}
+
+	.meditation-meta {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		font-size: 0.75rem;
+		color: var(--text-secondary);
+		margin-top: 0.3rem;
+	}
+
+	.length i {
+		margin-right: 0.3rem;
 	}
 
 	.processing-icon {
 		width: 40px;
 		height: 40px;
-		background: rgba(var(--icon-primary-rgb), 0.1);
-		color: var(--text-secondary);
+		background: rgba(var(--interactive-gradient-1), 0.1);
 		border-radius: 50%;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		margin-right: 1rem;
-		flex-shrink: 0;
-		box-shadow: 0 0 15px rgba(var(--icon-primary-rgb), 0.1);
-	}
-
-	.listened-icon {
-		font-size: 0.8rem;
-		color: var(--ui-success);
-		margin-left: 0.5rem;
-		filter: drop-shadow(0 0 2px rgba(var(--icon-primary-rgb), 0.2));
+		color: var(--text-primary);
+		font-size: 1rem;
 	}
 
 	.load-more-btn {
 		width: 100%;
-		padding: 0.9rem 1rem;
-		background: var(--background-button);
-		color: var(--text-light);
-		border: none;
+		padding: 1rem;
+		margin-top: 1.5rem;
+		background: linear-gradient(
+			135deg,
+			rgba(var(--interactive-gradient-1), 0.6) 0%,
+			rgba(var(--interactive-gradient-2), 0.7) 100%
+		);
+		color: var(--text-primary);
+		border: 1px solid rgba(var(--interactive-gradient-1), 0.2);
 		border-radius: 12px;
-		cursor: pointer;
-		font-family: 'Inter', sans-serif;
+		font-size: 0.9rem;
 		font-weight: 500;
+		cursor: pointer;
 		transition: all 0.3s ease;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		gap: 0.5rem;
-		margin-top: 1rem;
-		position: relative;
-		overflow: hidden;
 	}
 
-	.load-more-btn::after {
-		content: '';
-		position: absolute;
-		top: -50%;
-		left: -50%;
-		width: 200%;
-		height: 200%;
+	.load-more-btn:hover:not(:disabled) {
 		background: linear-gradient(
-			to right,
-			rgba(255, 255, 255, 0) 0%,
-			rgba(255, 255, 255, 0.1) 50%,
-			rgba(255, 255, 255, 0) 100%
+			135deg,
+			rgba(var(--interactive-gradient-1), 0.7) 0%,
+			rgba(var(--interactive-gradient-2), 0.8) 100%
 		);
-		transform: rotate(30deg) translateY(100%);
-		transition: transform 0.6s ease;
-	}
-
-	.load-more-btn:hover {
 		transform: translateY(-2px);
-		box-shadow: 0 4px 12px var(--ui-shadowHover);
-		background: var(--background-buttonHover);
-	}
-
-	.load-more-btn:hover::after {
-		transform: rotate(30deg) translateY(-100%);
+		box-shadow: 0 5px 15px rgba(var(--interactive-gradient-1), 0.25);
 	}
 
 	.load-more-btn:disabled {
-		background-color: var(--ui-disabled);
+		opacity: 0.7;
 		cursor: not-allowed;
-		transform: none;
-		box-shadow: none;
 	}
 
 	.empty-state {
 		text-align: center;
-		padding: 2rem;
+		padding: 2.5rem 1.5rem;
+		border-radius: 16px;
 		background: linear-gradient(
 			135deg,
-			rgba(var(--background-card-rgb), 0.8) 0%,
-			rgba(var(--background-card-rgb), 0.6) 100%
+			rgba(var(--background-card-rgb), 0.9) 0%,
+			rgba(var(--background-card-rgb), 0.7) 100%
 		);
-		border-radius: 12px;
-		color: var(--text-secondary);
-		margin-top: 1rem;
-		border: 1px solid rgba(var(--gradient-1), 0.2);
+		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
 		position: relative;
 		overflow: hidden;
 		backdrop-filter: blur(5px);
-	}
-
-	.empty-state::before {
-		content: '';
-		position: absolute;
-		top: -2px;
-		left: -2px;
-		right: -2px;
-		bottom: -2px;
-		background: linear-gradient(
-			135deg,
-			rgba(var(--gradient-1), 0.2),
-			transparent,
-			rgba(var(--gradient-2), 0.2),
-			transparent
-		);
-		border-radius: 12px;
-		z-index: 0;
-		opacity: 0.5;
 	}
 
 	.empty-state i {
 		font-size: 2rem;
+		color: rgba(var(--icon-primary-rgb), 0.6);
 		margin-bottom: 1rem;
-		opacity: 0.7;
-		position: relative;
-		z-index: 1;
-		background: linear-gradient(135deg, rgb(var(--gradient-1)), rgb(var(--gradient-2)));
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		filter: drop-shadow(0 0 10px rgba(var(--gradient-1), 0.3));
+		filter: drop-shadow(0 0 5px rgba(var(--icon-primary-rgb), 0.2));
 	}
 
 	.empty-state p {
+		font-size: 1rem;
+		color: var(--text-secondary);
 		margin-bottom: 1.5rem;
-		position: relative;
-		z-index: 1;
 	}
 
 	.create-new-btn {
 		display: inline-block;
-		padding: 0.9rem 1.5rem;
-		background: var(--background-button);
-		color: var(--text-light);
-		text-decoration: none;
-		border-radius: 12px;
-		font-family: 'Inter', sans-serif;
-		font-weight: 500;
-		transition: all 0.3s ease;
-		position: relative;
-		z-index: 1;
-		overflow: hidden;
-	}
-
-	.create-new-btn::after {
-		content: '';
-		position: absolute;
-		top: -50%;
-		left: -50%;
-		width: 200%;
-		height: 200%;
-		background: linear-gradient(
-			to right,
-			rgba(255, 255, 255, 0) 0%,
-			rgba(255, 255, 255, 0.1) 50%,
-			rgba(255, 255, 255, 0) 100%
-		);
-		transform: rotate(30deg) translateY(100%);
-		transition: transform 0.6s ease;
-	}
-
-	.create-new-btn:hover {
-		transform: translateY(-2px);
-		box-shadow: 0 4px 12px var(--ui-shadowHover);
-		background: var(--background-buttonHover);
-	}
-
-	.create-new-btn:hover::after {
-		transform: rotate(30deg) translateY(-100%);
-	}
-
-	.message {
-		margin-top: 1rem;
-		padding: 0.75rem;
-		border-radius: 12px;
-		text-align: center;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: 0.5rem;
+		padding: 0.8rem 1.5rem;
 		font-size: 0.9rem;
 		background: linear-gradient(
 			135deg,
-			rgba(var(--gradient-5), 0.1) 0%,
-			rgba(var(--gradient-6), 0.05) 100%
+			rgba(var(--interactive-gradient-1), 0.6) 0%,
+			rgba(var(--interactive-gradient-2), 0.7) 100%
 		);
-		border: 1px solid rgba(var(--gradient-5), 0.2);
-		backdrop-filter: blur(5px);
+		color: var(--text-primary);
+		text-decoration: none;
+		border: 1px solid rgba(var(--interactive-gradient-1), 0.2);
+		border-radius: 12px;
+		transition: all 0.3s ease;
 	}
 
-	.error {
-		background-color: var(--background-error);
+	.create-new-btn:hover {
+		background: linear-gradient(
+			135deg,
+			rgba(var(--interactive-gradient-1), 0.7) 0%,
+			rgba(var(--interactive-gradient-2), 0.8) 100%
+		);
+		transform: translateY(-2px);
+		box-shadow: 0 5px 15px rgba(var(--interactive-gradient-1), 0.25);
+	}
+
+	.message.error {
+		margin-top: 1rem;
+		padding: 1rem;
+		border-radius: 12px;
+		background: var(--background-error);
 		color: var(--text-error);
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 0.9rem;
 	}
 
 	@media (max-width: 480px) {
+		.meditations-list-container {
+			padding: 1.5rem 0;
+		}
+
 		h1 {
-			font-size: 1.6rem;
-			margin-bottom: 1.2rem;
+			font-size: 1.75rem;
+			margin-bottom: 1.5rem;
 		}
 
 		h2 {
-			font-size: 1.3rem;
+			font-size: 1.25rem;
 		}
 
 		li {
-			padding: 0.75rem;
+			padding: 0.8rem;
 		}
 
-		.play-button,
-		.processing-icon {
-			width: 35px;
-			height: 35px;
-			margin-right: 0.75rem;
+		.play-button {
+			width: 36px;
+			height: 36px;
+			margin-right: 0.8rem;
 		}
 
-		.meditation-info h3 {
-			font-size: 1rem;
+		.title-wrapper {
+			font-size: 0.95rem;
 		}
 
-		.meditation-info p,
-		.meditation-meta {
+		.meditation-info p {
 			font-size: 0.8rem;
+		}
+
+		.meditation-meta {
+			font-size: 0.7rem;
 		}
 	}
 </style>
