@@ -2,62 +2,60 @@
 :root {
     /* Text colors */
     --text-primary: #1a1a1a;
-    --text-secondary: #666;
-    --text-light: #e8e8e8;
-    --text-error: #c62828;
+    --text-secondary: #555;
+    --text-light: #ffffff;
+    --text-error: #d32f2f;
     --text-success: #2e7d32;
 
     /* Background colors */
-    --background-main: #f5f5f5;
-    --background-image: #f5f5f5;
-    --background-card: rgba(255, 255, 255, 0.9);
-    --background-cardHover: rgba(255, 255, 255, 0.95);
-    --background-button: #000;
-    --background-buttonHover: #222;
+    --background-main: #f8f9fa;
+    --background-image: #f8f9fa;
+    --background-card: rgba(255, 255, 255, 0.92);
+    --background-cardHover: rgba(255, 255, 255, 0.98);
+    --background-button: #000000;
+    --background-buttonHover: #333333;
     --background-input: #fff;
     --background-error: #ffebee;
 
     /* UI element colors */
-    --ui-divider: rgba(0, 0, 0, 0.1);
-    --ui-shadow: rgba(0, 0, 0, 0.05);
-    --ui-shadowHover: rgba(0, 0, 0, 0.1);
-    --ui-border: rgba(0, 0, 0, 0.1);
-    --ui-focus: #1a1a1a;
+    --ui-divider: rgba(0, 0, 0, 0.08);
+    --ui-shadow: rgba(0, 0, 0, 0.04);
+    --ui-shadowHover: rgba(0, 0, 0, 0.08);
+    --ui-border: rgba(0, 0, 0, 0.06);
+    --ui-focus: #000;
     --ui-success: #4CAF50;
     --ui-success-hover: #45a049;
     --ui-danger: #f44336;
     --ui-danger-hover: #d32f2f;
-    --ui-disabled: #cccccc;
+    --ui-disabled: #d1d5db;
 
     /* Icon colors */
-    --icon-primary: #333;
-    --icon-secondary: #666;
+    --icon-primary: #000;
+    --icon-secondary: #555;
     --icon-danger: #e53935;
 
     /* RGB values for transparency */
     --background-card-rgb: 255, 255, 255;
-    --icon-primary-rgb: 51, 51, 51;
+    --icon-primary-rgb: 0, 0, 0;
     --text-primary-rgb: 26, 26, 26;
 
-    /* Gradient colors */
-    --gradient-1: 79, 172, 254;
-    --gradient-2: 0, 242, 254;
-    --gradient-3: 250, 112, 154;
-    --gradient-4: 254, 225, 64;
-    --gradient-5: 102, 126, 234;
-    --gradient-6: 118, 75, 162;
-    --gradient-7: 67, 233, 123;
-    --gradient-8: 56, 249, 215;
+    /* Gradient colors - keeping these neutral */
+    --gradient-1: 0, 0, 0;
+    --gradient-2: 51, 51, 51;
+    --gradient-3: 102, 102, 102;
+    --gradient-4: 153, 153, 153;
+    --gradient-5: 0, 0, 0;
+    --gradient-6: 51, 51, 51;
+    --gradient-7: 102, 102, 102;
+    --gradient-8: 153, 153, 153;
 
     /* Interactive element gradients */
     --interactive-gradient-1: 0, 0, 0;
-    /* Black */
-    --interactive-gradient-2: 34, 34, 34;
-    /* Dark gray */
-    --interactive-opacity-1: 0.2;
-    --interactive-opacity-2: 0.2;
-    --interactive-hover-opacity-1: 0.3;
-    --interactive-hover-opacity-2: 0.45;
+    --interactive-gradient-2: 51, 51, 51;
+    --interactive-opacity-1: 1;
+    --interactive-opacity-2: 1;
+    --interactive-hover-opacity-1: 1;
+    --interactive-hover-opacity-2: 1;
 
     /* Add smooth transition for theme changes */
     transition: all 0.3s ease;

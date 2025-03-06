@@ -292,12 +292,8 @@
 	.play-button {
 		width: 40px;
 		height: 40px;
-		background: linear-gradient(
-			135deg,
-			rgba(var(--interactive-gradient-1), 0.4) 0%,
-			rgba(var(--interactive-gradient-2), 0.4) 100%
-		);
-		color: var(--text-primary);
+		background: var(--background-button);
+		color: var(--text-light);
 		border-radius: 50%;
 		display: flex;
 		align-items: center;
@@ -312,13 +308,29 @@
 	}
 
 	li:hover .play-button {
+		background: var(--background-buttonHover);
+		box-shadow: 0 0 20px rgba(var(--interactive-gradient-1), 0.3);
+		transform: scale(1.05);
+	}
+
+	/* Apply gradients only for themed versions */
+	:global(.dark-theme) .play-button,
+	:global(.cosmic-theme) .play-button {
+		background: linear-gradient(
+			135deg,
+			rgba(var(--interactive-gradient-1), 0.4) 0%,
+			rgba(var(--interactive-gradient-2), 0.4) 100%
+		);
+		color: var(--text-primary);
+	}
+
+	:global(.dark-theme) li:hover .play-button,
+	:global(.cosmic-theme) li:hover .play-button {
 		background: linear-gradient(
 			135deg,
 			rgba(var(--interactive-gradient-1), 0.7) 0%,
 			rgba(var(--interactive-gradient-2), 0.8) 100%
 		);
-		box-shadow: 0 0 20px rgba(var(--interactive-gradient-1), 0.3);
-		transform: scale(1.05);
 	}
 
 	/* Add subtle shine effect */
@@ -407,12 +419,8 @@
 		width: 100%;
 		padding: 1rem;
 		margin-top: 1.5rem;
-		background: linear-gradient(
-			135deg,
-			rgba(var(--interactive-gradient-1), 0.6) 0%,
-			rgba(var(--interactive-gradient-2), 0.7) 100%
-		);
-		color: var(--text-primary);
+		background: var(--background-button);
+		color: var(--text-light);
 		border: 1px solid rgba(var(--interactive-gradient-1), 0.2);
 		border-radius: 12px;
 		font-size: 0.9rem;
@@ -426,13 +434,29 @@
 	}
 
 	.load-more-btn:hover:not(:disabled) {
+		background: var(--background-buttonHover);
+		transform: translateY(-2px);
+		box-shadow: 0 5px 15px rgba(var(--interactive-gradient-1), 0.25);
+	}
+
+	/* Apply gradients only for themed versions */
+	:global(.dark-theme) .load-more-btn,
+	:global(.cosmic-theme) .load-more-btn {
+		background: linear-gradient(
+			135deg,
+			rgba(var(--interactive-gradient-1), 0.6) 0%,
+			rgba(var(--interactive-gradient-2), 0.7) 100%
+		);
+		color: var(--text-primary);
+	}
+
+	:global(.dark-theme) .load-more-btn:hover:not(:disabled),
+	:global(.cosmic-theme) .load-more-btn:hover:not(:disabled) {
 		background: linear-gradient(
 			135deg,
 			rgba(var(--interactive-gradient-1), 0.7) 0%,
 			rgba(var(--interactive-gradient-2), 0.8) 100%
 		);
-		transform: translateY(-2px);
-		box-shadow: 0 5px 15px rgba(var(--interactive-gradient-1), 0.25);
 	}
 
 	.load-more-btn:disabled {
@@ -472,12 +496,8 @@
 		display: inline-block;
 		padding: 0.8rem 1.5rem;
 		font-size: 0.9rem;
-		background: linear-gradient(
-			135deg,
-			rgba(var(--interactive-gradient-1), 0.6) 0%,
-			rgba(var(--interactive-gradient-2), 0.7) 100%
-		);
-		color: var(--text-primary);
+		background: var(--background-button);
+		color: var(--text-light);
 		text-decoration: none;
 		border: 1px solid rgba(var(--interactive-gradient-1), 0.2);
 		border-radius: 12px;
@@ -485,13 +505,29 @@
 	}
 
 	.create-new-btn:hover {
+		background: var(--background-buttonHover);
+		transform: translateY(-2px);
+		box-shadow: 0 5px 15px rgba(var(--interactive-gradient-1), 0.25);
+	}
+
+	/* Apply gradients only for themed versions */
+	:global(.dark-theme) .create-new-btn,
+	:global(.cosmic-theme) .create-new-btn {
+		background: linear-gradient(
+			135deg,
+			rgba(var(--interactive-gradient-1), 0.6) 0%,
+			rgba(var(--interactive-gradient-2), 0.7) 100%
+		);
+		color: var(--text-primary);
+	}
+
+	:global(.dark-theme) .create-new-btn:hover,
+	:global(.cosmic-theme) .create-new-btn:hover {
 		background: linear-gradient(
 			135deg,
 			rgba(var(--interactive-gradient-1), 0.7) 0%,
 			rgba(var(--interactive-gradient-2), 0.8) 100%
 		);
-		transform: translateY(-2px);
-		box-shadow: 0 5px 15px rgba(var(--interactive-gradient-1), 0.25);
 	}
 
 	.message.error {

@@ -658,18 +658,44 @@
 		padding: clamp(0.4rem, 1.5vw, 0.5rem) clamp(0.8rem, 2.5vw, 1rem);
 		font-size: clamp(0.875rem, 2.5vw, 1rem);
 		font-family: 'Space Grotesk', sans-serif;
-		background-color: var(--background-cardHover);
-		color: var(--text-primary);
-		border: none;
+		background: var(--background-button);
+		color: var(--text-light);
+		border: 1px solid rgba(var(--interactive-gradient-1), 0.2);
 		border-radius: clamp(0.4rem, 1.5vw, 0.5rem);
 		cursor: pointer;
-		transition: background-color 0.3s ease;
+		transition: all 0.3s ease;
 		opacity: 0.9;
 	}
 
 	.show-feedback-button:hover,
 	.hide-feedback-button:hover {
-		background-color: var(--ui-divider);
+		background: var(--background-buttonHover);
+		transform: translateY(-2px);
+		box-shadow: 0 4px 12px var(--ui-shadowHover);
+	}
+
+	/* Apply gradients only for themed versions */
+	:global(.dark-theme) .show-feedback-button,
+	:global(.cosmic-theme) .show-feedback-button,
+	:global(.dark-theme) .hide-feedback-button,
+	:global(.cosmic-theme) .hide-feedback-button {
+		background: linear-gradient(
+			135deg,
+			rgba(var(--interactive-gradient-1), var(--interactive-opacity-1)) 0%,
+			rgba(var(--interactive-gradient-2), var(--interactive-opacity-2)) 100%
+		);
+		color: var(--text-primary);
+	}
+
+	:global(.dark-theme) .show-feedback-button:hover,
+	:global(.cosmic-theme) .show-feedback-button:hover,
+	:global(.dark-theme) .hide-feedback-button:hover,
+	:global(.cosmic-theme) .hide-feedback-button:hover {
+		background: linear-gradient(
+			135deg,
+			rgba(var(--interactive-gradient-1), var(--interactive-hover-opacity-1)) 0%,
+			rgba(var(--interactive-gradient-2), var(--interactive-hover-opacity-2)) 100%
+		);
 	}
 
 	.feedback-controls-wrapper {

@@ -306,12 +306,24 @@
 		justify-content: center;
 		gap: 0.5rem;
 		background-color: var(--background-cardHover);
+		border: none;
 	}
 
 	.theme-option.active {
-		background-color: var(--background-card);
-		color: var(--text-primary);
+		background: var(--background-button);
+		color: var(--text-light);
 		box-shadow: 0 2px 4px var(--ui-shadow);
+	}
+
+	/* Apply gradients only for themed versions */
+	:global(.dark-theme) .theme-option.active,
+	:global(.cosmic-theme) .theme-option.active {
+		background: linear-gradient(
+			135deg,
+			rgba(var(--interactive-gradient-1), 0.6) 0%,
+			rgba(var(--interactive-gradient-2), 0.7) 100%
+		);
+		color: var(--text-primary);
 	}
 
 	.theme-option i {
@@ -322,7 +334,6 @@
 	.logout-button {
 		width: 100%;
 		padding: 0.9rem 1rem;
-		border: none;
 		border-radius: 12px;
 		font-size: 1rem;
 		cursor: pointer;
@@ -336,14 +347,36 @@
 	}
 
 	.update-button {
-		background-color: var(--background-button);
+		background: var(--background-button);
 		color: var(--text-light);
 		margin-bottom: 1rem;
+		border: 1px solid rgba(var(--interactive-gradient-1), 0.2);
 	}
 
 	.update-button:hover {
+		background: var(--background-buttonHover);
 		transform: translateY(-2px);
 		box-shadow: 0 4px 12px var(--ui-shadowHover);
+	}
+
+	/* Apply gradients only for themed versions */
+	:global(.dark-theme) .update-button,
+	:global(.cosmic-theme) .update-button {
+		background: linear-gradient(
+			135deg,
+			rgba(var(--interactive-gradient-1), var(--interactive-opacity-1)) 0%,
+			rgba(var(--interactive-gradient-2), var(--interactive-opacity-2)) 100%
+		);
+		color: var(--text-primary);
+	}
+
+	:global(.dark-theme) .update-button:hover,
+	:global(.cosmic-theme) .update-button:hover {
+		background: linear-gradient(
+			135deg,
+			rgba(var(--interactive-gradient-1), var(--interactive-hover-opacity-1)) 0%,
+			rgba(var(--interactive-gradient-2), var(--interactive-hover-opacity-2)) 100%
+		);
 	}
 
 	.logout-button {

@@ -80,14 +80,14 @@
 		font-family: 'Space Grotesk', sans-serif;
 		font-size: clamp(1.75rem, 4vw, 2.25rem);
 		font-weight: 600;
-		color: #1a1a1a;
+		color: var(--text-primary);
 		margin-bottom: 1rem;
 	}
 
 	.playlist-description {
 		font-family: 'Inter', sans-serif;
 		font-size: 1rem;
-		color: #666;
+		color: var(--text-secondary);
 		margin-bottom: 2rem;
 		line-height: 1.5;
 	}
@@ -103,7 +103,7 @@
 		font-family: 'Space Grotesk', sans-serif;
 		font-size: 1.5rem;
 		font-weight: 500;
-		color: #1a1a1a;
+		color: var(--text-primary);
 		margin: 0;
 	}
 
@@ -120,17 +120,23 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		background-color: #e8e8e8;
+		background: linear-gradient(
+			135deg,
+			rgba(var(--background-card-rgb), 0.9) 0%,
+			rgba(var(--background-card-rgb), 0.7) 100%
+		);
 		border-radius: 12px;
 		padding: 1rem 1.5rem;
 		cursor: pointer;
 		transition: all 0.3s ease;
-		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+		box-shadow: 0 2px 8px var(--ui-shadow);
+		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
 	}
 
 	.lesson-item:hover:not(.disabled) {
 		transform: translateY(-2px);
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+		box-shadow: 0 4px 12px var(--ui-shadowHover);
+		border-color: rgba(var(--interactive-gradient-1), 0.2);
 	}
 
 	.lesson-info {
@@ -141,14 +147,14 @@
 		font-family: 'Space Grotesk', sans-serif;
 		font-size: 1.1rem;
 		font-weight: 500;
-		color: #1a1a1a;
+		color: var(--text-primary);
 		margin: 0 0 0.2rem 0;
 	}
 
 	.lesson-number {
 		font-family: 'Inter', sans-serif;
 		font-size: 0.9rem;
-		color: #666;
+		color: var(--text-secondary);
 		margin: 0;
 	}
 
@@ -157,21 +163,42 @@
 		align-items: center;
 		gap: 0.5rem;
 		padding: 0.4rem 0.75rem;
-		background-color: #1a1a1a;
-		color: #fff;
+		background: var(--background-button);
+		color: var(--text-light);
 		border-radius: 8px;
 		font-family: 'Inter', sans-serif;
 		font-size: 0.8rem;
 		font-weight: 500;
 		transition: all 0.3s ease;
+		border: 1px solid rgba(var(--interactive-gradient-1), 0.2);
 	}
 
-	.create-button:hover {
-		background-color: #000;
+	.lesson-item:hover:not(.disabled) .create-button {
+		background: var(--background-buttonHover);
+	}
+
+	/* Apply gradients only for themed versions */
+	:global(.dark-theme) .create-button,
+	:global(.cosmic-theme) .create-button {
+		background: linear-gradient(
+			135deg,
+			rgba(var(--interactive-gradient-1), var(--interactive-opacity-1)) 0%,
+			rgba(var(--interactive-gradient-2), var(--interactive-opacity-2)) 100%
+		);
+		color: var(--text-primary);
+	}
+
+	:global(.dark-theme) .lesson-item:hover:not(.disabled) .create-button,
+	:global(.cosmic-theme) .lesson-item:hover:not(.disabled) .create-button {
+		background: linear-gradient(
+			135deg,
+			rgba(var(--interactive-gradient-1), var(--interactive-hover-opacity-1)) 0%,
+			rgba(var(--interactive-gradient-2), var(--interactive-hover-opacity-2)) 100%
+		);
 	}
 
 	.completed-icon {
-		color: #1a1a1a;
+		color: var(--icon-primary);
 		font-size: 1.2rem;
 	}
 

@@ -419,14 +419,20 @@
 		left: 0;
 		width: calc(100% / var(--option-count));
 		height: 100%;
+		background: var(--background-button);
+		transition: transform 0.3s ease;
+		z-index: 0;
+		border-radius: 12px;
+	}
+
+	/* Apply gradients only for themed versions */
+	:global(.dark-theme) .tabs .slider-background,
+	:global(.cosmic-theme) .tabs .slider-background {
 		background: linear-gradient(
 			135deg,
 			rgba(var(--interactive-gradient-1), 0.6) 0%,
 			rgba(var(--interactive-gradient-2), 0.7) 100%
 		);
-		transition: transform 0.3s ease;
-		z-index: 0;
-		border-radius: 12px;
 	}
 
 	.tabs button {
@@ -590,12 +596,18 @@
 		left: 0;
 		width: calc(100% / var(--option-count));
 		height: 100%;
+		background: var(--background-button);
+		transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	}
+
+	/* Apply gradients only for themed versions */
+	:global(.dark-theme) .slider-background,
+	:global(.cosmic-theme) .slider-background {
 		background: linear-gradient(
 			135deg,
 			rgba(var(--interactive-gradient-1), 0.6) 0%,
 			rgba(var(--interactive-gradient-2), 0.7) 100%
 		);
-		transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 	}
 
 	.option {
@@ -700,13 +712,19 @@
 		top: 0;
 		left: 0;
 		height: 100%;
+		background: var(--background-button);
+		border-radius: 4px;
+		pointer-events: none;
+	}
+
+	/* Apply gradients only for themed versions */
+	:global(.dark-theme) .slider-progress,
+	:global(.cosmic-theme) .slider-progress {
 		background: linear-gradient(
 			90deg,
 			rgba(var(--interactive-gradient-1), 0.6),
 			rgba(var(--interactive-gradient-2), 0.7)
 		);
-		border-radius: 4px;
-		pointer-events: none;
 	}
 
 	.duration-slider input {
@@ -766,12 +784,8 @@
 		width: 100%;
 		padding: 1rem;
 		font-size: 0.95rem;
-		background: linear-gradient(
-			135deg,
-			rgba(var(--interactive-gradient-1), var(--interactive-opacity-1)) 0%,
-			rgba(var(--interactive-gradient-2), var(--interactive-opacity-2)) 100%
-		);
-		color: var(--text-primary);
+		background: var(--background-button);
+		color: var(--text-light);
 		border: 1px solid rgba(var(--interactive-gradient-1), 0.2);
 		border-radius: 12px;
 		cursor: pointer;
@@ -800,18 +814,30 @@
 	}
 
 	.generate-btn:not(:disabled):hover {
-		background: linear-gradient(
-			135deg,
-			rgba(var(--interactive-gradient-1), var(--interactive-hover-opacity-1)) 0%,
-			rgba(var(--interactive-gradient-2), var(--interactive-hover-opacity-2)) 100%
-		);
+		background: var(--background-buttonHover);
 		transform: translateY(-2px);
 		box-shadow: 0 5px 15px rgba(var(--interactive-gradient-1), 0.25);
 		border-color: rgba(var(--interactive-gradient-1), 0.3);
 	}
 
-	.generate-btn:not(:disabled):hover::after {
-		left: 100%;
+	/* Apply gradients only for themed versions */
+	:global(.dark-theme) .generate-btn,
+	:global(.cosmic-theme) .generate-btn {
+		background: linear-gradient(
+			135deg,
+			rgba(var(--interactive-gradient-1), var(--interactive-opacity-1)) 0%,
+			rgba(var(--interactive-gradient-2), var(--interactive-opacity-2)) 100%
+		);
+		color: var(--text-primary);
+	}
+
+	:global(.dark-theme) .generate-btn:not(:disabled):hover,
+	:global(.cosmic-theme) .generate-btn:not(:disabled):hover {
+		background: linear-gradient(
+			135deg,
+			rgba(var(--interactive-gradient-1), var(--interactive-hover-opacity-1)) 0%,
+			rgba(var(--interactive-gradient-2), var(--interactive-hover-opacity-2)) 100%
+		);
 	}
 
 	.generate-btn:not(:disabled):active {

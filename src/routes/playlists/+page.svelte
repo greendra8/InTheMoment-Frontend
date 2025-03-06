@@ -136,9 +136,10 @@
 		align-items: center;
 		background: linear-gradient(
 			135deg,
-			rgba(var(--interactive-gradient-1), 0.15) 0%,
-			rgba(var(--interactive-gradient-2), 0.1) 100%
+			rgba(var(--background-card-rgb), 0.9) 0%,
+			rgba(var(--background-card-rgb), 0.7) 100%
 		);
+		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
 	}
 
 	.full-width .playlist-icon {
@@ -146,7 +147,7 @@
 		grid-row: 1;
 		font-size: 2rem;
 		margin-right: 1rem;
-		color: rgba(var(--interactive-gradient-1), 0.8);
+		color: var(--icon-primary);
 	}
 
 	.full-width h2 {
@@ -163,7 +164,7 @@
 		justify-self: end;
 		align-self: center;
 		opacity: 1;
-		color: rgba(var(--interactive-gradient-1), 0.8);
+		color: var(--icon-primary);
 	}
 
 	.playlist-card:hover {
@@ -175,8 +176,20 @@
 	.playlist-icon {
 		font-size: 2rem;
 		margin-bottom: 0.5rem;
-		color: rgba(var(--interactive-gradient-1), 0.8);
+		color: var(--icon-primary);
 		transition: transform 0.3s ease;
+	}
+
+	/* Apply colored icons only for themed versions */
+	:global(.dark-theme) .playlist-icon,
+	:global(.cosmic-theme) .playlist-icon,
+	:global(.dark-theme) .full-width .playlist-icon,
+	:global(.cosmic-theme) .full-width .playlist-icon,
+	:global(.dark-theme) .full-width .playlist-arrow,
+	:global(.cosmic-theme) .full-width .playlist-arrow,
+	:global(.dark-theme) .playlist-arrow,
+	:global(.cosmic-theme) .playlist-arrow {
+		color: rgba(var(--interactive-gradient-1), 0.8);
 	}
 
 	.playlist-card:hover .playlist-icon {
@@ -199,7 +212,7 @@
 		font-size: 1rem;
 		opacity: 0;
 		transition: all 0.3s ease;
-		color: rgba(var(--interactive-gradient-1), 0.8);
+		color: var(--icon-primary);
 	}
 
 	.playlist-card:hover .playlist-arrow {
