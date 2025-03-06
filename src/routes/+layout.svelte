@@ -248,17 +248,17 @@
 		.desktop-nav {
 			display: flex; /* Only show on desktop */
 			position: fixed;
-			top: 20px;
-			left: 20px;
+			top: 1.25rem; /* 20px */
+			left: 1.25rem; /* 20px */
 			background-color: var(--background-card);
-			border-radius: 25px;
-			box-shadow: 0 2px 10px var(--ui-shadow);
+			border-radius: 1.5625rem; /* 25px */
+			box-shadow: 0 0.125rem 0.625rem var(--ui-shadow);
 			flex-direction: column;
-			padding: 15px 10px;
-			gap: 15px;
+			padding: 0.9375rem 0.625rem; /* 15px 10px */
+			gap: 0.9375rem; /* 15px */
 			z-index: 1000;
 			width: auto;
-			min-width: 60px;
+			min-width: 3.75rem; /* 60px */
 			transition: all 0.3s ease;
 		}
 	}
@@ -270,14 +270,14 @@
 		text-decoration: none;
 		transition: all 0.2s ease;
 		position: relative;
-		padding: 8px 10px;
-		border-radius: 12px;
+		padding: 0.5rem 0.625rem; /* 8px 10px */
+		border-radius: 0.75rem; /* 12px */
 		white-space: nowrap;
 	}
 
 	.desktop-nav .icon-container {
-		width: 40px;
-		height: 40px;
+		width: 2.5rem; /* 40px */
+		height: 2.5rem; /* 40px */
 		border-radius: 50%;
 		display: flex;
 		justify-content: center;
@@ -297,7 +297,7 @@
 	}
 
 	.desktop-nav .nav-item i {
-		font-size: 18px;
+		font-size: 1.125rem; /* 18px */
 	}
 
 	.desktop-nav .nav-label {
@@ -308,7 +308,7 @@
 			opacity 0.3s ease,
 			max-width 0.3s ease,
 			margin-left 0.3s ease;
-		font-size: 14px;
+		font-size: 0.875rem; /* 14px */
 		opacity: 0;
 		max-width: 0;
 		overflow: hidden;
@@ -316,8 +316,8 @@
 
 	.desktop-nav:hover .nav-label {
 		opacity: 1;
-		margin-left: 12px;
-		max-width: 150px;
+		margin-left: 0.75rem; /* 12px */
+		max-width: 9.375rem; /* 150px */
 	}
 
 	.desktop-nav .nav-item.active .nav-label {
@@ -344,20 +344,20 @@
 			justify-content: space-around;
 			background-color: var(--background-card);
 			z-index: 1000;
-			padding: 10px 0 20px 0;
+			padding: 0.625rem 0 1.25rem 0; /* 10px 0 20px 0 */
 			transition: background-color 0.3s ease;
-			border-top: 1px solid var(--ui-border);
+			border-top: 0.0625rem solid var(--ui-border); /* 1px */
 		}
 	}
 
 	.mobile-nav.solid {
 		background-color: rgb(var(--background-card-rgb));
-		border-top: 1px solid var(--ui-border);
+		border-top: 0.0625rem solid var(--ui-border); /* 1px */
 	}
 
 	.mobile-nav:not(.solid) {
 		background-color: rgba(var(--background-card-rgb), 0.9);
-		backdrop-filter: blur(1px);
+		backdrop-filter: blur(0.0625rem); /* 1px */
 	}
 
 	.mobile-nav .nav-item {
@@ -367,7 +367,7 @@
 		justify-content: center;
 		color: var(--text-secondary);
 		text-decoration: none;
-		padding: 8px 0;
+		padding: 0.5rem 0; /* 8px 0 */
 		flex: 1;
 		transition: all 0.2s ease;
 		position: relative;
@@ -386,19 +386,19 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		margin-bottom: 5px;
+		margin-bottom: 0.3125rem; /* 5px */
 		color: var(--icon-secondary);
 		transition: all 0.3s ease;
 		will-change: color, opacity;
 	}
 
 	.mobile-nav .nav-item i {
-		font-size: 22px;
+		font-size: 1.375rem; /* 22px */
 	}
 
 	.mobile-nav .nav-label {
-		font-family: 'Poppins', sans-serif;
-		font-size: 11px;
+		font-family: 'Lato', sans-serif;
+		font-size: 0.6875rem; /* 11px */
 		font-weight: 500;
 		transition: all 0.3s ease;
 	}
@@ -433,15 +433,10 @@
 		padding: 0 !important;
 	}
 
-	/* Padding is now handled in app.css */
-	/* main.native-app {
-		padding-bottom: 120px;
-	} */
-
 	.content-container {
-		max-width: 800px;
+		max-width: 50rem; /* 800px */
 		margin: 0 auto;
-		padding: 0.5rem;
+		padding: 0.3125rem; /* 0.5rem */
 	}
 
 	.global-container {
@@ -457,7 +452,7 @@
 
 	@media (max-width: 600px) {
 		.global-container {
-			padding: 0 0.5rem;
+			padding: 0 0.3125rem; /* 0.5rem */
 		}
 
 		.global-container.full-width {
@@ -507,6 +502,6 @@
 	.theme-toggle-container {
 		display: flex;
 		justify-content: center;
-		margin-top: 10px;
+		margin-top: 0.625rem; /* 10px */
 	}
 </style>

@@ -1,14 +1,41 @@
 @import './lib/theme.css';
 
+/* Control overall scaling */
+html {
+  font-size: 14px;
+  /* Base font size */
+  zoom: 1;
+  /* Reset zoom level */
+  -ms-text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   font-family: 'Lato', sans-serif;
-  line-height: 1.6;
+  line-height: 1.5;
   color: var(--text-primary);
   background: var(--background-image, var(--background-main));
   background-attachment: var(--background-attachment, initial);
   background-size: var(--background-size, auto);
   margin: 0;
   padding: 0;
+}
+
+/* Default heading sizes reduced */
+h1 {
+  font-size: 1.8rem;
+}
+
+h2 {
+  font-size: 1.5rem;
+}
+
+h3 {
+  font-size: 1.3rem;
+}
+
+h4 {
+  font-size: 1.1rem;
 }
 
 /* Default heading styles that can be overridden by specific pages */
@@ -19,6 +46,8 @@ h4 {
   font-family: 'Poppins', sans-serif;
   font-weight: 600;
   color: var(--text-primary);
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 h5,
@@ -55,7 +84,7 @@ textarea {
 
 /* Add this new style */
 .global-container {
-  max-width: 580px;
+  max-width: 500px;
   margin: 0 auto;
   padding: 0 1rem;
 }
@@ -113,6 +142,23 @@ textarea {
 main {
   padding-bottom: 80px;
   /* Default space for mobile nav */
+  max-width: 100%;
+  overflow-x: hidden;
+  /* Prevent horizontal scrolling */
+}
+
+/* Improve layout stability */
+.content-container {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+
+@media (max-width: 600px) {
+  html {
+    font-size: 16px;
+  }
 }
 
 
