@@ -50,8 +50,8 @@
     --gradient-8: 153, 153, 153;
 
     /* Interactive element gradients */
-    --interactive-gradient-1: 0, 0, 0;
-    --interactive-gradient-2: 51, 51, 51;
+    --interactive-gradient-1: 100, 100, 100;
+    --interactive-gradient-2: 200, 200, 200;
     --interactive-opacity-1: 1;
     --interactive-opacity-2: 1;
     --interactive-hover-opacity-1: 1;
