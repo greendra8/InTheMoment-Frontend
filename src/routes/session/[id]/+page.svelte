@@ -286,6 +286,7 @@
 					on:click|stopPropagation={isDownloaded ? null : triggerDownload}
 					aria-label={isDownloaded ? 'Meditation downloaded' : 'Download meditation'}
 				>
+					<i class="fas {isDownloaded ? 'fa-check-circle' : 'fa-download'}"></i>
 					{isDownloaded ? 'Already downloaded' : 'Download'}
 				</li>
 				<li
@@ -296,6 +297,11 @@
 						}
 					}}
 				>
+					<i
+						class="fas {meditation.listened || isCompletedThisSession
+							? 'fa-check-circle'
+							: 'fa-check'}"
+					></i>
 					{meditation.listened || isCompletedThisSession ? 'Already completed' : 'Mark as complete'}
 				</li>
 			</ul>
@@ -433,7 +439,7 @@
    ======================= */
 	header {
 		position: absolute;
-		top: 0.5rem;
+		top: 3rem;
 		left: 0.25rem;
 		right: 0.25rem;
 		padding: 1rem;
@@ -515,70 +521,94 @@
 		justify-content: flex-end;
 		align-items: center;
 		z-index: 2;
+		padding: 0 1rem;
 	}
 
 	/* Back Icon - Hidden by Default */
 	.back-icon {
 		display: none;
-		background-color: var(--background-card);
-		border-radius: clamp(0.75rem, 2vw, 1rem);
-		height: clamp(1.75rem, 5vw, 2rem);
-		padding: 0 clamp(0.6rem, 2vw, 0.8rem);
-		color: var(--text-primary);
+		background: var(--btn-bg);
+		border-radius: 50px;
+		height: clamp(2.5rem, 6vw, 3rem);
+		padding: 0 clamp(1rem, 3vw, 1.2rem);
+		color: var(--btn-text);
 		justify-content: center;
 		align-items: center;
 		cursor: pointer;
-		box-shadow: 0 0 0.5rem var(--ui-shadow);
-		transition:
-			background-color 0.3s ease,
-			opacity 0.3s ease;
+		box-shadow: 0 0 15px rgba(var(--interactive-gradient-1), 0.15);
+		transition: all 0.3s ease;
 		margin-right: auto;
 		font-size: clamp(0.875rem, 2.5vw, 1rem);
+		border: 1px solid rgba(var(--interactive-gradient-1), 0.2);
 	}
 
 	.back-icon:hover {
-		opacity: 1;
+		background: var(--btn-bg-hover);
+		transform: translateY(-2px);
+		box-shadow: 0 5px 15px rgba(var(--interactive-gradient-1), 0.25);
 	}
 
 	.back-icon i {
 		font-size: 1.2rem;
-		color: var(--icon-primary);
+		color: var(--btn-text);
+		margin-right: 0.2rem;
 	}
 
 	/* Menu Icon - Always Visible */
 	.menu-icon {
-		background-color: var(--background-card);
-		border-radius: clamp(0.75rem, 2vw, 1rem);
-		height: clamp(1.75rem, 5vw, 2rem);
-		padding: 0 clamp(0.6rem, 2vw, 0.8rem);
-		color: var(--text-primary);
+		background: var(--btn-bg);
+		border-radius: 50%;
+		height: clamp(2.5rem, 6vw, 3rem);
+		width: clamp(2.5rem, 6vw, 3rem);
+		color: var(--btn-text);
 		display: flex;
 		justify-content: center;
 		align-items: center;
 		cursor: pointer;
-		box-shadow: 0 0 0.5rem var(--ui-shadow);
-		transition: background-color 0.3s ease;
+		box-shadow: 0 0 15px rgba(var(--interactive-gradient-1), 0.15);
+		transition: all 0.3s ease;
+		border: 1px solid rgba(var(--interactive-gradient-1), 0.2);
 	}
 
-	.menu-icon:active {
-		background-color: var(--ui-divider);
+	.menu-icon:hover {
+		background: var(--btn-bg-hover);
+		transform: translateY(-2px);
+		box-shadow: 0 5px 15px rgba(var(--interactive-gradient-1), 0.25);
 	}
 
 	.menu-icon i {
-		font-size: clamp(1rem, 3vw, 1.2rem);
-		color: var(--icon-primary);
+		font-size: clamp(1.1rem, 3.5vw, 1.3rem);
+		color: var(--btn-text);
+	}
+
+	/* Light theme adjustments for buttons */
+	:global(.light-theme) .back-icon,
+	:global(.light-theme) .menu-icon,
+	:global(.light-theme) .show-feedback-button {
+		background: #11191d;
+	}
+
+	:global(.light-theme) .back-icon:hover,
+	:global(.light-theme) .menu-icon:hover {
+		background: rgba(0, 0, 0, 0.8);
 	}
 
 	/* Dropdown Menu */
 	.menu {
 		position: absolute;
-		top: clamp(3rem, 8vw, 3.5rem);
+		top: clamp(4rem, 9vw, 4.5rem);
 		right: clamp(1rem, 3vw, 1.5rem);
-		background-color: var(--background-card);
-		border-radius: clamp(0.4rem, 1.5vw, 0.5rem);
-		box-shadow: 0 2px 8px var(--ui-shadow);
+		background: linear-gradient(
+			135deg,
+			rgba(var(--background-card-rgb), 0.9) 0%,
+			rgba(var(--background-card-rgb), 0.7) 100%
+		);
+		border-radius: 16px;
+		box-shadow: 0 4px 20px var(--ui-shadow);
 		z-index: 2;
 		overflow: hidden;
+		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
+		backdrop-filter: blur(5px);
 	}
 
 	.menu ul {
@@ -588,27 +618,56 @@
 	}
 
 	.menu li {
-		padding: clamp(0.6rem, 2vw, 0.8rem) clamp(0.8rem, 3vw, 1.2rem);
+		padding: clamp(0.8rem, 2vw, 1rem) clamp(1rem, 3vw, 1.5rem);
 		font-size: clamp(0.875rem, 2.5vw, 1rem);
 		cursor: pointer;
-		transition: background-color 0.2s ease;
+		transition: all 0.3s ease;
 		position: relative;
 		color: var(--text-primary);
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
 	}
 
 	.menu li:not(:last-child)::after {
 		content: '';
 		position: absolute;
 		bottom: 0;
-		left: 50%;
-		transform: translateX(-50%);
-		width: 30%;
+		left: 10%;
+		width: 80%;
 		height: 1px;
-		background-color: var(--ui-divider);
+		background: linear-gradient(
+			90deg,
+			transparent,
+			rgba(var(--interactive-gradient-1), 0.3),
+			transparent
+		);
 	}
 
 	.menu li:hover {
 		background-color: var(--background-cardHover);
+		transform: translateX(2px);
+	}
+
+	.menu li::before {
+		content: '';
+		position: absolute;
+		left: 0;
+		top: 0;
+		bottom: 0;
+		width: 3px;
+		background: linear-gradient(
+			to bottom,
+			rgba(var(--interactive-gradient-1), 0),
+			rgba(var(--interactive-gradient-1), 0.3),
+			rgba(var(--interactive-gradient-1), 0)
+		);
+		opacity: 0;
+		transition: opacity 0.3s ease;
+	}
+
+	.menu li:hover::before {
+		opacity: 1;
 	}
 
 	/* =======================
@@ -660,7 +719,7 @@
 		font-family: 'Space Grotesk', sans-serif;
 		background: var(--background-button);
 		color: var(--text-light);
-		border: 1px solid rgba(var(--interactive-gradient-1), 0.2);
+		border: 2px solid rgba(var(--interactive-gradient-1), 0.2);
 		border-radius: clamp(0.4rem, 1.5vw, 0.5rem);
 		cursor: pointer;
 		transition: all 0.3s ease;
