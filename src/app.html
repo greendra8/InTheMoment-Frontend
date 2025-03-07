@@ -18,41 +18,19 @@
 			transition: opacity 0.3s ease;
 		}
 	</style>
-	<!-- Preload theme to prevent flash -->
+	<!-- Minimal theme preload to prevent flash -->
 	<script>
 		(function () {
-			function getThemeFromStorage() {
-				// Try localStorage first
-				const storedTheme = localStorage.getItem('theme');
-				if (storedTheme === 'light' || storedTheme === 'dark' || storedTheme === 'cosmic') {
-					return storedTheme;
-				}
-
-				// Try cookies next
-				const cookies = document.cookie.split(';');
-				for (let cookie of cookies) {
-					const [name, value] = cookie.trim().split('=');
-					if (name === 'theme') {
-						if (value === 'light' || value === 'dark' || value === 'cosmic') {
-							return value;
-						}
-					}
-				}
-
-				// Default to cosmic if nothing found
-				return 'cosmic';
-			}
-
-			// Check if we're on landing or auth pages
+			// Quick check for landing/auth pages
 			var isLandingOrAuthPage =
 				window.location.pathname === '/' ||
 				window.location.pathname === '/login' ||
 				window.location.pathname === '/register';
 
-			// Force cosmic on landing/auth pages
-			var theme = isLandingOrAuthPage ? 'cosmic' : getThemeFromStorage();
+			// Quick theme check - minimal version just for initial render
+			var theme = isLandingOrAuthPage ? 'cosmic' : (localStorage.getItem('theme') || 'cosmic');
 
-			// Apply theme classes immediately
+			// Apply theme classes immediately with no transitions
 			document.documentElement.classList.add('no-transitions');
 			if (theme === 'light') {
 				document.documentElement.classList.add('light-theme');
@@ -60,7 +38,7 @@
 				document.documentElement.classList.add('dark-theme');
 			}
 
-			// Remove the no-transitions class after a short delay to enable smooth transitions later
+			// Remove the no-transitions class after a short delay
 			setTimeout(function () {
 				document.documentElement.classList.remove('no-transitions');
 			}, 100);

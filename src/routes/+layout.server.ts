@@ -1,14 +1,41 @@
 // +layout.server.ts
 import type { LayoutServerLoad } from './$types';
 import { redirect } from '@sveltejs/kit';
-import { isUserProfileComplete } from '$lib/server/supabase';
+import { isUserProfileComplete, getUserProfile } from '$lib/server/supabase';
+
+// Set to false to disable logging
+const DEBUG = false;
+
+// Helper function for conditional logging
+function log(...args: any[]): void {
+  if (DEBUG) {
+    console.log(...args);
+  }
+}
 
 export const load: LayoutServerLoad = async ({ locals, url, cookies }) => {
   const session = locals.session;
   const isAdmin = session?.user?.id === 'cf39c581-6b6f-44b7-8c56-f7f64a26637c';
 
-  // Read theme from cookie, default to 'light'
-  const theme = cookies.get('theme') || 'light';
+  log('[Layout] Loading layout, path:', url.pathname);
+  log('[Layout] User logged in:', !!session?.user);
+
+  let profile;
+
+  // Get user profile if logged in
+  if (session?.user) {
+    try {
+      log('[Layout] Fetching user profile');
+      profile = await getUserProfile(session.user.id);
+      log('[Layout] Profile theme:', profile?.theme);
+    } catch (error) {
+      console.error("[Layout] Error fetching user profile:", error);
+    }
+  }
+
+  // Get theme from profile or default to cosmic
+  const theme = profile?.theme || 'cosmic';
+  log('[Layout] Using theme:', theme);
 
   if (session?.user) {
     const isComplete = await isUserProfileComplete(session.user.id);
@@ -54,11 +81,14 @@ export const load: LayoutServerLoad = async ({ locals, url, cookies }) => {
       { href: '/register', label: 'Register', icon: 'fa-user-plus' },
     ];
 
+  const sessionWithProfile = profile ? { ...session, profile } : session;
+  log('[Layout] Returning session with profile:', !!profile);
+
   return {
     user: session?.user ? { id: session.user.id, email: session.user.email } : null,
     navItems,
     isNativeApp: locals.isNativeApp,
-    session,
+    session: sessionWithProfile,
     theme
   };
 };

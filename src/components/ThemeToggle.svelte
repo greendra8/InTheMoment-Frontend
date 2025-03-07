@@ -1,5 +1,8 @@
 <script lang="ts">
 	import { theme, toggleTheme } from '$lib/stores/theme';
+	import { session } from '$lib/stores/session';
+
+	// The toggle functionality is already handled in the theme store
 </script>
 
 <button class="theme-toggle {$theme}" on:click={toggleTheme} aria-label="Toggle theme">

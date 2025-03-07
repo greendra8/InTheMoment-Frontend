@@ -3,67 +3,80 @@
 	import { onNavigate, goto } from '$app/navigation';
 	import '../app.css';
 	import { invalidate } from '$app/navigation';
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { page } from '$app/stores';
 	import { appContext } from '$lib/stores/appContext';
 	import { supabase } from '$lib/supabaseClient';
-	import { session as sessionStore } from '$lib/stores/session';
+	import { session as sessionStore, type ExtendedSession } from '$lib/stores/session';
 	import { get } from 'svelte/store';
 	import { text, background, ui, icon } from '$lib/theme';
-	import { theme } from '$lib/stores/theme';
+	import { theme, isLandingOrAuthPage, setTheme } from '$lib/stores/theme';
 	import Notifications from '$lib/components/Notifications.svelte';
 
 	export let data;
 	$: ({ navItems, isNativeApp, session } = data);
 
+	// Type the session properly as it comes from the server with profile data
+	$: typedSession = session as ExtendedSession;
+
 	// Force cosmic theme for landing page and auth pages
-	const isLandingOrAuthPage =
-		$page?.url?.pathname === '/' ||
-		$page?.url?.pathname === '/login' ||
-		$page?.url?.pathname === '/register';
+	$: isLandingOrAuthRoute = isLandingOrAuthPage();
 
 	// Use cosmic theme for landing/auth pages, otherwise use the store's theme value
-	$: themeValue = isLandingOrAuthPage ? 'cosmic' : $theme;
+	$: themeValue = isLandingOrAuthRoute ? 'cosmic' : $theme;
 
-	// Update the session store with the initial session
-	sessionStore.set(session);
+	// Track if we've done initial session setup
+	let initialSessionSetupDone = false;
+
+	// Update the session store with the initial session and profile, but only once
+	$: if (!initialSessionSetupDone && typedSession) {
+		initialSessionSetupDone = true;
+		// Set session without triggering unnecessary theme updates
+		sessionStore.set(typedSession);
+	}
 
 	$: appContext.setIsNativeApp(isNativeApp);
 
-	// Ensure theme is applied on initial load and when theme changes
+	// Auth listener for session updates
+	let authListener: { subscription: { unsubscribe: () => void } } | null = null;
+
 	onMount(() => {
 		// Force cosmic theme on landing/auth pages
-		if (isLandingOrAuthPage && $theme !== 'cosmic') {
-			theme.set('cosmic');
+		if (isLandingOrAuthRoute && $theme !== 'cosmic') {
+			// Use setTheme with saveToDb=false since this is a system change
+			setTheme('cosmic', false);
 		}
 
-		const { data: authListener } = supabase.auth.onAuthStateChange((event, newSession) => {
+		// Set up auth listener
+		const { data: newAuthListener } = supabase.auth.onAuthStateChange((event, newSession) => {
 			const currentSession = get(sessionStore);
 
+			// Only update if the session has actually changed
 			if (newSession?.expires_at !== currentSession?.expires_at) {
-				sessionStore.set(newSession);
-			} else {
-				console.log('No session update needed');
+				// Preserve the profile data when updating the session
+				if (currentSession?.profile) {
+					sessionStore.set({ ...newSession, profile: currentSession.profile } as ExtendedSession);
+				} else {
+					sessionStore.set(newSession as ExtendedSession);
+				}
 			}
 		});
+
+		authListener = newAuthListener;
 
 		// Add event listener for messages from React Native
 		window.addEventListener('message', handleReactNativeMessage);
 
-		// Add this debugging listener
-		window.addEventListener('message', (event) => {
-			// Ignore messages from React DevTools
-			if (event.data && event.data.source === 'react-devtools-content-script') {
-				return;
-			}
-			console.log('Received message event:', event);
-			console.log('Message data:', event.data);
-		});
-
 		return () => {
-			authListener?.subscription.unsubscribe();
 			window.removeEventListener('message', handleReactNativeMessage);
 		};
+	});
+
+	onDestroy(() => {
+		// Clean up auth listener
+		if (authListener) {
+			authListener.subscription.unsubscribe();
+		}
 	});
 
 	function handleReactNativeMessage(event: MessageEvent) {
@@ -84,27 +97,21 @@
 				if (event.data.type === 'navigation') {
 					goto(event.data.path);
 				}
-			} else {
-				console.warn('Received unexpected message format:', event.data);
 			}
 		} catch (error) {
-			console.warn('Error parsing message:', event.data);
-			console.error('Parse error details:', error);
+			// Silently handle parsing errors - likely not intended for us
 		}
 	}
 
 	onNavigate((navigation) => {
 		if (!document.startViewTransition) {
-			console.log('View transitions not supported');
 			return;
 		}
 
-		console.log('Starting view transition');
 		return new Promise((resolve) => {
 			document.startViewTransition(async () => {
 				resolve();
 				await navigation.complete;
-				console.log('View transition completed');
 			});
 		});
 	});

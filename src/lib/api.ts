@@ -198,3 +198,20 @@ export async function updateUserProfile(userId: string, data: { name: string, ex
 
   return updatedProfile;
 }
+
+// Update user theme function
+export async function updateUserTheme(userId: string, theme: string) {
+  const { data, error } = await supabase
+    .from('profiles')
+    .update({ theme })
+    .eq('id', userId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating user theme:', error);
+    throw error;
+  }
+
+  return data;
+}

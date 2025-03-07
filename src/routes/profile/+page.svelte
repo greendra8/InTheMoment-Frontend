@@ -4,8 +4,9 @@
 	import { invalidate } from '$app/navigation';
 	import { supabase } from '$lib/supabaseClient';
 	import ThemeToggle from '../../components/ThemeToggle.svelte';
-	import { theme } from '$lib/stores/theme';
+	import { theme, setTheme } from '$lib/stores/theme';
 	import { showSuccess, showError } from '$lib/stores/notifications';
+	import { session } from '$lib/stores/session';
 
 	export let data: PageData;
 	export let form: ActionData;
@@ -43,6 +44,12 @@
 
 	function handleUpdateSuccess() {
 		showSuccess('Profile updated successfully!');
+	}
+
+	function handleThemeChange(newTheme: 'light' | 'dark' | 'cosmic') {
+		// Explicitly set theme with saveToDb=true since this is a user action
+		setTheme(newTheme, true);
+		showSuccess(`Theme changed to ${newTheme}`);
 	}
 </script>
 
@@ -115,27 +122,21 @@
 				<div class="theme-toggle-container">
 					<button
 						class="theme-option cosmic-option {$theme === 'cosmic' ? 'active' : ''}"
-						on:click={() => {
-							$theme = 'cosmic';
-						}}
+						on:click={() => handleThemeChange('cosmic')}
 					>
 						<i class="fas fa-rocket"></i>
 						Cosmic
 					</button>
 					<button
 						class="theme-option light-option {$theme === 'light' ? 'active' : ''}"
-						on:click={() => {
-							$theme = 'light';
-						}}
+						on:click={() => handleThemeChange('light')}
 					>
 						<i class="fas fa-sun"></i>
 						Light
 					</button>
 					<button
 						class="theme-option dark-option {$theme === 'dark' ? 'active' : ''}"
-						on:click={() => {
-							$theme = 'dark';
-						}}
+						on:click={() => handleThemeChange('dark')}
 					>
 						<i class="fas fa-moon"></i>
 						Dark
