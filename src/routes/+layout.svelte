@@ -22,17 +22,46 @@
 	// Force cosmic theme for landing page and auth pages
 	$: isLandingOrAuthRoute = isLandingOrAuthPage();
 
-	// Use cosmic theme for landing/auth pages, otherwise use the store's theme value
-	$: themeValue = isLandingOrAuthRoute ? 'cosmic' : $theme;
+	/**
+	 * Theme synchronization strategy:
+	 * 1. For landing/auth pages: Always use 'cosmic' theme
+	 * 2. During initial render: Use server-provided theme from DB (data.theme)
+	 * 3. After initialization: Use the theme store for reactivity
+	 *
+	 * This approach ensures the correct theme is applied immediately on page load
+	 * and prevents mismatches between localStorage and DB themes during reloads.
+	 */
+
+	// Store server theme to use during initialization
+	let serverTheme = data.theme;
+
+	// Determine which theme to use based on current state
+	$: themeValue = isLandingOrAuthRoute
+		? 'cosmic'
+		: serverTheme && !initialSessionSetupDone
+			? serverTheme
+			: $theme;
 
 	// Track if we've done initial session setup
 	let initialSessionSetupDone = false;
 
-	// Update the session store with the initial session and profile, but only once
+	// Update the session store with the initial session and profile, and sync theme, but only once
 	$: if (!initialSessionSetupDone && typedSession) {
 		initialSessionSetupDone = true;
 		// Set session without triggering unnecessary theme updates
 		sessionStore.set(typedSession);
+
+		// Sync theme with server data if not on landing/auth page
+		if (!isLandingOrAuthRoute && typedSession.profile?.theme) {
+			const profileTheme = typedSession.profile.theme;
+			// Validate theme value to avoid type errors
+			if (profileTheme === 'light' || profileTheme === 'dark' || profileTheme === 'cosmic') {
+				// Update theme store with DB value (false = don't save back to DB)
+				setTheme(profileTheme, false);
+				// Clear serverTheme to let the reactive store take over
+				serverTheme = null;
+			}
+		}
 	}
 
 	$: appContext.setIsNativeApp(isNativeApp);
