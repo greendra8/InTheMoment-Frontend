@@ -114,25 +114,31 @@
 				<span class="theme-label">Theme</span>
 				<div class="theme-toggle-container">
 					<button
-						class="theme-option {$theme === 'light' ? 'active' : ''}"
-						on:click={() => ($theme = 'light')}
+						class="theme-option cosmic-option {$theme === 'cosmic' ? 'active' : ''}"
+						on:click={() => {
+							$theme = 'cosmic';
+						}}
+					>
+						<i class="fas fa-rocket"></i>
+						Cosmic
+					</button>
+					<button
+						class="theme-option light-option {$theme === 'light' ? 'active' : ''}"
+						on:click={() => {
+							$theme = 'light';
+						}}
 					>
 						<i class="fas fa-sun"></i>
 						Light
 					</button>
 					<button
-						class="theme-option {$theme === 'dark' ? 'active' : ''}"
-						on:click={() => ($theme = 'dark')}
+						class="theme-option dark-option {$theme === 'dark' ? 'active' : ''}"
+						on:click={() => {
+							$theme = 'dark';
+						}}
 					>
 						<i class="fas fa-moon"></i>
 						Dark
-					</button>
-					<button
-						class="theme-option {$theme === 'cosmic' ? 'active' : ''}"
-						on:click={() => ($theme = 'cosmic')}
-					>
-						<i class="fas fa-rocket"></i>
-						Cosmic
 					</button>
 				</div>
 			</div>
@@ -309,21 +315,22 @@
 		border: none;
 	}
 
+	/* Base active style */
 	.theme-option.active {
-		background: var(--background-button);
-		color: var(--text-light);
 		box-shadow: 0 2px 4px var(--ui-shadow);
 	}
 
-	/* Apply gradients only for themed versions */
-	:global(.dark-theme) .theme-option.active,
-	:global(.cosmic-theme) .theme-option.active {
-		background: linear-gradient(
-			135deg,
-			rgba(var(--interactive-gradient-1), 0.6) 0%,
-			rgba(var(--interactive-gradient-2), 0.7) 100%
-		);
-		color: var(--text-primary);
+	/* Light theme specific active style */
+	.light-option.active {
+		background: var(--background-button);
+		color: var(--btn-text);
+	}
+
+	/* Dark and Cosmic theme active styles with gradients */
+	.cosmic-option.active,
+	.dark-option.active {
+		background: var(--btn-bg);
+		color: var(--btn-text);
 	}
 
 	.theme-option i {
@@ -347,36 +354,16 @@
 	}
 
 	.update-button {
-		background: var(--background-button);
-		color: var(--text-light);
+		background: var(--btn-bg);
+		color: var(--btn-text);
 		margin-bottom: 1rem;
 		border: 1px solid rgba(var(--interactive-gradient-1), 0.2);
 	}
 
 	.update-button:hover {
-		background: var(--background-buttonHover);
+		background: var(--btn-bg-hover);
 		transform: translateY(-2px);
 		box-shadow: 0 4px 12px var(--ui-shadowHover);
-	}
-
-	/* Apply gradients only for themed versions */
-	:global(.dark-theme) .update-button,
-	:global(.cosmic-theme) .update-button {
-		background: linear-gradient(
-			135deg,
-			rgba(var(--interactive-gradient-1), var(--interactive-opacity-1)) 0%,
-			rgba(var(--interactive-gradient-2), var(--interactive-opacity-2)) 100%
-		);
-		color: var(--text-primary);
-	}
-
-	:global(.dark-theme) .update-button:hover,
-	:global(.cosmic-theme) .update-button:hover {
-		background: linear-gradient(
-			135deg,
-			rgba(var(--interactive-gradient-1), var(--interactive-hover-opacity-1)) 0%,
-			rgba(var(--interactive-gradient-2), var(--interactive-hover-opacity-2)) 100%
-		);
 	}
 
 	.logout-button {

@@ -10,12 +10,20 @@
 	import { session as sessionStore } from '$lib/stores/session';
 	import { get } from 'svelte/store';
 	import { text, background, ui, icon } from '$lib/theme';
-	import { theme, applyTheme } from '$lib/stores/theme';
+	import { theme } from '$lib/stores/theme';
 	import Notifications from '$lib/components/Notifications.svelte';
 
 	export let data;
 	$: ({ navItems, isNativeApp, session } = data);
-	$: themeValue = data.theme; // new reactive value for the theme
+
+	// Force cosmic theme for landing page and auth pages
+	const isLandingOrAuthPage =
+		$page?.url?.pathname === '/' ||
+		$page?.url?.pathname === '/login' ||
+		$page?.url?.pathname === '/register';
+
+	// Use cosmic theme for landing/auth pages, otherwise use the store's theme value
+	$: themeValue = isLandingOrAuthPage ? 'cosmic' : $theme;
 
 	// Update the session store with the initial session
 	sessionStore.set(session);
@@ -24,19 +32,14 @@
 
 	// Ensure theme is applied on initial load and when theme changes
 	onMount(() => {
-		// Sync with localStorage for client side navigation
-		localStorage.setItem('theme', themeValue);
-
-		// Apply current theme from store - cast to ThemeType to fix the type error
-		applyTheme(themeValue as 'light' | 'dark' | 'cosmic');
-
-		// Subscribe to theme changes
-		const unsubscribe = theme.subscribe((newTheme) => {
-			applyTheme(newTheme);
-		});
+		// Force cosmic theme on landing/auth pages
+		if (isLandingOrAuthPage && $theme !== 'cosmic') {
+			theme.set('cosmic');
+		}
 
 		const { data: authListener } = supabase.auth.onAuthStateChange((event, newSession) => {
 			const currentSession = get(sessionStore);
+
 			if (newSession?.expires_at !== currentSession?.expires_at) {
 				sessionStore.set(newSession);
 			} else {
@@ -58,7 +61,6 @@
 		});
 
 		return () => {
-			unsubscribe();
 			authListener?.subscription.unsubscribe();
 			window.removeEventListener('message', handleReactNativeMessage);
 		};
@@ -179,59 +181,61 @@
 	}
 </script>
 
-{#if !$appContext.isNativeApp && !isHomePage}
-	<!-- Desktop Navigation -->
-	<nav class="desktop-nav" class:hidden={isMobile}>
-		{#each navItems as item}
-			<a
-				href={item.href}
-				class="nav-item"
-				class:active={$page.url.pathname === item.href}
-				aria-label={item.label}
-			>
-				<div class="icon-container">
-					<i class="fas {item.icon}"></i>
-				</div>
-				<span class="nav-label">{item.label}</span>
-			</a>
-		{/each}
-	</nav>
-{/if}
+<div class={themeValue !== 'cosmic' ? themeValue + '-theme' : ''}>
+	{#if !$appContext.isNativeApp && !isHomePage}
+		<!-- Desktop Navigation -->
+		<nav class="desktop-nav" class:hidden={isMobile}>
+			{#each navItems as item}
+				<a
+					href={item.href}
+					class="nav-item"
+					class:active={$page.url.pathname === item.href}
+					aria-label={item.label}
+				>
+					<div class="icon-container">
+						<i class="fas {item.icon}"></i>
+					</div>
+					<span class="nav-label">{item.label}</span>
+				</a>
+			{/each}
+		</nav>
+	{/if}
 
-{#if !$appContext.isNativeApp && !isHomePage && !isSessionPage}
-	<!-- Mobile Navigation -->
-	<nav
-		class="mobile-nav"
-		class:solid={mobileNavSolid}
-		on:touchstart={handleMobileNavInteraction}
-		on:mousedown={handleMobileNavInteraction}
-	>
-		{#each navItems as item}
-			<a
-				href={item.href}
-				class="nav-item"
-				class:active={$page.url.pathname === item.href}
-				class:faded={!mobileNavSolid}
-				aria-label={item.label}
-			>
-				<div class="icon-container">
-					<i class="fas {item.icon}"></i>
-				</div>
-				<span class="nav-label">{item.label}</span>
-			</a>
-		{/each}
-	</nav>
-{/if}
+	{#if !$appContext.isNativeApp && !isHomePage && !isSessionPage}
+		<!-- Mobile Navigation -->
+		<nav
+			class="mobile-nav"
+			class:solid={mobileNavSolid}
+			on:touchstart={handleMobileNavInteraction}
+			on:mousedown={handleMobileNavInteraction}
+		>
+			{#each navItems as item}
+				<a
+					href={item.href}
+					class="nav-item"
+					class:active={$page.url.pathname === item.href}
+					class:faded={!mobileNavSolid}
+					aria-label={item.label}
+				>
+					<div class="icon-container">
+						<i class="fas {item.icon}"></i>
+					</div>
+					<span class="nav-label">{item.label}</span>
+				</a>
+			{/each}
+		</nav>
+	{/if}
 
-<main class:full-width={isHomePage} class:native-app={$appContext.isNativeApp}>
-	<div class="global-container" class:full-width={isHomePage}>
-		<div class="content-container" class:homepage-content={isHomePage}>
-			<slot />
+	<main class:full-width={isHomePage} class:native-app={$appContext.isNativeApp}>
+		<div class="global-container" class:full-width={isHomePage}>
+			<div class="content-container" class:homepage-content={isHomePage}>
+				<slot />
+			</div>
 		</div>
-	</div>
-</main>
+	</main>
 
-<Notifications />
+	<Notifications />
+</div>
 
 <style>
 	/* Hide nav based on screen size */
@@ -335,6 +339,9 @@
 	}
 
 	@media (max-width: 1024px) {
+		main.full-width {
+			padding-bottom: 0; /* Don't give extra room for nav bar as it doesn't display on the home page */
+		}
 		.mobile-nav {
 			display: flex; /* Only show on mobile */
 			position: fixed;
@@ -455,7 +462,7 @@
 			padding: 0 0.3125rem; /* 0.5rem */
 		}
 
-		.global-container.full-width {
+		main.global-container {
 			padding: 0;
 		}
 	}

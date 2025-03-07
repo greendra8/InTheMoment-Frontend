@@ -360,8 +360,8 @@
 	}
 
 	.primary-action-btn {
-		background: var(--background-button);
-		color: var(--text-light);
+		background: var(--btn-bg);
+		color: var(--btn-text);
 		border: 1px solid rgba(var(--interactive-gradient-1), 0.2);
 		border-radius: 12px;
 		padding: 0.6rem 1rem;
@@ -378,29 +378,9 @@
 	}
 
 	.primary-action-btn:hover {
-		background: var(--background-buttonHover);
+		background: var(--btn-bg-hover);
 		transform: translateY(-2px);
 		box-shadow: 0 5px 15px rgba(var(--interactive-gradient-1), 0.25);
-	}
-
-	/* Apply gradients only for themed versions */
-	:global(.dark-theme) .primary-action-btn,
-	:global(.cosmic-theme) .primary-action-btn {
-		background: linear-gradient(
-			135deg,
-			rgba(var(--interactive-gradient-1), var(--interactive-opacity-1)) 0%,
-			rgba(var(--interactive-gradient-2), var(--interactive-opacity-2)) 100%
-		);
-		color: var(--text-primary);
-	}
-
-	:global(.dark-theme) .primary-action-btn:hover,
-	:global(.cosmic-theme) .primary-action-btn:hover {
-		background: linear-gradient(
-			135deg,
-			rgba(var(--interactive-gradient-1), var(--interactive-hover-opacity-1)) 0%,
-			rgba(var(--interactive-gradient-2), var(--interactive-hover-opacity-2)) 100%
-		);
 	}
 
 	/* Stats Container */
@@ -532,8 +512,8 @@
 	.featured-play-button {
 		width: 54px;
 		height: 54px;
-		background: var(--background-button);
-		color: var(--text-light);
+		background: var(--play-btn-bg);
+		color: var(--play-btn-text);
 		border-radius: 50%;
 		display: flex;
 		align-items: center;
@@ -548,29 +528,9 @@
 	}
 
 	.featured-session:hover .featured-play-button {
-		background: var(--background-buttonHover);
+		background: var(--play-btn-bg-hover);
 		box-shadow: 0 0 25px rgba(var(--interactive-gradient-1), 0.4);
 		transform: scale(1.08);
-	}
-
-	/* Apply gradients only for themed versions */
-	:global(.dark-theme) .featured-play-button,
-	:global(.cosmic-theme) .featured-play-button {
-		background: linear-gradient(
-			135deg,
-			rgba(var(--interactive-gradient-1), 0.5) 0%,
-			rgba(var(--interactive-gradient-2), 0.5) 100%
-		);
-		color: var(--text-primary);
-	}
-
-	:global(.dark-theme) .featured-session:hover .featured-play-button,
-	:global(.cosmic-theme) .featured-session:hover .featured-play-button {
-		background: linear-gradient(
-			135deg,
-			rgba(var(--interactive-gradient-1), 0.8) 0%,
-			rgba(var(--interactive-gradient-2), 0.9) 100%
-		);
 	}
 
 	.featured-info {
@@ -716,8 +676,8 @@
 	.session-play {
 		width: 40px;
 		height: 40px;
-		background: var(--background-button);
-		color: var(--text-light);
+		background: var(--session-play-bg);
+		color: var(--play-btn-text);
 		border-radius: 50%;
 		display: flex;
 		align-items: center;
@@ -731,21 +691,9 @@
 	}
 
 	.session-item:hover .session-play {
-		background: var(--background-buttonHover);
+		background: var(--session-play-bg-hover);
 		box-shadow: 0 0 15px rgba(var(--interactive-gradient-1), 0.2);
 		transform: scale(1.05);
-	}
-
-	/* Apply gradients only for themed versions */
-	:global(.dark-theme) .session-play,
-	:global(.cosmic-theme) .session-play {
-		background: rgba(var(--interactive-gradient-1), 0.15);
-		color: var(--text-primary);
-	}
-
-	:global(.dark-theme) .session-item:hover .session-play,
-	:global(.cosmic-theme) .session-item:hover .session-play {
-		background: rgba(var(--interactive-gradient-1), 0.2);
 	}
 
 	.session-info {
@@ -796,8 +744,8 @@
 	.create-btn {
 		padding: 0.8rem 1.5rem;
 		font-size: 0.9rem;
-		background: var(--background-button);
-		color: var(--text-light);
+		background: var(--btn-bg);
+		color: var(--btn-text);
 		border: 1px solid rgba(var(--interactive-gradient-1), 0.2);
 		border-radius: 12px;
 		cursor: pointer;
@@ -807,29 +755,9 @@
 	}
 
 	.create-btn:hover {
-		background: var(--background-buttonHover);
+		background: var(--btn-bg-hover);
 		transform: translateY(-2px);
 		box-shadow: 0 5px 15px rgba(var(--interactive-gradient-1), 0.25);
-	}
-
-	/* Apply gradients only for themed versions */
-	:global(.dark-theme) .create-btn,
-	:global(.cosmic-theme) .create-btn {
-		background: linear-gradient(
-			135deg,
-			rgba(var(--interactive-gradient-1), 0.6) 0%,
-			rgba(var(--interactive-gradient-2), 0.7) 100%
-		);
-		color: var(--text-primary);
-	}
-
-	:global(.dark-theme) .create-btn:hover,
-	:global(.cosmic-theme) .create-btn:hover {
-		background: linear-gradient(
-			135deg,
-			rgba(var(--interactive-gradient-1), 0.7) 0%,
-			rgba(var(--interactive-gradient-2), 0.8) 100%
-		);
 	}
 
 	/* Responsive Adjustments */

@@ -2,7 +2,6 @@
 <html lang="en">
 
 <head>
-	<script>(function () { function getCookie(name) { const match = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)'); return match ? match.pop() : null; } var theme = getCookie('theme') || 'light'; if (theme === 'dark') { document.documentElement.classList.add('dark-theme'); } else if (theme === 'cosmic') { document.documentElement.classList.add('cosmic-theme'); } document.documentElement.classList.remove('js-loading'); })();</script>
 	<meta charset="utf-8" />
 	<link rel="icon" href="%sveltekit.assets%/favicon.png" />
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0">
@@ -14,34 +13,59 @@
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
 		integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg=="
 		crossorigin="anonymous" referrerpolicy="no-referrer" />
-	<!-- Prevent FOUC (Flash of Unstyled Content) by reading theme from cookie immediately -->
-	<script>
-		(function () {
-			function getCookie(name) {
-				const match = document.cookie.match('(^|;)\s*' + name + '\s*=\s*([^;]+)');
-				return match ? match.pop() : null;
-			}
-			var theme = getCookie('theme') || 'light';
-			if (theme === 'dark') {
-				document.documentElement.classList.add('dark-theme');
-			} else if (theme === 'cosmic') {
-				document.documentElement.classList.add('cosmic-theme');
-			}
-			// Remove js-loading immediately
-			document.documentElement.classList.remove('js-loading');
-		})();
-	</script>
-	<!-- Prevent theme flash by setting theme class before page renders -->
 	<style>
-		.js-loading {
-			visibility: hidden;
-			opacity: 0;
-		}
-
 		body {
 			transition: opacity 0.3s ease;
 		}
 	</style>
+	<!-- Preload theme to prevent flash -->
+	<script>
+		(function () {
+			function getThemeFromStorage() {
+				// Try localStorage first
+				const storedTheme = localStorage.getItem('theme');
+				if (storedTheme === 'light' || storedTheme === 'dark' || storedTheme === 'cosmic') {
+					return storedTheme;
+				}
+
+				// Try cookies next
+				const cookies = document.cookie.split(';');
+				for (let cookie of cookies) {
+					const [name, value] = cookie.trim().split('=');
+					if (name === 'theme') {
+						if (value === 'light' || value === 'dark' || value === 'cosmic') {
+							return value;
+						}
+					}
+				}
+
+				// Default to cosmic if nothing found
+				return 'cosmic';
+			}
+
+			// Check if we're on landing or auth pages
+			var isLandingOrAuthPage =
+				window.location.pathname === '/' ||
+				window.location.pathname === '/login' ||
+				window.location.pathname === '/register';
+
+			// Force cosmic on landing/auth pages
+			var theme = isLandingOrAuthPage ? 'cosmic' : getThemeFromStorage();
+
+			// Apply theme classes immediately
+			document.documentElement.classList.add('no-transitions');
+			if (theme === 'light') {
+				document.documentElement.classList.add('light-theme');
+			} else if (theme === 'dark') {
+				document.documentElement.classList.add('dark-theme');
+			}
+
+			// Remove the no-transitions class after a short delay to enable smooth transitions later
+			setTimeout(function () {
+				document.documentElement.classList.remove('no-transitions');
+			}, 100);
+		})();
+	</script>
 	%sveltekit.head%
 </head>
 

@@ -15,14 +15,11 @@
 	let selectedPlaylist = data.selectedPlaylist ? data.selectedPlaylist.id : '';
 	let selectedLesson = '';
 
-	interface CustomActionData {
-		type: 'success' | 'error';
-		status?: number;
-		data?: string;
-		message?: string;
-	}
+	// Declare formResult with explicit type to fix TS lint errors.
+	// 'error' indicates an error state with an associated message from the server.
+	type FormResult = { type: 'error'; message: string } | null;
+	let formResult: FormResult = null;
 
-	let formResult: CustomActionData | null = null;
 	let formElement: HTMLFormElement;
 
 	// Compute button disabled state based on global generation state and form state
@@ -352,6 +349,7 @@
 		</div>
 	</div>
 
+	<!-- Form for generating meditation based on user input. Hidden inputs capture data such as the user's local time, desired duration, and additional parameters. The submission is handled by handleFormSubmit for dynamic updates without a full page refresh. -->
 	<form
 		bind:this={formElement}
 		method="POST"
@@ -374,7 +372,8 @@
 		</button>
 	</form>
 
-	{#if formResult !== null && 'type' in formResult && formResult.type === 'error'}
+	<!-- Display server error messages if any -->
+	{#if formResult?.type === 'error'}
 		<p class="error">{formResult.message}</p>
 	{/if}
 </div>
@@ -419,20 +418,10 @@
 		left: 0;
 		width: calc(100% / var(--option-count));
 		height: 100%;
-		background: var(--background-button);
+		background: var(--slider-bg);
 		transition: transform 0.3s ease;
 		z-index: 0;
 		border-radius: 12px;
-	}
-
-	/* Apply gradients only for themed versions */
-	:global(.dark-theme) .tabs .slider-background,
-	:global(.cosmic-theme) .tabs .slider-background {
-		background: linear-gradient(
-			135deg,
-			rgba(var(--interactive-gradient-1), 0.6) 0%,
-			rgba(var(--interactive-gradient-2), 0.7) 100%
-		);
 	}
 
 	.tabs button {
@@ -596,18 +585,8 @@
 		left: 0;
 		width: calc(100% / var(--option-count));
 		height: 100%;
-		background: var(--background-button);
+		background: var(--slider-bg);
 		transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-	}
-
-	/* Apply gradients only for themed versions */
-	:global(.dark-theme) .slider-background,
-	:global(.cosmic-theme) .slider-background {
-		background: linear-gradient(
-			135deg,
-			rgba(var(--interactive-gradient-1), 0.6) 0%,
-			rgba(var(--interactive-gradient-2), 0.7) 100%
-		);
 	}
 
 	.option {
@@ -712,19 +691,9 @@
 		top: 0;
 		left: 0;
 		height: 100%;
-		background: var(--background-button);
+		background: var(--slider-progress-bg);
 		border-radius: 4px;
 		pointer-events: none;
-	}
-
-	/* Apply gradients only for themed versions */
-	:global(.dark-theme) .slider-progress,
-	:global(.cosmic-theme) .slider-progress {
-		background: linear-gradient(
-			90deg,
-			rgba(var(--interactive-gradient-1), 0.6),
-			rgba(var(--interactive-gradient-2), 0.7)
-		);
 	}
 
 	.duration-slider input {
@@ -784,8 +753,8 @@
 		width: 100%;
 		padding: 1rem;
 		font-size: 0.95rem;
-		background: var(--background-button);
-		color: var(--text-light);
+		background: var(--btn-bg);
+		color: var(--btn-text);
 		border: 1px solid rgba(var(--interactive-gradient-1), 0.2);
 		border-radius: 12px;
 		cursor: pointer;
@@ -814,30 +783,10 @@
 	}
 
 	.generate-btn:not(:disabled):hover {
-		background: var(--background-buttonHover);
+		background: var(--btn-bg-hover);
 		transform: translateY(-2px);
 		box-shadow: 0 5px 15px rgba(var(--interactive-gradient-1), 0.25);
 		border-color: rgba(var(--interactive-gradient-1), 0.3);
-	}
-
-	/* Apply gradients only for themed versions */
-	:global(.dark-theme) .generate-btn,
-	:global(.cosmic-theme) .generate-btn {
-		background: linear-gradient(
-			135deg,
-			rgba(var(--interactive-gradient-1), var(--interactive-opacity-1)) 0%,
-			rgba(var(--interactive-gradient-2), var(--interactive-opacity-2)) 100%
-		);
-		color: var(--text-primary);
-	}
-
-	:global(.dark-theme) .generate-btn:not(:disabled):hover,
-	:global(.cosmic-theme) .generate-btn:not(:disabled):hover {
-		background: linear-gradient(
-			135deg,
-			rgba(var(--interactive-gradient-1), var(--interactive-hover-opacity-1)) 0%,
-			rgba(var(--interactive-gradient-2), var(--interactive-hover-opacity-2)) 100%
-		);
 	}
 
 	.generate-btn:not(:disabled):active {
