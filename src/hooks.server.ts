@@ -95,21 +95,13 @@ const authGuard: Handle = async ({ event, resolve }) => {
 
   if (
     !session &&
-    (event.url.pathname.startsWith('/private') ||
-      event.url.pathname.startsWith('/dashboard') ||
-      event.url.pathname.startsWith('/playlists') ||
-      event.url.pathname.startsWith('/new') ||
-      event.url.pathname.startsWith('/profile') ||
-      event.url.pathname.startsWith('/list') ||
-      event.url.pathname.startsWith('/session/') ||
-      event.url.pathname.startsWith('/admin')
+    !(
+      event.url.pathname === '/' ||
+      event.url.pathname === '/login' ||
+      event.url.pathname === '/register'
     )
   ) {
     throw redirect(303, '/login');
-  }
-
-  if (session && event.url.pathname === '/auth') {
-    throw redirect(303, '/private');
   }
 
   return resolve(event);
