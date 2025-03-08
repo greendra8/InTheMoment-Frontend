@@ -1,25 +1,15 @@
 <script lang="ts">
-	import type { PageData, ActionData } from './$types';
-	import { enhance } from '$app/forms';
+	import type { PageData } from './$types';
 	import { invalidate } from '$app/navigation';
 	import { supabase } from '$lib/supabaseClient';
-	import ThemeToggle from '../../components/ThemeToggle.svelte';
 	import { theme, setTheme } from '$lib/stores/theme';
 	import { showSuccess, showError } from '$lib/stores/notifications';
-	import { session } from '$lib/stores/session';
+	import { updateUserProfile, updateUserTheme } from '$lib/api';
 
 	export let data: PageData;
-	export let form: ActionData;
 
 	// Initialize the profile from the loaded data
 	let profile = data.profile;
-
-	// Reactive statement to update profile when data or form changes
-	$: {
-		if (form?.type === 'success' && form.data) {
-			profile = form.data.profile;
-		}
-	}
 
 	const voiceOptions = [
 		{ id: 0, label: 'Female 1' },
@@ -37,19 +27,60 @@
 	}
 
 	let formElement: HTMLFormElement;
+	let isSubmitting = false;
+	let name = profile?.name || '';
+	let experience = profile?.experience || 'beginner';
+	let voice_id = profile?.voice_id || 0;
 
-	function handleSubmit() {
-		// Clear any existing notifications if needed
+	async function handleSubmit(event: Event) {
+		event.preventDefault();
+
+		if (!data.session?.user?.id) {
+			showError('User session not found. Please log in again.');
+			return;
+		}
+
+		isSubmitting = true;
+
+		try {
+			const updatedProfile = await updateUserProfile(data.session.user.id, {
+				name,
+				experience,
+				voice_id
+			});
+
+			profile = updatedProfile;
+			handleUpdateSuccess();
+		} catch (err) {
+			console.error('Error updating profile:', err);
+			showError('Failed to update profile. Please try again.');
+		} finally {
+			isSubmitting = false;
+		}
 	}
 
 	function handleUpdateSuccess() {
 		showSuccess('Profile updated successfully!');
 	}
 
-	function handleThemeChange(newTheme: 'light' | 'dark' | 'cosmic') {
-		// Explicitly set theme with saveToDb=true since this is a user action
-		setTheme(newTheme, true);
-		showSuccess(`Theme changed to ${newTheme}`);
+	async function handleThemeChange(newTheme: 'light' | 'dark' | 'cosmic') {
+		if (!data.session?.user?.id) {
+			showError('User session not found. Please try again.');
+			return;
+		}
+
+		try {
+			// Update theme in the store for immediate UI feedback
+			setTheme(newTheme);
+
+			// Update in the database
+			await updateUserTheme(data.session.user.id, newTheme);
+			console.log('Theme updated in database');
+			showSuccess(`Theme changed to ${newTheme}`);
+		} catch (err) {
+			console.error('Error updating theme:', err);
+			showError('Failed to update theme. Please try again.');
+		}
 	}
 </script>
 
@@ -74,45 +105,34 @@
 			</div>
 		</div>
 
-		<form
-			method="POST"
-			use:enhance={() => {
-				return ({ result }) => {
-					if (result.type === 'success') {
-						handleUpdateSuccess();
-					} else if (result.type === 'error') {
-						showError(result.error);
-					}
-				};
-			}}
-			on:submit={handleSubmit}
-			bind:this={formElement}
-		>
+		<form on:submit={handleSubmit} bind:this={formElement}>
 			<div class="form-group">
 				<label for="name">Name</label>
-				<input type="text" id="name" name="name" value={profile.name ?? ''} required />
+				<input type="text" id="name" bind:value={name} required />
 			</div>
 			<div class="form-group">
 				<label for="experience">Experience Level</label>
-				<select id="experience" name="experience" required>
-					<option value="beginner" selected={profile.experience === 'beginner'}>Beginner</option>
-					<option value="intermediate" selected={profile.experience === 'intermediate'}
-						>Intermediate</option
-					>
-					<option value="advanced" selected={profile.experience === 'advanced'}>Advanced</option>
+				<select id="experience" bind:value={experience} required>
+					<option value="beginner">Beginner</option>
+					<option value="intermediate">Intermediate</option>
+					<option value="advanced">Advanced</option>
 				</select>
 			</div>
 			<div class="form-group">
 				<label for="voice_id">Preferred Voice</label>
-				<select id="voice_id" name="voice_id" required>
+				<select id="voice_id" bind:value={voice_id} required>
 					{#each voiceOptions as option}
-						<option value={option.id} selected={profile.voice_id === option.id}
-							>{option.label}</option
-						>
+						<option value={option.id}>{option.label}</option>
 					{/each}
 				</select>
 			</div>
-			<button type="submit" class="update-button">Update Profile</button>
+			<button type="submit" class="update-button" disabled={isSubmitting}>
+				{#if isSubmitting}
+					<i class="fas fa-spinner fa-spin"></i> Updating...
+				{:else}
+					Update Profile
+				{/if}
+			</button>
 		</form>
 
 		<div class="theme-section">

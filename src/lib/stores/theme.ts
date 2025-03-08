@@ -1,6 +1,5 @@
 import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
-import { updateUserTheme } from '$lib/api';
 import { session } from '$lib/stores/session';
 import type { ExtendedSession } from '$lib/stores/session';
 import { get } from 'svelte/store';
@@ -11,11 +10,8 @@ export type ThemeType = 'light' | 'dark' | 'cosmic';
 // Track the last applied theme to prevent redundant applications
 let lastAppliedTheme: ThemeType | null = null;
 
-// Flag to track if we're loading theme from profile
-let loadingFromProfile = false;
-
 // Flag to enable/disable debug logging
-const DEBUG = true;
+const DEBUG = false; // Set to false to reduce console logs
 
 /**
  * Helper function to check if current page is landing or auth page
@@ -67,20 +63,10 @@ function getInitialTheme(): ThemeType {
         return 'cosmic';
     }
 
-    // Check current session for theme
-    const currentSession = get(session);
-    if (currentSession?.user && currentSession.profile?.theme) {
-        const profileTheme = currentSession.profile.theme;
-        log('Found theme in session profile:', profileTheme);
-        if (profileTheme === 'light' || profileTheme === 'dark' || profileTheme === 'cosmic') {
-            return profileTheme as ThemeType;
-        }
-    }
-
-    // Try localStorage
+    // Try localStorage first (faster than waiting for session)
     const storedTheme = getThemeFromStorage();
-    log('Found theme in localStorage:', storedTheme);
     if (storedTheme) {
+        log('Found theme in localStorage:', storedTheme);
         // Track this as the last applied theme since app.html already applied it
         lastAppliedTheme = storedTheme;
         return storedTheme;
@@ -95,12 +81,11 @@ function getInitialTheme(): ThemeType {
 export const theme = writable<ThemeType>(getInitialTheme());
 
 /**
- * Apply theme to document (DOM and persistence)
+ * Apply theme to document (DOM and localStorage)
  */
 export function applyTheme(
     newTheme: ThemeType,
     options: {
-        saveToDb?: boolean,
         saveToStorage?: boolean,
         force?: boolean
     } = {}
@@ -108,15 +93,17 @@ export function applyTheme(
     if (!browser) return;
 
     const {
-        saveToDb = !loadingFromProfile, // Don't save to DB if loading from profile
         saveToStorage = true,
         force = false
     } = options;
 
     // Skip if this theme was already applied (unless forced)
     if (!force && newTheme === lastAppliedTheme) {
+        log('Theme already applied, skipping:', newTheme);
         return;
     }
+
+    log('Applying theme:', newTheme);
 
     // Update tracking
     lastAppliedTheme = newTheme;
@@ -135,21 +122,10 @@ export function applyTheme(
         document.documentElement.classList.add('dark-theme');
     }
     // For cosmic theme, we don't need to add a class since it's the default in :root
-
-    // Save theme to database if requested and user is logged in
-    if (saveToDb && !isLandingOrAuthPage()) {
-        const currentSession = get(session);
-        if (currentSession?.user && currentSession?.profile?.theme !== newTheme) {
-            log('Saving theme to database');
-            updateUserTheme(currentSession.user.id, newTheme).catch(err => {
-                console.error('[Theme] Failed to update theme in database:', err);
-            });
-        }
-    }
 }
 
 /**
- * Toggle theme function - explicitly user-initiated
+ * Toggle theme function - cycles through available themes
  */
 export function toggleTheme(): void {
     // Don't toggle theme on landing or auth pages
@@ -169,27 +145,23 @@ export function toggleTheme(): void {
 
         log('Toggling theme from:', currentTheme, 'to:', newTheme);
 
-        // This is a user-initiated change, so save to DB
-        applyTheme(newTheme, { saveToDb: true });
+        // Apply theme to DOM and localStorage
+        applyTheme(newTheme);
         return newTheme;
     });
 }
 
 /**
- * Set theme - can be used for both user and system changes
+ * Set theme - updates the theme store
+ * Note: Database updates should be handled by the component that calls this
  */
-export function setTheme(newTheme: ThemeType, saveToDb = true): void {
+export function setTheme(newTheme: ThemeType): void {
     const currentTheme = get(theme);
     if (newTheme !== currentTheme) {
-        log('Setting theme to:', newTheme, 'saveToDb:', saveToDb);
-
-        // If this is a system change (not saving to DB), set the loading flag
-        if (!saveToDb) {
-            loadingFromProfile = true;
-            setTimeout(() => { loadingFromProfile = false; }, 100);
-        }
-
+        log('Setting theme to:', newTheme);
         theme.set(newTheme);
+    } else {
+        log('Theme already set to', newTheme, ', skipping update');
     }
 }
 
@@ -198,19 +170,18 @@ if (browser) {
     // Apply theme when the store value changes
     theme.subscribe(newTheme => {
         log('Theme store updated:', newTheme);
-        applyTheme(newTheme, { saveToDb: !loadingFromProfile });
+        applyTheme(newTheme);
     });
 
     // Handle session/profile changes and update theme if needed
+    let initialSessionProcessed = false;
+
     session.subscribe((currentSession: ExtendedSession | null) => {
         // Skip updates if no user, no profile, or on landing pages
         if (!currentSession?.user || isLandingOrAuthPage()) return;
 
-        log('Session updated:', currentSession.user.id);
-
-        // Get profile theme preference
         const profileTheme = currentSession.profile?.theme;
-        log('Profile theme:', profileTheme);
+        const currentThemeValue = get(theme);
 
         // Skip if profile theme is invalid
         if (profileTheme !== 'light' && profileTheme !== 'dark' && profileTheme !== 'cosmic') {
@@ -218,14 +189,18 @@ if (browser) {
             return;
         }
 
-        const currentThemeValue = get(theme);
+        // Only log once for initial session
+        if (!initialSessionProcessed) {
+            log('Initial session loaded, profile theme:', profileTheme);
+            initialSessionProcessed = true;
+        }
 
         // Only update if different to avoid circular updates
         if (profileTheme !== currentThemeValue) {
-            log('Setting theme from profile:', profileTheme);
-
-            // Use setTheme with saveToDb=false to indicate this is a system change
-            setTheme(profileTheme as ThemeType, false);
+            log('Updating theme from profile:', profileTheme);
+            setTheme(profileTheme as ThemeType);
+        } else {
+            log('Profile theme matches current theme, no update needed');
         }
     });
 }
