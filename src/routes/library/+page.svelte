@@ -123,13 +123,13 @@
 <style>
 	.meditations-list-container {
 		width: 100%;
-		padding: 2rem 0;
+		padding: 1.5rem 0;
 		position: relative;
 	}
 
 	h1 {
-		font-family: 'Poppins', sans-serif;
-		font-size: 2rem;
+		font-family: 'Space Grotesk', sans-serif;
+		font-size: clamp(1.75rem, 4vw, 2.25rem);
 		font-weight: 600;
 		color: var(--text-primary);
 		margin-bottom: 2rem;

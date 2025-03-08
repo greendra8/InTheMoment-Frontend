@@ -503,6 +503,11 @@
 		box-shadow: 0 4px 15px var(--ui-shadow);
 	}
 
+	/* light theme featured session */
+	:global(.light-theme) .featured-session {
+		background: var(--grey-shade) !important;
+	}
+
 	.featured-session:hover {
 		border-color: rgba(var(--interactive-gradient-1), 0.3);
 		transform: translateY(-2px);
