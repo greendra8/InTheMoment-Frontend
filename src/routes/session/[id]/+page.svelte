@@ -262,19 +262,29 @@
 
 <div class="meditation-page {currentTheme}-theme" style="height: {realViewportHeight}px;">
 	{#if browser}
-		<div
-			class="bg-image"
-			class:loaded={bgImageLoaded}
-			style="--background-image: url({bg});"
-			in:fade={{ duration: 400, delay: 100 }}
-		></div>
+		{#if currentTheme === 'light'}
+			<div
+				class="bg-image"
+				class:loaded={bgImageLoaded}
+				style="background-image: url({bg});"
+				in:fade={{ duration: 400, delay: 100 }}
+			></div>
+		{:else if currentTheme === 'dark'}
+			<div class="bg-dark-clouds" in:fade={{ duration: 400, delay: 100 }}>
+				<div class="swirl-layer"></div>
+			</div>
+		{:else if currentTheme === 'cosmic'}
+			<div class="bg-cosmic" in:fade={{ duration: 400, delay: 100 }}>
+				<div class="swirl-layer"></div>
+			</div>
+		{/if}
 	{/if}
 	<div class="navigation-controls">
 		<div class="back-icon" on:click={() => window.history.back()}>
-			<i class="fas fa-arrow-left"></i> &nbsp; Back
+			<i class="fas fa-arrow-left"></i> <span class="back-text">Back</span>
 		</div>
 		<div class="menu-icon" on:click|stopPropagation={toggleMenu}>
-			<i class="fas fa-ellipsis-v"></i>
+			<i class="fas fa-ellipsis-h"></i>
 		</div>
 	</div>
 
@@ -406,18 +416,126 @@
 		transition: opacity 0.4s ease-in-out;
 	}
 
+	/* Shared swirling clouds background for dark and cosmic themes */
+	.bg-dark-clouds,
+	.bg-cosmic {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		z-index: 0;
+		overflow: hidden;
+	}
+
+	/* Base background gradient */
+	.bg-dark-clouds {
+		background: linear-gradient(to bottom, var(--background-main), rgba(20, 20, 40, 1));
+	}
+
+	.bg-cosmic {
+		background: linear-gradient(to bottom, var(--background-main), rgba(10, 10, 32, 1));
+	}
+
+	/* First cloud layer */
+	.bg-dark-clouds::before,
+	.bg-cosmic::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		opacity: 0.8;
+		filter: blur(60px);
+		animation: cloudMove 45s infinite alternate ease-in-out;
+	}
+
+	/* Theme-specific colors for first layer */
+	.bg-dark-clouds::before {
+		background: radial-gradient(circle at 20% 30%, rgba(79, 172, 254, 0.12) 0%, transparent 60%),
+			radial-gradient(circle at 80% 70%, rgba(0, 242, 254, 0.12) 0%, transparent 60%);
+	}
+
+	.bg-cosmic::before {
+		background: radial-gradient(circle at 20% 30%, rgba(106, 90, 205, 0.15) 0%, transparent 60%),
+			radial-gradient(circle at 80% 70%, rgba(132, 112, 255, 0.15) 0%, transparent 60%);
+	}
+
+	/* Second cloud layer */
+	.bg-dark-clouds::after,
+	.bg-cosmic::after {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		opacity: 0.7;
+		filter: blur(80px);
+		animation: cloudMove 60s infinite alternate-reverse ease-in-out;
+	}
+
+	/* Theme-specific colors for second layer */
+	.bg-dark-clouds::after {
+		background: radial-gradient(circle at 70% 20%, rgba(102, 126, 234, 0.15) 0%, transparent 60%),
+			radial-gradient(circle at 30% 80%, rgba(118, 75, 162, 0.15) 0%, transparent 60%);
+	}
+
+	.bg-cosmic::after {
+		background: radial-gradient(circle at 70% 20%, rgba(123, 104, 238, 0.18) 0%, transparent 60%),
+			radial-gradient(circle at 30% 80%, rgba(147, 112, 219, 0.18) 0%, transparent 60%);
+	}
+
+	/* Additional swirling layer shared between themes */
+	.swirl-layer {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		filter: blur(50px);
+		animation: swirlEffect 30s infinite linear;
+	}
+
+	/* Theme-specific colors for swirl layer */
+	.bg-dark-clouds .swirl-layer {
+		background: radial-gradient(ellipse at 40% 50%, rgba(79, 172, 254, 0.08) 0%, transparent 70%),
+			radial-gradient(ellipse at 60% 50%, rgba(118, 75, 162, 0.08) 0%, transparent 70%);
+	}
+
+	.bg-cosmic .swirl-layer {
+		background: radial-gradient(ellipse at 40% 50%, rgba(106, 90, 205, 0.1) 0%, transparent 70%),
+			radial-gradient(ellipse at 60% 50%, rgba(123, 104, 238, 0.1) 0%, transparent 70%);
+	}
+
+	@keyframes cloudMove {
+		0% {
+			transform: translateX(-8%) translateY(-8%) scale(1);
+		}
+		50% {
+			transform: translateX(0%) translateY(0%) scale(1.1);
+		}
+		100% {
+			transform: translateX(8%) translateY(8%) scale(1);
+		}
+	}
+
+	@keyframes swirlEffect {
+		0% {
+			transform: rotate(0deg) scale(1);
+		}
+		50% {
+			transform: rotate(180deg) scale(1.2);
+		}
+		100% {
+			transform: rotate(360deg) scale(1);
+		}
+	}
+
 	/* Show the image when loaded */
 	.bg-image.loaded {
 		opacity: 1;
-	}
-
-	/* Theme-specific background image adjustments */
-	.dark-theme .bg-image {
-		mix-blend-mode: soft-light;
-	}
-
-	.cosmic-theme .bg-image {
-		mix-blend-mode: overlay;
 	}
 
 	.meditation-content {
@@ -517,83 +635,60 @@
 		left: clamp(1rem, 3vw, 1.5rem);
 		right: clamp(1rem, 3vw, 1.5rem);
 		display: flex;
-		justify-content: flex-end;
+		justify-content: space-between;
 		align-items: center;
 		z-index: 2;
-		padding: 0 1rem;
-		font-weight: 800;
+		padding: 0 0.5rem;
 	}
 
 	/* Back Icon - Hidden by Default */
 	.back-icon {
-		display: none;
-		background: var(--btn-bg);
-		border-radius: 50px;
-		height: clamp(2.5rem, 6vw, 3rem);
-		padding: 0 clamp(1rem, 3vw, 1.2rem);
-		color: var(--btn-text);
+		display: none; /* Hidden by default, shown only on mobile */
 		justify-content: center;
 		align-items: center;
 		cursor: pointer;
-		box-shadow: 0 0 15px rgba(var(--interactive-gradient-1), 0.15);
 		transition: all 0.3s ease;
-		margin-right: auto;
-		font-size: clamp(0.875rem, 2.5vw, 1rem);
-		border: 1px solid rgba(var(--interactive-gradient-1), 0.2);
+		padding: 0.5rem;
+		color: var(--text-primary);
 	}
 
 	.back-icon:hover {
-		background: var(--btn-bg-hover);
-		transform: translateY(-2px);
-		box-shadow: 0 5px 15px rgba(var(--interactive-gradient-1), 0.25);
+		transform: translateX(-2px);
 	}
 
 	.back-icon i {
-		font-size: 1.2rem;
-		color: var(--btn-text);
-		margin-right: 0.2rem;
+		font-size: clamp(1.3rem, 3.5vw, 1.5rem);
+		margin-right: 0.3rem;
 	}
 
-	/* Menu Icon - Always Visible */
+	.back-text {
+		font-size: clamp(0.9rem, 2.5vw, 1rem);
+		font-weight: 500;
+	}
+
+	/* Menu Icon */
 	.menu-icon {
-		background: var(--btn-bg);
-		border-radius: 50%;
-		height: clamp(2.5rem, 6vw, 3rem);
-		width: clamp(2.5rem, 6vw, 3rem);
-		color: var(--btn-text);
 		display: flex;
 		justify-content: center;
 		align-items: center;
 		cursor: pointer;
-		box-shadow: 0 0 15px rgba(var(--interactive-gradient-1), 0.15);
 		transition: all 0.3s ease;
-		border: 1px solid rgba(var(--interactive-gradient-1), 0.2);
+		padding: 0.5rem;
+		margin-left: auto; /* Push to right when back button is hidden */
 	}
 
 	.menu-icon:hover {
-		background: var(--btn-bg-hover);
 		transform: translateY(-2px);
-		box-shadow: 0 5px 15px rgba(var(--interactive-gradient-1), 0.25);
 	}
 
 	.menu-icon i {
-		font-size: clamp(1.1rem, 3.5vw, 1.3rem);
-		color: var(--btn-text);
+		font-size: clamp(1.5rem, 4vw, 1.8rem);
+		color: var(--text-primary);
 	}
 
 	/* Light theme adjustments for buttons */
-	:global(.light-theme) .back-icon,
-	:global(.light-theme) .menu-icon {
-		background: #bbb9b9;
-	}
-
 	:global(.light-theme) .show-feedback-button {
 		background: #11191d;
-	}
-
-	:global(.light-theme) .back-icon:hover,
-	:global(.light-theme) .menu-icon:hover {
-		background: #999696;
 	}
 
 	/* Dropdown Menu */
