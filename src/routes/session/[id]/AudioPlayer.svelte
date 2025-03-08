@@ -384,6 +384,11 @@
 		transition: filter 0.3s ease;
 	}
 
+	:global(.dark-theme) canvas,
+	:global(.cosmic-theme) canvas {
+		opacity: 0.85;
+	}
+
 	.play-overlay {
 		filter: drop-shadow(0px 0.125rem 0.25rem rgba(0, 0, 0, 0.25));
 		position: absolute;

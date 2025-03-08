@@ -46,6 +46,14 @@ const CELEBRATION_PULSE_FACTOR = 0.03;
 // Celebration ripple factor
 const CELEBRATION_RIPPLE_FACTOR = 20;
 
+// Color configuration for the orb
+const ORB_CENTER_COLOR = 'rgba(255, 255, 255, 1)';  // Center color
+const ORB_MID_COLOR = 'rgba(200, 220, 255, 0.7)';   // Middle color
+const ORB_OUTER_COLOR = 'rgba(150, 180, 255, 0.5)'; // Outer color
+const ORB_HIGHLIGHT_COLOR = 'rgba(255, 255, 255, 0.8)'; // Highlight color
+const ORB_GLOW_COLOR = 'rgba(150, 180, 255, 0.1)';  // Glow color
+const ORB_RIPPLE_COLOR = 'rgba(150, 180, 255, 0.2)'; // Ripple color
+
 // Enable/disable different parts of the visualization
 const ENABLE_BREATHING = true;
 const ENABLE_CELEBRATION = true;
@@ -150,9 +158,9 @@ export function setupAudioVisualizer(audio: HTMLAudioElement, canvas: HTMLCanvas
         centerY,
         celebrationPulseRadius
       );
-      gradient.addColorStop(0, `rgba(255, 255, 255, ${0.9 + average / 1000})`);
-      gradient.addColorStop(0.7, `rgba(200, 220, 255, ${0.7 + average / 1500})`);
-      gradient.addColorStop(1, `rgba(150, 180, 255, ${0.5 + average / 2000})`);
+      gradient.addColorStop(0, ORB_CENTER_COLOR.replace('1)', `${0.9 + average / 1000})`));
+      gradient.addColorStop(0.7, ORB_MID_COLOR.replace('0.7)', `${0.7 + average / 1500})`));
+      gradient.addColorStop(1, ORB_OUTER_COLOR.replace('0.5)', `${0.5 + average / 2000})`));
 
       canvasCtx.beginPath();
       canvasCtx.arc(centerX, centerY, celebrationPulseRadius, 0, 2 * Math.PI);
@@ -168,9 +176,9 @@ export function setupAudioVisualizer(audio: HTMLAudioElement, canvas: HTMLCanvas
         centerY - pulseRadius * 0.3,
         pulseRadius
       );
-      highlightGradient.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
-      highlightGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.3)');
-      highlightGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      highlightGradient.addColorStop(0, ORB_HIGHLIGHT_COLOR);
+      highlightGradient.addColorStop(0.5, ORB_HIGHLIGHT_COLOR.replace('0.8)', '0.3)'));
+      highlightGradient.addColorStop(1, ORB_HIGHLIGHT_COLOR.replace('0.8)', '0)'));
 
       canvasCtx.beginPath();
       canvasCtx.arc(centerX, centerY, pulseRadius, 0, 2 * Math.PI);
@@ -188,9 +196,9 @@ export function setupAudioVisualizer(audio: HTMLAudioElement, canvas: HTMLCanvas
           centerY,
           pulseRadius + glowSize
         );
-        glowGradient.addColorStop(0, 'rgba(150, 180, 255, 0)');
-        glowGradient.addColorStop(0.5, `rgba(150, 180, 255, ${0.1 + average / 1500})`);
-        glowGradient.addColorStop(1, 'rgba(150, 180, 255, 0)');
+        glowGradient.addColorStop(0, ORB_GLOW_COLOR.replace('0.1)', '0)'));
+        glowGradient.addColorStop(0.5, ORB_GLOW_COLOR.replace('0.1', `${0.1 + average / 1500}`));
+        glowGradient.addColorStop(1, ORB_GLOW_COLOR.replace('0.1)', '0)'));
 
         canvasCtx.beginPath();
         canvasCtx.arc(centerX, centerY, pulseRadius + glowSize, 0, 2 * Math.PI);
@@ -217,7 +225,7 @@ export function setupAudioVisualizer(audio: HTMLAudioElement, canvas: HTMLCanvas
 
           canvasCtx.beginPath();
           canvasCtx.arc(centerX, centerY, rippleRadius, 0, 2 * Math.PI);
-          canvasCtx.strokeStyle = `rgba(150, 180, 255, ${rippleOpacity})`;
+          canvasCtx.strokeStyle = ORB_RIPPLE_COLOR.replace('0.2', `${rippleOpacity}`);
           canvasCtx.lineWidth = rippleWidth;
           canvasCtx.stroke();
         }

@@ -9,7 +9,6 @@
 	import { writable } from 'svelte/store';
 	import { fly, slide, fade } from 'svelte/transition';
 	import AudioPlayer from './AudioPlayer.svelte';
-	import { text, background, ui, icon } from '$lib/theme';
 	import { theme as themeStore } from '$lib/stores/theme';
 
 	export let data: PageData;
@@ -439,7 +438,7 @@
    ======================= */
 	header {
 		position: absolute;
-		top: 3rem;
+		top: 4rem;
 		left: 0.25rem;
 		right: 0.25rem;
 		padding: 1rem;
@@ -459,7 +458,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		font-size: clamp(1.5rem, 4vw, 1.8rem);
+		font-size: 2rem;
 		font-weight: 600;
 		color: var(--text-primary);
 		margin-bottom: clamp(0.3rem, 2vw, 0.5rem);
@@ -522,6 +521,7 @@
 		align-items: center;
 		z-index: 2;
 		padding: 0 1rem;
+		font-weight: 800;
 	}
 
 	/* Back Icon - Hidden by Default */
@@ -583,14 +583,17 @@
 
 	/* Light theme adjustments for buttons */
 	:global(.light-theme) .back-icon,
-	:global(.light-theme) .menu-icon,
+	:global(.light-theme) .menu-icon {
+		background: #bbb9b9;
+	}
+
 	:global(.light-theme) .show-feedback-button {
 		background: #11191d;
 	}
 
 	:global(.light-theme) .back-icon:hover,
 	:global(.light-theme) .menu-icon:hover {
-		background: rgba(0, 0, 0, 0.8);
+		background: #999696;
 	}
 
 	/* Dropdown Menu */
@@ -664,10 +667,6 @@
 		);
 		opacity: 0;
 		transition: opacity 0.3s ease;
-	}
-
-	.menu li:hover::before {
-		opacity: 1;
 	}
 
 	/* =======================
