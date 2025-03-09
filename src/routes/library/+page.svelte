@@ -106,9 +106,45 @@
 		{/if}
 	{:else}
 		<div class="empty-state">
-			<i class="fas fa-music"></i>
-			<p>No meditations available.</p>
-			<a href="/new" class="create-new-btn">Create Your First Meditation</a>
+			<div class="welcome-message">
+				<i class="fas fa-headphones-alt pulse-icon"></i>
+				<h3>Your Library is Empty</h3>
+				<p>Start your mindfulness journey by creating your first meditation</p>
+			</div>
+
+			<div class="onboarding-options">
+				<div
+					class="onboarding-card"
+					on:click={() => (window.location.href = '/playlists')}
+					tabindex="0"
+					role="button"
+				>
+					<div class="onboarding-icon">
+						<i class="fas fa-play-circle"></i>
+					</div>
+					<div class="onboarding-content">
+						<h4>Start a Guided Session</h4>
+						<p>Choose from our curated playlists</p>
+					</div>
+					<i class="fas fa-chevron-right arrow-icon"></i>
+				</div>
+
+				<div
+					class="onboarding-card"
+					on:click={() => (window.location.href = '/new')}
+					tabindex="0"
+					role="button"
+				>
+					<div class="onboarding-icon">
+						<i class="fas fa-microphone-alt"></i>
+					</div>
+					<div class="onboarding-content">
+						<h4>Create Custom Meditation</h4>
+						<p>Design your own mindfulness experience</p>
+					</div>
+					<i class="fas fa-chevron-right arrow-icon"></i>
+				</div>
+			</div>
 		</div>
 	{/if}
 
@@ -417,13 +453,13 @@
 
 	.load-more-btn {
 		width: 100%;
-		padding: 1rem;
+		padding: 0.9rem 1rem;
 		margin-top: 1.5rem;
-		background: var(--background-button);
-		color: var(--text-light);
+		background: var(--btn-bg);
+		color: var(--btn-text);
 		border: 1px solid rgba(var(--interactive-gradient-1), 0.2);
 		border-radius: 12px;
-		font-size: 0.9rem;
+		font-size: 1rem;
 		font-weight: 500;
 		cursor: pointer;
 		transition: all 0.3s ease;
@@ -431,32 +467,13 @@
 		align-items: center;
 		justify-content: center;
 		gap: 0.5rem;
+		font-family: 'Inter', sans-serif;
 	}
 
 	.load-more-btn:hover:not(:disabled) {
-		background: var(--background-buttonHover);
+		background: var(--btn-bg-hover);
 		transform: translateY(-2px);
-		box-shadow: 0 5px 15px rgba(var(--interactive-gradient-1), 0.25);
-	}
-
-	/* Apply gradients only for themed versions */
-	:global(.dark-theme) .load-more-btn,
-	:global(.cosmic-theme) .load-more-btn {
-		background: linear-gradient(
-			135deg,
-			rgba(var(--interactive-gradient-1), 0.6) 0%,
-			rgba(var(--interactive-gradient-2), 0.7) 100%
-		);
-		color: var(--text-primary);
-	}
-
-	:global(.dark-theme) .load-more-btn:hover:not(:disabled),
-	:global(.cosmic-theme) .load-more-btn:hover:not(:disabled) {
-		background: linear-gradient(
-			135deg,
-			rgba(var(--interactive-gradient-1), 0.7) 0%,
-			rgba(var(--interactive-gradient-2), 0.8) 100%
-		);
+		box-shadow: 0 4px 12px var(--ui-shadowHover);
 	}
 
 	.load-more-btn:disabled {
@@ -477,19 +494,140 @@
 		position: relative;
 		overflow: hidden;
 		backdrop-filter: blur(5px);
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
 	}
 
-	.empty-state i {
+	.welcome-message {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		margin-bottom: 0.5rem;
+	}
+
+	.welcome-message i {
 		font-size: 2rem;
-		color: rgba(var(--icon-primary-rgb), 0.6);
+		color: var(--icon-primary);
 		margin-bottom: 1rem;
 		filter: drop-shadow(0 0 5px rgba(var(--icon-primary-rgb), 0.2));
 	}
 
-	.empty-state p {
-		font-size: 1rem;
+	.welcome-message h3 {
+		font-size: 1.2rem;
+		margin-bottom: 0.5rem;
+		font-weight: 600;
+		color: var(--text-primary);
+	}
+
+	.welcome-message p {
+		font-size: 0.9rem;
+		max-width: 80%;
+		margin: 0 auto 0.5rem;
+	}
+
+	.pulse-icon {
+		animation: pulse 2s infinite ease-in-out;
+	}
+
+	@keyframes pulse {
+		0% {
+			transform: scale(1);
+			opacity: 0.8;
+		}
+		50% {
+			transform: scale(1.1);
+			opacity: 1;
+		}
+		100% {
+			transform: scale(1);
+			opacity: 0.8;
+		}
+	}
+
+	.onboarding-options {
+		display: flex;
+		flex-direction: column;
+		gap: 0.8rem;
+		width: 100%;
+	}
+
+	.onboarding-card {
+		display: flex;
+		align-items: center;
+		padding: 1rem;
+		border-radius: 12px;
+		background: linear-gradient(
+			135deg,
+			rgba(var(--interactive-gradient-1), 0.08) 0%,
+			rgba(var(--interactive-gradient-2), 0.12) 100%
+		);
+		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
+		cursor: pointer;
+		transition: all 0.3s ease;
+		text-align: left;
+		position: relative;
+		overflow: hidden;
+	}
+
+	.onboarding-card:hover {
+		border-color: rgba(var(--interactive-gradient-1), 0.2);
+		transform: translateY(-2px);
+		box-shadow: 0 6px 15px var(--ui-shadowHover);
+	}
+
+	.onboarding-icon {
+		width: 40px;
+		height: 40px;
+		background: rgba(var(--interactive-gradient-1), 0.15);
+		color: var(--icon-primary);
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin-right: 1rem;
+		flex-shrink: 0;
+		transition: all 0.3s ease;
+		position: relative;
+		z-index: 1;
+		box-shadow: 0 0 10px rgba(var(--interactive-gradient-1), 0.1);
+	}
+
+	.onboarding-card:hover .onboarding-icon {
+		background: rgba(var(--interactive-gradient-1), 0.25);
+		box-shadow: 0 0 15px rgba(var(--interactive-gradient-1), 0.2);
+		transform: scale(1.05);
+	}
+
+	.onboarding-content {
+		flex-grow: 1;
+		overflow: hidden;
+	}
+
+	h4 {
+		font-size: 0.95rem;
+		font-weight: 600;
+		margin: 0 0 0.2rem 0;
+		color: var(--text-primary);
+	}
+
+	.onboarding-content p {
+		font-size: 0.8rem;
+		margin: 0;
+		opacity: 0.8;
 		color: var(--text-secondary);
-		margin-bottom: 1.5rem;
+	}
+
+	.arrow-icon {
+		color: var(--icon-secondary);
+		font-size: 0.8rem;
+		margin-left: 0.5rem;
+		transition: transform 0.3s ease;
+	}
+
+	.onboarding-card:hover .arrow-icon {
+		transform: translateX(3px);
+		color: var(--icon-primary);
 	}
 
 	.create-new-btn {
@@ -576,6 +714,36 @@
 
 		.meditation-meta {
 			font-size: 0.7rem;
+		}
+
+		.empty-state {
+			padding: 1.5rem 1rem;
+		}
+
+		.welcome-message h3 {
+			font-size: 1.1rem;
+		}
+
+		.welcome-message p {
+			font-size: 0.8rem;
+		}
+
+		.onboarding-card {
+			padding: 0.8rem;
+		}
+
+		.onboarding-icon {
+			width: 32px;
+			height: 32px;
+			margin-right: 0.8rem;
+		}
+
+		.onboarding-content h4 {
+			font-size: 0.85rem;
+		}
+
+		.onboarding-content p {
+			font-size: 0.75rem;
 		}
 	}
 </style>
