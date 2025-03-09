@@ -172,7 +172,7 @@
 				</select>
 			</div>
 			<div class="form-group">
-				<label for="voice_id">Voice</label>
+				<label for="voice_id">Voice (effects new sessions only)</label>
 				<div class="voice-selection-container">
 					<div class="voice-preview-options">
 						{#each voiceOptions as option}
