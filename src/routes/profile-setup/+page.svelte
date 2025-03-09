@@ -9,12 +9,20 @@
 	import { goto } from '$app/navigation';
 	import type { ProfileSetup } from '$lib/stores/profileSetup';
 	import { transition } from '$lib/stores/transition';
+	import { updateUserProfile } from '$lib/api';
+	import { showSuccess, showError } from '$lib/stores/notifications';
+	import type { PageData } from './$types';
+
+	export let data: PageData;
 
 	let currentQuestion = 0;
 	let errorMessage = '';
+	let progressPercentage = 0;
+	let isTransitioning = false;
 
 	type Question = {
 		question: string;
+		description: string;
 		options: Array<{ display: string; value: string }>;
 		key: keyof ProfileSetup;
 		multiple: boolean;
@@ -23,6 +31,7 @@
 	const questions: Question[] = [
 		{
 			question: "What's your main goal for meditating?",
+			description: "We'll personalize your experience based on your goals",
 			options: [
 				{
 					display: 'Reduce stress',
@@ -54,6 +63,7 @@
 		},
 		{
 			question: 'How would you describe your current stress level?',
+			description: 'Understanding your stress helps us recommend appropriate sessions',
 			options: [
 				{
 					display: 'Generally relaxed',
@@ -77,6 +87,7 @@
 		},
 		{
 			question: 'Which best describes your sleep?',
+			description: "We'll tailor sleep-focused meditations to your needs",
 			options: [
 				{
 					display: 'Fall asleep easily, wake up refreshed',
@@ -104,6 +115,7 @@
 		},
 		{
 			question: 'How long can you typically focus on one task without getting distracted?',
+			description: 'This helps us recommend the right meditation length for you',
 			options: [
 				{
 					display: 'Less than 5 minutes',
@@ -131,6 +143,7 @@
 		},
 		{
 			question: 'How would you describe your typical mental state throughout the day?',
+			description: "We'll suggest meditations that complement your mental state",
 			options: [
 				{
 					display: 'Calm and centred',
@@ -158,6 +171,7 @@
 		},
 		{
 			question: 'How would you characterise your daily technology use?',
+			description: 'This helps us understand your digital wellness needs',
 			options: [
 				{
 					display: 'Minimal - I use tech only when necessary',
@@ -187,6 +201,7 @@
 
 	onMount(() => {
 		resetProfileSetupStore();
+		updateProgressBar();
 
 		// Push initial state
 		history.pushState({ question: currentQuestion }, '');
@@ -203,9 +218,14 @@
 	function handlePopState(event: PopStateEvent) {
 		if (event.state && typeof event.state.question === 'number') {
 			currentQuestion = event.state.question;
+			updateProgressBar();
 			transition.setVisible(true);
 			transition.fadeIn();
 		}
+	}
+
+	function updateProgressBar() {
+		progressPercentage = (currentQuestion / questions.length) * 100;
 	}
 
 	function updateStore(key: keyof ProfileSetup, value: string) {
@@ -213,49 +233,94 @@
 	}
 
 	function nextQuestion() {
+		if (isTransitioning) return;
+
 		if (currentQuestion < questions.length - 1) {
+			isTransitioning = true;
+			transition.fadeOut();
 			setTimeout(() => {
 				currentQuestion++;
+				updateProgressBar();
 				history.pushState({ question: currentQuestion }, '');
 				transition.setVisible(true);
 				transition.fadeIn();
-			}, 700); // 500ms pause before fade-in starts
+				setTimeout(() => {
+					isTransitioning = false;
+				}, 500);
+			}, 500);
 		} else {
 			submitForm();
 		}
 	}
 
 	function prevQuestion() {
+		if (isTransitioning) return;
+
 		if (currentQuestion > 0) {
-			history.back();
+			isTransitioning = true;
+			transition.fadeOut();
+			setTimeout(() => {
+				history.back();
+				setTimeout(() => {
+					isTransitioning = false;
+				}, 500);
+			}, 500);
 		}
 	}
 
 	async function submitForm() {
+		if (isTransitioning) return;
+
 		const formElement = document.querySelector('form');
 		if (!formElement) {
 			errorMessage = 'Form not found';
 			return;
 		}
-		const response = await fetch('?/submit', {
-			method: 'POST',
-			body: new FormData(formElement as HTMLFormElement)
-		});
-		const result = await response.json();
-		if (result.type === 'success') {
-			goto('/new');
-		} else {
-			errorMessage = 'An error occurred while saving your profile. Please try again.';
+
+		try {
+			if (!data.session?.user?.id) {
+				showError('User session not found. Please log in again.');
+				return;
+			}
+
+			const response = await fetch('?/submit', {
+				method: 'POST',
+				body: new FormData(formElement as HTMLFormElement)
+			});
+
+			const result = await response.json();
+
+			if (result.type === 'success') {
+				// Now make the API call on the client side
+				try {
+					await updateUserProfile(data.session.user.id, {
+						preferences: result.data.preferences,
+						complete: true
+					});
+
+					goto('/dashboard');
+				} catch (err) {
+					console.error('Error updating user profile:', err);
+					showError('An error occurred while saving your profile. Please try again.');
+				}
+			} else {
+				errorMessage = 'An error occurred while processing your profile. Please try again.';
+			}
+		} catch (err) {
+			console.error('Error submitting form:', err);
+			errorMessage = 'An error occurred while submitting the form. Please try again.';
 		}
 	}
 
 	function handleOptionClick(key: keyof ProfileSetup, value: string) {
+		if (isTransitioning) return;
+
 		if ($profileSetupStore[key] === value) {
 			// Important: This handles the case where a user selects the same option again
 			// It allows progression to the next question even if the value hasn't changed
 			if (!questions[currentQuestion].multiple) {
 				if (currentQuestion === questions.length - 1) {
-					setTimeout(() => submitForm(), 600);
+					setTimeout(() => submitForm(), 800);
 				} else {
 					nextQuestion();
 				}
@@ -264,14 +329,16 @@
 	}
 
 	function handleOptionChange(key: keyof ProfileSetup, value: string) {
+		if (isTransitioning) return;
+
 		updateStore(key, value);
 		// Important: This progresses to the next question automatically
 		// when a new option is selected for non-multiple choice questions
 		if (!questions[currentQuestion].multiple) {
 			if (currentQuestion === questions.length - 1) {
-				setTimeout(() => submitForm(), 600);
+				setTimeout(() => submitForm(), 800);
 			} else {
-				nextQuestion();
+				setTimeout(() => nextQuestion(), 500);
 			}
 		}
 	}
@@ -287,76 +354,96 @@
 
 <div class="profile-setup">
 	<div class="profile-setup-header">
-		<h1>Profile Setup</h1>
-		<p>Help us personalize your meditation experience</p>
+		<h1>Welcome to In The Moment</h1>
+		<p>Let's personalize your meditation experience</p>
 	</div>
 
-	<div class="profile-setup-card">
-		<form method="POST" use:enhance>
-			{#each questions as q}
-				<!-- Important: These hidden inputs ensure all question responses are submitted,
-             even if the user navigates back and forth between questions -->
-				<input type="hidden" name={q.key} value={$profileSetupStore[q.key] || ''} />
-			{/each}
-			<div class="form-content">
-				<div class="form-container">
-					{#if $transition.visible}
-						<div
-							class="question"
-							style="opacity: {$transition.opacity}; transition: opacity 0.15s ease;"
-						>
-							<h3>{questions[currentQuestion].question}</h3>
-							<div class="options-grid">
-								{#each questions[currentQuestion].options as option, i}
-									<label class="option-label" style="animation-delay: {i * 0.05}s">
-										<input
-											type={questions[currentQuestion].multiple ? 'checkbox' : 'radio'}
-											name={questions[currentQuestion].key}
-											value={option.value}
-											checked={$profileSetupStore[questions[currentQuestion].key] === option.value}
-											on:click={() =>
-												handleOptionClick(questions[currentQuestion].key, option.value)}
-											on:change={() =>
-												handleOptionChange(questions[currentQuestion].key, option.value)}
-										/>
-										<span class="option-text">{option.display}</span>
-									</label>
-								{/each}
-							</div>
-						</div>
-					{/if}
-				</div>
-			</div>
+	<div class="progress-container">
+		<div class="progress-bar">
+			<div class="progress-fill" style="width: {progressPercentage}%"></div>
+		</div>
+		<div class="progress-text">Question {currentQuestion + 1} of {questions.length}</div>
+	</div>
 
+	<form method="POST" use:enhance>
+		{#each questions as q}
+			<input type="hidden" name={q.key} value={$profileSetupStore[q.key] || ''} />
+		{/each}
+
+		<div class="form-content">
 			{#if $transition.visible}
 				<div
-					class="navigation"
-					style="opacity: {$transition.opacity}; transition: opacity 0.15s ease;"
+					class="question-container"
+					style="opacity: {$transition.opacity}; transform: translateY({20 -
+						$transition.opacity * 20}px); transition: opacity 0.5s ease, transform 0.5s ease;"
 				>
-					<div class="nav-left">
-						{#if currentQuestion > 0}
-							<button type="button" class="back-link" on:click={prevQuestion}>
-								<i class="fas fa-arrow-left"></i> Back
-							</button>
-						{/if}
+					<div class="question-header">
+						<h2>{questions[currentQuestion].question}</h2>
+						<p class="question-description">{questions[currentQuestion].description}</p>
 					</div>
-					<div class="progress-indicator">
-						{#each Array(questions.length) as _, i}
-							<div class="progress-dot" class:active={i <= currentQuestion}></div>
+
+					<div class="options-container">
+						{#each questions[currentQuestion].options as option, i}
+							<label
+								class="option-label"
+								style="animation-delay: {i * 0.08}s"
+								class:selected={$profileSetupStore[questions[currentQuestion].key] === option.value}
+							>
+								<input
+									type={questions[currentQuestion].multiple ? 'checkbox' : 'radio'}
+									name={questions[currentQuestion].key}
+									value={option.value}
+									checked={$profileSetupStore[questions[currentQuestion].key] === option.value}
+									on:click={() => handleOptionClick(questions[currentQuestion].key, option.value)}
+									on:change={() => handleOptionChange(questions[currentQuestion].key, option.value)}
+								/>
+								<div class="option-content">
+									<span class="option-text">{option.display}</span>
+									{#if $profileSetupStore[questions[currentQuestion].key] === option.value}
+										<i class="fas fa-check"></i>
+									{/if}
+								</div>
+							</label>
 						{/each}
-					</div>
-					<div class="nav-right">
-						<div class="question-counter">{currentQuestion + 1}/{questions.length}</div>
-						{#if questions[currentQuestion].multiple}
-							<button type="button" class="btn primary" on:click={nextQuestion}>
-								{currentQuestion === questions.length - 1 ? 'Submit' : 'Next'}
-							</button>
-						{/if}
 					</div>
 				</div>
 			{/if}
-		</form>
-	</div>
+		</div>
+
+		{#if $transition.visible}
+			<div
+				class="navigation"
+				style="opacity: {$transition.opacity}; transition: opacity 0.5s ease;"
+			>
+				<div class="nav-left">
+					{#if currentQuestion > 0}
+						<button
+							type="button"
+							class="back-button"
+							on:click={prevQuestion}
+							disabled={isTransitioning}
+						>
+							<i class="fas fa-arrow-left"></i> Back
+						</button>
+					{/if}
+				</div>
+
+				<div class="nav-right">
+					{#if questions[currentQuestion].multiple}
+						<button
+							type="button"
+							class="next-button"
+							on:click={nextQuestion}
+							disabled={isTransitioning}
+						>
+							{currentQuestion === questions.length - 1 ? 'Complete' : 'Continue'}
+							<i class="fas fa-arrow-right"></i>
+						</button>
+					{/if}
+				</div>
+			</div>
+		{/if}
+	</form>
 </div>
 
 {#if errorMessage}
@@ -376,11 +463,13 @@
 		box-sizing: border-box;
 		position: relative;
 		min-height: 100vh;
+		max-width: 500px;
+		margin: 0 auto;
 	}
 
 	.profile-setup-header {
 		text-align: center;
-		margin-bottom: 2rem;
+		margin-bottom: 3rem;
 	}
 
 	h1 {
@@ -388,79 +477,85 @@
 		font-size: clamp(1.75rem, 4vw, 2.25rem);
 		font-weight: 600;
 		color: var(--text-primary);
-		margin-bottom: 0.5rem;
+		margin-bottom: 0.75rem;
 		letter-spacing: -0.5px;
 		text-shadow: 0 0 20px rgba(var(--icon-primary-rgb), 0.1);
 	}
 
 	.profile-setup-header p {
 		color: var(--text-secondary);
-		font-size: 1rem;
+		font-size: 1.1rem;
 		margin: 0;
 	}
 
-	.profile-setup-card {
+	.progress-container {
 		width: 100%;
-		max-width: 700px;
-		background: linear-gradient(
-			135deg,
-			rgba(var(--background-card-rgb), 0.9) 0%,
-			rgba(var(--background-card-rgb), 0.7) 100%
-		);
-		border-radius: 16px;
-		padding: 2rem;
-		box-shadow: 0 4px 15px var(--ui-shadow);
-		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
-		backdrop-filter: blur(5px);
-		position: relative;
-		overflow: hidden;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		margin-bottom: 2.5rem;
 	}
 
-	/* Add subtle gradient background effect */
-	.profile-setup-card::before {
-		content: '';
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background: linear-gradient(
-			135deg,
-			rgba(var(--interactive-gradient-1), 0.05),
-			rgba(var(--interactive-gradient-2), 0.02)
-		);
-		opacity: 1;
-		z-index: 0;
+	.progress-bar {
+		width: 100%;
+		height: 3px;
+		background-color: rgba(var(--interactive-gradient-1), 0.1);
+		border-radius: 1.5px;
+		overflow: hidden;
+		margin-bottom: 0.75rem;
+	}
+
+	.progress-fill {
+		height: 100%;
+		background: var(--slider-progress-bg);
+		border-radius: 1.5px;
+		transition: width 0.8s ease;
+	}
+
+	.progress-text {
+		font-size: 0.85rem;
+		color: var(--text-secondary);
+		opacity: 0.8;
+		font-family: 'Inter', sans-serif;
+	}
+
+	form {
+		width: 100%;
+		position: relative;
 	}
 
 	.form-content {
 		position: relative;
 		width: 100%;
-		z-index: 1;
+		min-height: 400px;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
 	}
 
-	.form-container {
+	.question-container {
 		width: 100%;
-		min-height: 300px;
+		display: flex;
+		flex-direction: column;
+		gap: 2rem;
 	}
 
-	.question {
+	.question-header {
 		text-align: center;
-		margin-bottom: 2.5rem;
-		transition: opacity 0.3s ease;
+		margin-bottom: 1.75rem;
 	}
 
-	h3 {
-		font-family: 'Poppins', sans-serif;
+	h2 {
+		font-family: 'Space Grotesk', sans-serif;
 		font-weight: 600;
 		color: var(--text-primary);
-		margin-bottom: 2rem;
-		font-size: 1.5rem;
+		font-size: 1.6rem;
+		margin-bottom: 0.75rem;
 		position: relative;
 		display: inline-block;
 	}
 
-	h3::after {
+	h2::after {
 		content: '';
 		position: absolute;
 		bottom: -8px;
@@ -476,16 +571,29 @@
 		border-radius: 2px;
 	}
 
-	.options-grid {
-		display: grid;
-		gap: 0.75rem;
-		grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+	.question-description {
+		color: var(--text-secondary);
+		font-size: 1rem;
+		margin: 0;
+		max-width: 600px;
+		margin: 0 auto;
+		line-height: 1.5;
+		font-family: 'Inter', sans-serif;
+	}
+
+	.options-container {
+		display: flex;
+		flex-direction: column;
+		gap: 0.85rem;
+		width: 100%;
 	}
 
 	.option-label {
-		animation: fadeInUp 0.5s ease forwards;
+		animation: fadeInUp 0.6s ease forwards;
 		opacity: 0;
 		transform: translateY(10px);
+		cursor: pointer;
+		position: relative;
 	}
 
 	@keyframes fadeInUp {
@@ -504,19 +612,11 @@
 		width: 0;
 	}
 
-	.option-text {
-		color: var(--text-primary);
-		font-size: 1rem;
+	.option-content {
 		display: flex;
 		align-items: center;
-		justify-content: center;
-		width: 100%;
-		text-align: center;
-		transition: all 0.3s ease;
-		position: relative;
-		z-index: 1;
-		padding: 1rem 0;
-		cursor: pointer;
+		justify-content: space-between;
+		padding: 1.1rem 1.25rem;
 		border-radius: 12px;
 		background: linear-gradient(
 			135deg,
@@ -524,24 +624,41 @@
 			rgba(var(--background-card-rgb), 0.7) 100%
 		);
 		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
+		transition: all 0.3s ease;
 		box-shadow: 0 2px 8px var(--ui-shadow);
+		backdrop-filter: blur(5px);
 	}
 
-	/* Hover effect only for non-touch devices */
-	@media (hover: hover) {
-		.option-text:hover {
-			transform: translateY(-2px);
-			box-shadow: 0 4px 12px var(--ui-shadowHover);
-			border-color: rgba(var(--interactive-gradient-1), 0.2);
-		}
+	.option-text {
+		color: var(--text-primary);
+		font-size: 1rem;
+		font-weight: 500;
+		font-family: 'Inter', sans-serif;
 	}
 
-	.option-label input:checked + .option-text {
-		color: var(--btn-text);
+	.option-label.selected .option-content {
 		background: var(--btn-bg);
 		border-color: rgba(var(--interactive-gradient-1), 0.3);
 		box-shadow: 0 4px 15px rgba(var(--interactive-gradient-1), 0.2);
 		transform: translateY(-2px);
+	}
+
+	.option-label.selected .option-text {
+		color: var(--btn-text);
+	}
+
+	.option-label i {
+		color: var(--btn-text);
+		font-size: 0.9rem;
+	}
+
+	/* Hover effect only for non-touch devices */
+	@media (hover: hover) {
+		.option-content:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 4px 12px var(--ui-shadowHover);
+			border-color: rgba(var(--interactive-gradient-1), 0.2);
+		}
 	}
 
 	.navigation {
@@ -550,9 +667,6 @@
 		align-items: center;
 		margin-top: 2rem;
 		width: 100%;
-		transition: opacity 0.3s ease;
-		position: relative;
-		z-index: 1;
 	}
 
 	.nav-left,
@@ -561,109 +675,69 @@
 		align-items: center;
 	}
 
-	.nav-right {
-		justify-content: flex-end;
-		gap: 1rem;
-	}
-
-	.question-counter {
-		font-size: 0.9rem;
-		color: var(--text-secondary);
-		background: linear-gradient(
-			135deg,
-			rgba(var(--interactive-gradient-1), 0.1) 0%,
-			rgba(var(--interactive-gradient-2), 0.05) 100%
-		);
-		padding: 0.4rem 0.75rem;
-		border-radius: 8px;
-		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
-		backdrop-filter: blur(5px);
-	}
-
-	.progress-indicator {
-		display: flex;
-		gap: 0.5rem;
-		justify-content: center;
-	}
-
-	.progress-dot {
-		width: 8px;
-		height: 8px;
-		border-radius: 50%;
-		background-color: rgba(var(--interactive-gradient-1), 0.2);
-		transition: all 0.3s ease;
-	}
-
-	.progress-dot.active {
-		background: linear-gradient(
-			135deg,
-			rgba(var(--interactive-gradient-1), 0.6) 0%,
-			rgba(var(--interactive-gradient-2), 0.7) 100%
-		);
-		transform: scale(1.2);
-	}
-
-	.back-link {
-		background: none;
-		border: none;
-		color: var(--text-secondary);
-		cursor: pointer;
-		font-size: 0.9rem;
-		padding: 0.5rem 0;
+	.back-button,
+	.next-button {
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
-		transition: all 0.3s ease;
-	}
-
-	.back-link:hover {
-		color: var(--text-primary);
-		transform: translateX(-3px);
-	}
-
-	.btn {
-		padding: 0.75rem 1.5rem;
-		border: none;
+		padding: 0.8rem 1.25rem;
 		border-radius: 12px;
-		cursor: pointer;
-		font-size: 1rem;
-		transition: all 0.3s ease;
-		text-transform: uppercase;
-		letter-spacing: 1px;
+		font-size: 0.9rem;
 		font-weight: 500;
 		font-family: 'Inter', sans-serif;
+		cursor: pointer;
+		transition: all 0.3s ease;
+		text-transform: uppercase;
+		letter-spacing: 0.5px;
 	}
 
-	.btn:active {
-		transform: translateY(1px);
+	.back-button {
+		background: transparent;
+		color: var(--text-secondary);
+		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
 	}
 
-	.btn.primary {
+	.back-button:hover:not([disabled]) {
+		color: var(--text-primary);
+		background-color: rgba(var(--background-card-rgb), 0.5);
+	}
+
+	.next-button {
 		background: var(--btn-bg);
 		color: var(--btn-text);
 		border: 1px solid rgba(var(--interactive-gradient-1), 0.2);
 	}
 
-	.btn.primary:hover {
+	.next-button:hover:not([disabled]) {
 		background: var(--btn-bg-hover);
 		transform: translateY(-2px);
 		box-shadow: 0 4px 12px var(--ui-shadowHover);
 	}
 
+	button[disabled] {
+		opacity: 0.7;
+		cursor: not-allowed;
+	}
+
 	.error-message {
+		position: fixed;
+		bottom: 2rem;
+		left: 50%;
+		transform: translateX(-50%);
 		color: var(--text-error);
 		background: var(--background-error);
 		text-align: center;
-		margin-top: 1rem;
-		padding: 1rem;
+		padding: 1rem 1.5rem;
 		border-radius: 12px;
 		font-size: 0.9rem;
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
 		justify-content: center;
-		max-width: 700px;
-		width: 100%;
+		max-width: 90%;
+		box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+		z-index: 100;
+		backdrop-filter: blur(5px);
 	}
 
 	@media (max-width: 768px) {
@@ -671,76 +745,64 @@
 			padding: 1.5rem 1rem;
 		}
 
-		.profile-setup-card {
-			padding: 1.5rem;
+		h2 {
+			font-size: 1.5rem;
 		}
 
-		.options-grid {
-			grid-template-columns: 1fr;
+		.option-content {
+			padding: 1rem 1.25rem;
 		}
 
-		h3 {
-			font-size: 1.3rem;
-			margin-bottom: 1.5rem;
+		.option-text {
+			font-size: 0.95rem;
 		}
 
-		.form-container {
-			min-height: 250px;
-		}
-
-		.navigation {
-			flex-wrap: wrap;
-			gap: 1rem;
-		}
-
-		.progress-indicator {
-			order: 3;
-			width: 100%;
-			justify-content: center;
-			margin-top: 1rem;
+		.form-content {
+			min-height: 350px;
 		}
 	}
 
 	@media (max-width: 480px) {
 		.profile-setup {
-			padding: 1rem 0.5rem;
+			padding: 1rem 0.75rem;
 		}
 
-		.profile-setup-card {
-			padding: 1.25rem;
-			border-radius: 12px;
+		.profile-setup-header {
+			margin-bottom: 2rem;
 		}
 
 		h1 {
-			font-size: 1.5rem;
+			font-size: 1.75rem;
 		}
 
 		.profile-setup-header p {
+			font-size: 0.95rem;
+		}
+
+		h2 {
+			font-size: 1.3rem;
+		}
+
+		.question-description {
 			font-size: 0.9rem;
 		}
 
-		h3 {
-			font-size: 1.1rem;
-			margin-bottom: 1.25rem;
+		.option-content {
+			padding: 0.9rem 1rem;
 		}
 
 		.option-text {
+			font-size: 0.95rem;
+		}
+
+		.back-button,
+		.next-button {
+			padding: 0.75rem 1.25rem;
 			font-size: 0.9rem;
-			padding: 0.8rem 0;
 		}
 
-		.btn {
-			padding: 0.6rem 1.2rem;
-			font-size: 0.9rem;
-		}
-
-		.question-counter {
-			font-size: 0.8rem;
-			padding: 0.3rem 0.6rem;
-		}
-
-		.back-link {
-			font-size: 0.8rem;
+		.form-content {
+			min-height: 300px;
 		}
 	}
 </style>

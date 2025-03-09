@@ -1,7 +1,6 @@
 import { error, fail } from '@sveltejs/kit';
 import type { Actions } from './$types';
 import type { ProfileSetup } from '$lib/stores/profileSetup';
-import { updateUserProfile } from '$lib/api';
 
 export const actions: Actions = {
 	submit: async ({ request, locals }) => {
@@ -34,16 +33,11 @@ export const actions: Actions = {
 
 		console.log('Collected preferences:', preferences);
 
-		try {
-			const updatedProfile = await updateUserProfile(session.user.id, { 
-				preferences,
-				complete: true
-			});
-			console.log('Profile updated successfully:', updatedProfile);
-			return { success: true, profile: updatedProfile };
-		} catch (err) {
-			console.error('Error updating user profile:', err);
-			return fail(500, { message: 'Failed to update profile' });
-		}
+		// Return the collected preferences and user ID for client-side processing
+		return {
+			success: true,
+			userId: session.user.id,
+			preferences
+		};
 	}
 };

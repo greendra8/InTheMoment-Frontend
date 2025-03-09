@@ -179,8 +179,13 @@ export async function completeMeditation(meditationId: string, userId: string, m
 
 
 // Helper function to update user profile
-export async function updateUserProfile(userId: string, data: { name: string, experience: string, voice_id: number }) {
-
+export async function updateUserProfile(userId: string, data: {
+  name?: string;
+  experience?: string;
+  voice_id?: number;
+  preferences?: any;
+  complete?: boolean;
+}) {
   const { data: updatedProfile, error } = await supabase
     .from('profiles')
     .upsert({

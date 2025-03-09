@@ -161,7 +161,7 @@
 		<form on:submit={handleSubmit} bind:this={formElement}>
 			<div class="form-group">
 				<label for="name">Name</label>
-				<input type="text" id="name" bind:value={name} required />
+				<input type="text" id="name" bind:value={name} />
 			</div>
 			<div class="form-group">
 				<label for="experience">Experience Level</label>
