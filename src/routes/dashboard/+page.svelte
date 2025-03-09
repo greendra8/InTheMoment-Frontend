@@ -67,7 +67,7 @@
 	<div class="hero-section">
 		<div class="hero-content">
 			<div class="user-greeting">
-				<h1>Welcome, {user.name}</h1>
+				<h1>Welcome, {user.name === 'User' ? 'Student' : user.name}</h1>
 			</div>
 
 			<div class="hero-bottom-row">
@@ -84,38 +84,105 @@
 		</div>
 	</div>
 
-	<!-- Stats Cards -->
-	<div class="stats-container">
-		<div class="stat-card minutes-card">
-			<div class="stat-icon">
-				<i class="fas fa-clock"></i>
+	{#if meditations.length > 0}
+		<div class="stats-container">
+			<div class="stat-card minutes-card">
+				<div class="stat-icon">
+					<i class="fas fa-clock"></i>
+				</div>
+				<div class="stat-details">
+					<div class="stat-value">{totalMinutes}</div>
+					<div class="stat-label">Minutes</div>
+				</div>
 			</div>
-			<div class="stat-details">
-				<div class="stat-value">{totalMinutes}</div>
-				<div class="stat-label">Minutes</div>
-			</div>
-		</div>
 
-		<div class="stat-card streak-card">
-			<div class="stat-icon">
-				<i class="fas fa-fire"></i>
+			<div class="stat-card streak-card">
+				<div class="stat-icon">
+					<i class="fas fa-fire"></i>
+				</div>
+				<div class="stat-details">
+					<div class="stat-value">{daysInRow}</div>
+					<div class="stat-label">Day Streak</div>
+				</div>
 			</div>
-			<div class="stat-details">
-				<div class="stat-value">{daysInRow}</div>
-				<div class="stat-label">Day Streak</div>
-			</div>
-		</div>
 
-		<div class="stat-card sessions-card">
-			<div class="stat-icon">
-				<i class="fas fa-headphones"></i>
-			</div>
-			<div class="stat-details">
-				<div class="stat-value">{totalMeditations}</div>
-				<div class="stat-label">Sessions</div>
+			<div class="stat-card sessions-card">
+				<div class="stat-icon">
+					<i class="fas fa-headphones"></i>
+				</div>
+				<div class="stat-details">
+					<div class="stat-value">{totalMeditations}</div>
+					<div class="stat-label">Sessions</div>
+				</div>
 			</div>
 		</div>
-	</div>
+	{/if}
+
+	<!-- New User Onboarding (shown when no meditations exist) -->
+	{#if meditations.length === 0}
+		<section class="content-section">
+			<div class="empty-state">
+				<div class="welcome-message">
+					<i class="fas fa-spa pulse-icon"></i>
+					<h3>Welcome to Your Mindfulness Journey</h3>
+					<p>Start your first meditation to begin tracking your progress</p>
+				</div>
+
+				<div class="onboarding-options">
+					<div
+						class="onboarding-card"
+						on:click={() => handleNavigation('/playlists')}
+						on:keydown={(e) => e.key === 'Enter' && handleNavigation('/playlists')}
+						tabindex="0"
+						role="button"
+					>
+						<div class="onboarding-icon">
+							<i class="fas fa-play-circle"></i>
+						</div>
+						<div class="onboarding-content">
+							<h4>Start a Guided Session</h4>
+							<p>Choose from our curated playlists</p>
+						</div>
+						<i class="fas fa-chevron-right arrow-icon"></i>
+					</div>
+
+					<div
+						class="onboarding-card"
+						on:click={() => handleNavigation('/new')}
+						on:keydown={(e) => e.key === 'Enter' && handleNavigation('/new')}
+						tabindex="0"
+						role="button"
+					>
+						<div class="onboarding-icon">
+							<i class="fas fa-microphone-alt"></i>
+						</div>
+						<div class="onboarding-content">
+							<h4>Create Custom Meditation</h4>
+							<p>Design your own mindfulness experience</p>
+						</div>
+						<i class="fas fa-chevron-right arrow-icon"></i>
+					</div>
+
+					<div
+						class="onboarding-card"
+						on:click={() => handleNavigation('/profile')}
+						on:keydown={(e) => e.key === 'Enter' && handleNavigation('/profile')}
+						tabindex="0"
+						role="button"
+					>
+						<div class="onboarding-icon">
+							<i class="fas fa-sliders-h"></i>
+						</div>
+						<div class="onboarding-content">
+							<h4>Customize Your Experience</h4>
+							<p>Choose your mentor's voice and app theme</p>
+						</div>
+						<i class="fas fa-chevron-right arrow-icon"></i>
+					</div>
+				</div>
+			</div>
+		</section>
+	{/if}
 
 	<!-- Continue Listening Section (Most Recent Session) -->
 	{#if meditations.length > 0}
@@ -211,7 +278,7 @@
 				{/each}
 			</div>
 		{:else}
-			<div class="empty-state">
+			<div class="empty-state simple-empty-state">
 				<i class="fas fa-music"></i>
 				<p>No recent sessions yet</p>
 				<button class="create-btn" on:click={() => handleNavigation('/new')}>
@@ -289,6 +356,13 @@
 	h3 {
 		font-size: 1rem;
 		font-weight: 500;
+	}
+
+	h4 {
+		font-size: 0.95rem;
+		font-weight: 600;
+		margin: 0 0 0.2rem 0;
+		color: var(--text-primary);
 	}
 
 	p {
@@ -717,10 +791,10 @@
 		margin-top: 0.3rem;
 	}
 
-	/* Empty State */
+	/* Empty State - Enhanced for New Users */
 	.empty-state {
 		text-align: center;
-		padding: 2.5rem 1.5rem;
+		padding: 2rem 1.5rem;
 		border-radius: 16px;
 		background: linear-gradient(
 			135deg,
@@ -731,16 +805,27 @@
 		position: relative;
 		overflow: hidden;
 		backdrop-filter: blur(5px);
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
 	}
 
-	.empty-state i {
+	/* Simple empty state for Recent Sessions section */
+	.simple-empty-state {
+		text-align: center;
+		padding: 2.5rem 1.5rem;
+		display: block;
+		gap: 0;
+	}
+
+	.simple-empty-state i {
 		font-size: 2rem;
 		color: rgba(var(--icon-primary-rgb), 0.6);
 		margin-bottom: 1rem;
 		filter: drop-shadow(0 0 5px rgba(var(--icon-primary-rgb), 0.2));
 	}
 
-	.empty-state p {
+	.simple-empty-state p {
 		font-size: 1rem;
 		color: var(--text-secondary);
 		margin-bottom: 1.5rem;
@@ -763,6 +848,127 @@
 		background: var(--btn-bg-hover);
 		transform: translateY(-2px);
 		box-shadow: 0 5px 15px rgba(var(--interactive-gradient-1), 0.25);
+	}
+
+	.welcome-message {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		margin-bottom: 0.5rem;
+	}
+
+	.welcome-message i {
+		font-size: 2rem;
+		color: var(--icon-primary);
+		margin-bottom: 1rem;
+		filter: drop-shadow(0 0 5px rgba(var(--icon-primary-rgb), 0.2));
+	}
+
+	.welcome-message h3 {
+		font-size: 1.2rem;
+		margin-bottom: 0.5rem;
+	}
+
+	.welcome-message p {
+		font-size: 0.9rem;
+		max-width: 80%;
+		margin: 0 auto;
+	}
+
+	.pulse-icon {
+		animation: pulse 2s infinite ease-in-out;
+	}
+
+	@keyframes pulse {
+		0% {
+			transform: scale(1);
+			opacity: 0.8;
+		}
+		50% {
+			transform: scale(1.1);
+			opacity: 1;
+		}
+		100% {
+			transform: scale(1);
+			opacity: 0.8;
+		}
+	}
+
+	.onboarding-options {
+		display: flex;
+		flex-direction: column;
+		gap: 0.8rem;
+		width: 100%;
+	}
+
+	.onboarding-card {
+		display: flex;
+		align-items: center;
+		padding: 1rem;
+		border-radius: 12px;
+		background: linear-gradient(
+			135deg,
+			rgba(var(--interactive-gradient-1), 0.08) 0%,
+			rgba(var(--interactive-gradient-2), 0.12) 100%
+		);
+		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
+		cursor: pointer;
+		transition: all 0.3s ease;
+		text-align: left;
+		position: relative;
+		overflow: hidden;
+	}
+
+	.onboarding-card:hover {
+		border-color: rgba(var(--interactive-gradient-1), 0.2);
+		transform: translateY(-2px);
+		box-shadow: 0 6px 15px var(--ui-shadowHover);
+	}
+
+	.onboarding-icon {
+		width: 40px;
+		height: 40px;
+		background: rgba(var(--interactive-gradient-1), 0.15);
+		color: var(--icon-primary);
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin-right: 1rem;
+		flex-shrink: 0;
+		transition: all 0.3s ease;
+		position: relative;
+		z-index: 1;
+		box-shadow: 0 0 10px rgba(var(--interactive-gradient-1), 0.1);
+	}
+
+	.onboarding-card:hover .onboarding-icon {
+		background: rgba(var(--interactive-gradient-1), 0.25);
+		box-shadow: 0 0 15px rgba(var(--interactive-gradient-1), 0.2);
+		transform: scale(1.05);
+	}
+
+	.onboarding-content {
+		flex-grow: 1;
+		overflow: hidden;
+	}
+
+	.onboarding-content p {
+		font-size: 0.8rem;
+		margin: 0;
+		opacity: 0.8;
+	}
+
+	.arrow-icon {
+		color: var(--icon-secondary);
+		font-size: 0.8rem;
+		margin-left: 0.5rem;
+		transition: transform 0.3s ease;
+	}
+
+	.onboarding-card:hover .arrow-icon {
+		transform: translateX(3px);
+		color: var(--icon-primary);
 	}
 
 	/* Responsive Adjustments */
@@ -834,6 +1040,49 @@
 
 		h1 {
 			font-size: 1.5rem;
+		}
+
+		.empty-state {
+			padding: 1.5rem 1rem;
+		}
+
+		.welcome-message h3 {
+			font-size: 1.1rem;
+		}
+
+		.welcome-message p {
+			font-size: 0.8rem;
+		}
+
+		.onboarding-card {
+			padding: 0.8rem;
+		}
+
+		.onboarding-icon {
+			width: 32px;
+			height: 32px;
+			margin-right: 0.8rem;
+		}
+
+		.onboarding-content h4 {
+			font-size: 0.85rem;
+		}
+
+		.onboarding-content p {
+			font-size: 0.75rem;
+		}
+
+		.simple-empty-state {
+			padding: 1.5rem 1rem;
+		}
+
+		.simple-empty-state p {
+			font-size: 0.9rem;
+		}
+
+		.create-btn {
+			padding: 0.6rem 1.2rem;
+			font-size: 0.8rem;
 		}
 	}
 </style>
