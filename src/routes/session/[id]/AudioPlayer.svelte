@@ -3,6 +3,13 @@
 	import { setupAudioVisualizer } from '$lib/audioVisualizer';
 	import { formatTime } from './Utils';
 	import { browser } from '$app/environment';
+	import {
+		saveAudioProgress,
+		getAudioProgress,
+		clearAudioProgress,
+		cleanupExpiredProgress,
+		forceSaveAudioProgress
+	} from '$lib/audioProgress';
 
 	export let audioUrl: string;
 	export let meditationId: string;
@@ -87,6 +94,11 @@
 
 		currentTime = audioElement.currentTime;
 
+		// Save progress to localStorage (debounced)
+		if (browser) {
+			saveAudioProgress(meditationId, currentTime, duration);
+		}
+
 		const minimumPlayTimeRequired = duration * 0.8;
 		const timeUntilEnd = duration - currentTime;
 
@@ -99,6 +111,14 @@
 			lockSend = true;
 			sendCompletionRequest();
 			hassentCompletionRequest = true;
+		}
+	}
+
+	function handlePause() {
+		updatePlayingState();
+		// Force save progress when user explicitly pauses
+		if (browser) {
+			forceSaveAudioProgress(meditationId, audioElement.currentTime, duration);
 		}
 	}
 
@@ -245,6 +265,15 @@
 			if (visualizer) {
 				visualizer.setStandbyMode(true);
 			}
+
+			// Load saved progress
+			if (browser) {
+				cleanupExpiredProgress(); // Clean up any expired progress
+				const savedProgress = getAudioProgress(meditationId);
+				if (savedProgress !== null) {
+					audioElement.currentTime = savedProgress;
+				}
+			}
 		} else {
 			console.error('Audio or Canvas element is missing');
 		}
@@ -263,6 +292,13 @@
 				audioElement.removeEventListener('ended', handleAudioEnded);
 			}
 		};
+	});
+
+	onDestroy(() => {
+		// Force save progress when component is destroyed
+		if (browser && audioElement) {
+			forceSaveAudioProgress(meditationId, audioElement.currentTime, duration);
+		}
 	});
 </script>
 
@@ -287,7 +323,7 @@
 			on:timeupdate={updateProgress}
 			on:loadedmetadata={updateProgress}
 			on:play={updatePlayingState}
-			on:pause={updatePlayingState}
+			on:pause={handlePause}
 			on:ended={handleAudioEnded}
 		></audio>
 	</div>
