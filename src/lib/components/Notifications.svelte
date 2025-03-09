@@ -38,7 +38,8 @@
 
 			{#if notification.action}
 				<div class="action" on:click|stopPropagation={notification.action.onClick}>
-					{notification.action.label} →
+					<span>{notification.action.label}</span>
+					<span class="arrow">→</span>
 				</div>
 			{/if}
 
@@ -106,6 +107,7 @@
 		align-items: center;
 		gap: 0.75rem;
 		margin-right: 0.5rem;
+		flex: 1;
 	}
 
 	.content i {
@@ -123,6 +125,15 @@
 		padding-left: 0.75rem;
 		border-left: 1px solid rgba(255, 255, 255, 0.2);
 		cursor: pointer;
+		display: flex;
+		align-items: center;
+		white-space: nowrap;
+		gap: 0.25rem;
+		padding-right: 0.5rem;
+	}
+
+	.action .arrow {
+		display: inline-block;
 	}
 
 	.dismiss {
@@ -136,6 +147,7 @@
 		opacity: 0.6;
 		cursor: pointer;
 		padding: 0.25rem;
+		margin-left: 0.75rem;
 		display: flex;
 		align-items: center;
 		justify-content: center;
