@@ -268,7 +268,9 @@
 <link rel="preload" as="image" href={bg} />
 
 <div
-	class="meditation-page {currentTheme}-theme {isFullscreen ? 'fullscreen' : ''}"
+	class="meditation-page {currentTheme}-theme {isFullscreen ? 'fullscreen' : ''} {isFeedbackVisible
+		? 'feedback-open'
+		: ''}"
 	style="height: {realViewportHeight}px;"
 >
 	{#if browser}
@@ -286,14 +288,14 @@
 			</div>
 		{/if}
 	{/if}
-	<div class="navigation-controls">
-		<div class="back-icon" on:click={() => window.history.back()}>
+	<div class="navigation-controls {isFeedbackVisible ? 'blurred' : ''}">
+		<div class="back-icon" on:click={() => !isFeedbackVisible && window.history.back()}>
 			<i class="fas fa-arrow-left"></i> <span class="back-text">Back</span>
 		</div>
-		<div class="fullscreen-icon" on:click={toggleFullscreen}>
+		<div class="fullscreen-icon" on:click={() => !isFeedbackVisible && toggleFullscreen()}>
 			<i class="fas {isFullscreen ? 'fa-compress' : 'fa-expand'}"></i>
 		</div>
-		<div class="menu-icon" on:click|stopPropagation={toggleMenu}>
+		<div class="menu-icon" on:click|stopPropagation={() => !isFeedbackVisible && toggleMenu()}>
 			<i class="fas fa-ellipsis-h"></i>
 		</div>
 	</div>
@@ -370,9 +372,13 @@
 		/>
 
 		{#if showFeedbackForm && isFeedbackVisible}
-			<div class="blurred-overlay" transition:fly={{ duration: 300 }} on:click={handleOverlayClick}>
-				<div class="feedback-container">
-					<div class="feedback-section" transition:fly={{ y: 500, duration: 600 }}>
+			<div
+				class="blurred-overlay"
+				transition:fade={{ duration: 300 }}
+				on:click={handleOverlayClick}
+			>
+				<div class="feedback-container" on:click|stopPropagation>
+					<div class="feedback-section" transition:fly={{ y: 300, duration: 400 }}>
 						<FeedbackForm
 							sessionId={meditation.id}
 							profileId={userId}
@@ -656,6 +662,15 @@
 		align-items: center;
 		z-index: 2;
 		padding: 0 0.5rem;
+		transition:
+			filter 0.3s ease,
+			opacity 0.3s ease;
+	}
+
+	.navigation-controls.blurred {
+		filter: blur(3px);
+		opacity: 0.5;
+		pointer-events: none;
 	}
 
 	/* Back Icon - Hidden by Default */
@@ -726,7 +741,7 @@
 
 	/* Light theme adjustments for buttons */
 	:global(.light-theme) .show-feedback-button {
-		background: #11191d;
+		background: #000000;
 	}
 
 	/* Dropdown Menu */
@@ -782,24 +797,6 @@
 
 	.menu li:hover {
 		background-color: var(--background-cardHover);
-		transform: translateX(2px);
-	}
-
-	.menu li::before {
-		content: '';
-		position: absolute;
-		left: 0;
-		top: 0;
-		bottom: 0;
-		width: 3px;
-		background: linear-gradient(
-			to bottom,
-			rgba(var(--interactive-gradient-1), 0),
-			rgba(var(--interactive-gradient-1), 0.3),
-			rgba(var(--interactive-gradient-1), 0)
-		);
-		opacity: 0;
-		transition: opacity 0.3s ease;
 	}
 
 	/* =======================
@@ -812,8 +809,8 @@
 		right: 0;
 		bottom: 0;
 		background-color: rgba(0, 0, 0, 0.5);
-		backdrop-filter: blur(0.125rem);
-		-webkit-backdrop-filter: blur(0.125rem);
+		backdrop-filter: blur(5px);
+		-webkit-backdrop-filter: blur(5px);
 		display: flex;
 		justify-content: center;
 		align-items: flex-end;
@@ -822,25 +819,26 @@
 
 	.feedback-container {
 		width: 100%;
-		padding: 0 1.25rem 1.25rem;
+		padding: 0;
 		box-sizing: border-box;
 		position: relative;
-		height: 22rem;
+		max-height: 80vh;
 		display: flex;
 		justify-content: center;
 	}
 
 	.feedback-section {
-		position: absolute;
-		bottom: 0;
+		position: relative;
 		width: 100%;
 		max-width: 40rem;
-		height: 100%;
-		padding: 0 1rem 0.5rem;
-		background-color: var(--background-card);
-		border-radius: 0.5rem 0.5rem 0 0;
 		box-sizing: border-box;
 		margin-top: 0;
+	}
+
+	/* Apply blur to main content when feedback is open */
+	.meditation-page.feedback-open .meditation-content > *:not(.blurred-overlay) {
+		filter: blur(3px);
+		transition: filter 0.3s ease;
 	}
 
 	.show-feedback-button,
@@ -945,7 +943,8 @@
 		}
 
 		.feedback-container {
-			padding: 0 clamp(0.75rem, 2vw, 1.25rem) clamp(0.75rem, 2vw, 1.25rem);
+			padding: 0;
+			max-height: 70vh;
 		}
 	}
 
