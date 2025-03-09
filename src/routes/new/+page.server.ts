@@ -63,7 +63,22 @@ export const actions: Actions = {
 		const userLocalTime = data.get('userLocalTime') as string;
 		const length = parseInt(data.get('length') as string);
 		const parameters = JSON.parse(data.get('parameters') as string);
-		const playlist_id = data.get('playlist_id') as string;
+		const content_type = data.get('content_type') as string || 'meditation';
+
+		// Get playlist_id if it exists
+		let playlist_id: number | undefined;
+		const playlistIdStr = data.get('playlist_id') as string;
+		if (playlistIdStr) {
+			playlist_id = parseInt(playlistIdStr);
+		}
+
+		console.log('Server: Received parameters:', {
+			userLocalTime,
+			length,
+			parameters,
+			content_type,
+			playlist_id
+		});
 
 		try {
 			console.log('Server: Calling generateMeditation');
@@ -72,12 +87,13 @@ export const actions: Actions = {
 				length,
 				userLocalTime,
 				parameters,
-				playlist_id
+				playlist_id,
+				content_type
 			);
 
 			console.log('Server: Result from generateMeditation:', JSON.stringify(result, null, 2));
 
-			// Ensure we're returning a plain object
+			// Return a simplified, consistent response format
 			return {
 				type: 'success',
 				data: {

@@ -60,11 +60,17 @@
 						<a href="/session/{meditation.id}" class="meditation-info">
 							<h3 class="title-wrapper">
 								<span class="title-text">{meditation.title || 'Untitled Meditation'}</span>
-								{#if meditation.listened}
-									<span class="icon-wrapper">
+								<div class="icon-wrapper">
+									{#if meditation.listened}
 										<i class="fas fa-check-circle listened-icon"></i>
+									{/if}
+									<span
+										class="content-type-badge"
+										class:hypnosis={meditation.content_type === 'hypnosis'}
+									>
+										{meditation.content_type === 'hypnosis' ? 'Hypnosis' : 'Meditation'}
 									</span>
-								{/if}
+								</div>
 							</h3>
 							<p>
 								{meditation.lesson_playlists
@@ -412,11 +418,35 @@
 
 	.icon-wrapper {
 		flex-shrink: 0;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
 	}
 
 	.listened-icon {
 		color: var(--ui-success);
 		font-size: 0.9rem;
+	}
+
+	.content-type-icon {
+		color: var(--text-secondary);
+		font-size: 0.8rem;
+		opacity: 0.7;
+	}
+
+	.content-type-badge {
+		font-size: 0.7rem;
+		padding: 0.2rem 0.5rem;
+		border-radius: 10px;
+		background: rgba(var(--interactive-gradient-1), 0.1);
+		color: var(--text-secondary);
+		font-weight: 500;
+		text-transform: capitalize;
+	}
+
+	.content-type-badge.hypnosis {
+		background: rgba(var(--gradient-3), 0.15);
+		color: var(--text-primary);
 	}
 
 	.meditation-info p {

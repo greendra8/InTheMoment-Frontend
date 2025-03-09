@@ -270,21 +270,30 @@
 <div
 	class="meditation-page {currentTheme}-theme {isFullscreen ? 'fullscreen' : ''} {isFeedbackVisible
 		? 'feedback-open'
-		: ''}"
+		: ''} {meditation.content_type === 'hypnosis' ? 'hypnosis-session' : 'meditation-session'}"
 	style="height: {realViewportHeight}px;"
 >
 	{#if browser}
 		{#if currentTheme === 'light'}
 			<div class="bg-light-clouds" in:fade={{ duration: 400, delay: 100 }}>
 				<div class="swirl-layer"></div>
+				{#if meditation.content_type === 'hypnosis'}
+					<div class="hypnosis-layer"></div>
+				{/if}
 			</div>
 		{:else if currentTheme === 'dark'}
 			<div class="bg-dark-clouds" in:fade={{ duration: 400, delay: 100 }}>
 				<div class="swirl-layer"></div>
+				{#if meditation.content_type === 'hypnosis'}
+					<div class="hypnosis-layer"></div>
+				{/if}
 			</div>
 		{:else if currentTheme === 'cosmic'}
 			<div class="bg-cosmic" in:fade={{ duration: 400, delay: 100 }}>
 				<div class="swirl-layer"></div>
+				{#if meditation.content_type === 'hypnosis'}
+					<div class="hypnosis-layer"></div>
+				{/if}
 			</div>
 		{/if}
 	{/if}
@@ -335,13 +344,18 @@
 				<h2>
 					<span class="title-wrapper">
 						{#if meditation.listened || isCompletedThisSession}
-							<span class="listened-icon" title="You've listened to this meditation before">
+							<span class="listened-icon" title="You've listened to this session before">
 								<i class="fas fa-check-circle"></i>
 							</span>
 						{/if}
 						{meditation.title}
 					</span>
 				</h2>
+				<div class="session-type-indicator">
+					<span class="session-type-badge" class:hypnosis={meditation.content_type === 'hypnosis'}>
+						{meditation.content_type === 'hypnosis' ? 'Hypnosis' : 'Meditation'}
+					</span>
+				</div>
 				<div class="meditation-info">
 					<span class="info-item">
 						<i class="fas fa-layer-group"></i>
@@ -579,7 +593,7 @@
    ======================= */
 	header {
 		position: absolute;
-		top: 4rem;
+		top: clamp(1rem, 10vh, 4rem);
 		left: 0.25rem;
 		right: 0.25rem;
 		padding: 1rem;
@@ -948,9 +962,161 @@
 		}
 	}
 
-	@media (max-height: 600px) {
+	@media (max-height: 700px) {
 		.meditation-content {
 			justify-content: flex-start;
+		}
+
+		header {
+			top: 0rem;
+			scale: 0.9;
+		}
+
+		.title-wrapper {
+			padding-top: 0rem;
+		}
+
+		:global(.audio-player) {
+			top: calc(50% + 1rem) !important;
+		}
+	}
+
+	/* Hypnosis Session Styling */
+
+	/* Dark and cosmic theme hypnosis styling */
+	.meditation-page.hypnosis-session.dark-theme .bg-dark-clouds::before,
+	.meditation-page.hypnosis-session.cosmic-theme .bg-cosmic::before {
+		background: radial-gradient(circle at 20% 30%, rgba(147, 112, 219, 0.15) 0%, transparent 60%),
+			radial-gradient(circle at 80% 70%, rgba(138, 43, 226, 0.15) 0%, transparent 60%);
+	}
+
+	.meditation-page.hypnosis-session.dark-theme .bg-dark-clouds::after,
+	.meditation-page.hypnosis-session.cosmic-theme .bg-cosmic::after {
+		background: radial-gradient(circle at 70% 20%, rgba(123, 104, 238, 0.18) 0%, transparent 60%),
+			radial-gradient(circle at 30% 80%, rgba(106, 90, 205, 0.18) 0%, transparent 60%);
+	}
+
+	.meditation-page.hypnosis-session.dark-theme .swirl-layer,
+	.meditation-page.hypnosis-session.cosmic-theme .swirl-layer {
+		background: radial-gradient(ellipse at 40% 50%, rgba(147, 112, 219, 0.1) 0%, transparent 70%),
+			radial-gradient(ellipse at 60% 50%, rgba(138, 43, 226, 0.1) 0%, transparent 70%);
+	}
+
+	/* Shared hypnosis animation for all themes */
+	.meditation-page.hypnosis-session .swirl-layer {
+		animation: hypnosisSwirl 20s infinite linear;
+	}
+
+	@keyframes hypnosisSwirl {
+		0% {
+			transform: rotate(0deg) scale(1);
+			opacity: 0.7;
+		}
+		25% {
+			transform: rotate(120deg) scale(1.3);
+			opacity: 0.9;
+		}
+		50% {
+			transform: rotate(240deg) scale(1.1);
+			opacity: 0.8;
+		}
+		75% {
+			transform: rotate(300deg) scale(1.2);
+			opacity: 0.9;
+		}
+		100% {
+			transform: rotate(360deg) scale(1);
+			opacity: 0.7;
+		}
+	}
+
+	/* Session Type Badge */
+	.session-type-indicator {
+		display: flex;
+		justify-content: center;
+		margin-top: 0.5rem;
+		margin-bottom: 0.75rem;
+	}
+
+	.session-type-badge {
+		font-size: 0.8rem;
+		padding: 0.3rem 0.8rem;
+		border-radius: 12px;
+		background: rgba(var(--interactive-gradient-1), 0.15);
+		color: var(--text-secondary);
+		font-weight: 500;
+		text-transform: capitalize;
+		letter-spacing: 0.5px;
+	}
+
+	/* Light theme badges */
+	.light-theme .session-type-badge {
+		background: rgba(79, 172, 254, 0.15);
+		color: #1a1a1a;
+	}
+
+	.light-theme .session-type-badge.hypnosis {
+		background: rgba(0, 242, 254, 0.15);
+		color: #1a1a1a;
+	}
+
+	/* Dark theme badges */
+	.dark-theme .session-type-badge {
+		background: rgba(var(--interactive-gradient-1), 0.15);
+		color: var(--text-secondary);
+	}
+
+	.dark-theme .session-type-badge.hypnosis {
+		background: rgba(147, 112, 219, 0.2);
+		color: var(--text-primary);
+	}
+
+	/* Cosmic theme badges */
+	.cosmic-theme .session-type-badge {
+		background: rgba(var(--interactive-gradient-1), 0.15);
+		color: var(--text-secondary);
+	}
+
+	.cosmic-theme .session-type-badge.hypnosis {
+		background: rgba(138, 43, 226, 0.2);
+		color: var(--text-primary);
+	}
+
+	/* Additional hypnosis animation layer */
+	.hypnosis-layer {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		filter: blur(40px);
+		animation: hypnosisWave 20s infinite alternate ease-in-out;
+		z-index: 0;
+	}
+
+	/* Dark and cosmic theme hypnosis layer */
+	.dark-theme .hypnosis-layer,
+	.cosmic-theme .hypnosis-layer {
+		background: radial-gradient(circle at 30% 40%, rgba(147, 112, 219, 0.08) 0%, transparent 50%),
+			radial-gradient(circle at 70% 60%, rgba(138, 43, 226, 0.08) 0%, transparent 50%);
+	}
+
+	@keyframes hypnosisWave {
+		0% {
+			transform: translateX(-5%) translateY(-5%) scale(1.1);
+			opacity: 0.5;
+		}
+		33% {
+			transform: translateX(3%) translateY(2%) scale(1.2);
+			opacity: 0.7;
+		}
+		66% {
+			transform: translateX(-2%) translateY(4%) scale(1.3);
+			opacity: 0.6;
+		}
+		100% {
+			transform: translateX(5%) translateY(-3%) scale(1.1);
+			opacity: 0.5;
 		}
 	}
 </style>

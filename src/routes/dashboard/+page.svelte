@@ -201,7 +201,15 @@
 					<i class="fas fa-play"></i>
 				</div>
 				<div class="featured-info">
-					<h3>{meditations[0].title || 'Untitled Meditation'}</h3>
+					<h3>
+						{meditations[0].title || 'Untitled Meditation'}
+						<span
+							class="content-type-badge"
+							class:hypnosis={meditations[0].content_type === 'hypnosis'}
+						>
+							{meditations[0].content_type === 'hypnosis' ? 'Hypnosis' : 'Meditation'}
+						</span>
+					</h3>
 					<div class="featured-meta">
 						<span><i class="far fa-clock"></i> {meditations[0].length || 'N/A'} min</span>
 						<span class="dot-separator">•</span>
@@ -267,7 +275,15 @@
 							<i class="fas fa-play"></i>
 						</div>
 						<div class="session-info">
-							<h3>{meditation.title || 'Untitled Meditation'}</h3>
+							<h3>
+								{meditation.title || 'Untitled Meditation'}
+								<span
+									class="content-type-badge"
+									class:hypnosis={meditation.content_type === 'hypnosis'}
+								>
+									{meditation.content_type === 'hypnosis' ? 'Hypnosis' : 'Meditation'}
+								</span>
+							</h3>
 							<div class="session-meta">
 								<span><i class="far fa-clock"></i> {meditation.length || 'N/A'} min</span>
 								<span class="dot-separator">•</span>
@@ -624,6 +640,31 @@
 		font-weight: 600;
 		margin-bottom: 0.3rem;
 		color: var(--text-primary);
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.content-type-icon {
+		color: var(--text-secondary);
+		font-size: 0.8rem;
+		opacity: 0.7;
+	}
+
+	.content-type-badge {
+		font-size: 0.7rem;
+		padding: 0.2rem 0.5rem;
+		border-radius: 10px;
+		background: rgba(var(--interactive-gradient-1), 0.1);
+		color: var(--text-secondary);
+		font-weight: 500;
+		text-transform: capitalize;
+		margin-left: 0.5rem;
+	}
+
+	.content-type-badge.hypnosis {
+		background: rgba(var(--gradient-3), 0.15);
+		color: var(--text-primary);
 	}
 
 	.featured-meta {
@@ -780,6 +821,15 @@
 		overflow: hidden;
 		position: relative;
 		z-index: 1;
+	}
+
+	.session-info h3 {
+		font-size: 1rem;
+		font-weight: 500;
+		margin: 0 0 0.3rem 0;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
 	}
 
 	.session-meta {
