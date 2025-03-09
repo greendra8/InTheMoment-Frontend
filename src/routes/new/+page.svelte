@@ -89,11 +89,11 @@
 			case 'Fetching':
 				return 'Fetching meditation details...';
 			case 'Scripting':
-				return 'Crafting your personalized meditation script...';
+				return 'Writing your meditation script...';
 			case 'Reviewing':
 				return 'Reviewing your meditation script...';
 			case 'Audio Generation':
-				return 'Generating your meditation audio...';
+				return 'Recording your meditation...';
 			case 'Processing':
 				return 'Processing your meditation...';
 			case 'Uploading':
