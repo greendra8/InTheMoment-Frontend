@@ -57,7 +57,7 @@
 			// Validate theme value to avoid type errors
 			if (profileTheme === 'light' || profileTheme === 'dark' || profileTheme === 'cosmic') {
 				// Update theme store with DB value (false = don't save back to DB)
-				setTheme(profileTheme, false);
+				setTheme(profileTheme);
 				// Clear serverTheme to let the reactive store take over
 				serverTheme = null;
 			}
@@ -73,7 +73,7 @@
 		// Force cosmic theme on landing/auth pages
 		if (isLandingOrAuthRoute && $theme !== 'cosmic') {
 			// Use setTheme with saveToDb=false since this is a system change
-			setTheme('cosmic', false);
+			setTheme('cosmic');
 		}
 
 		// Set up auth listener
