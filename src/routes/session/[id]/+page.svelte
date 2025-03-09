@@ -37,6 +37,9 @@
 	// Background image loading state
 	let bgImageLoaded = false;
 
+	// Fullscreen mode state
+	let isFullscreen = false;
+
 	themeStore.subscribe((value) => {
 		currentTheme = value;
 	});
@@ -186,6 +189,10 @@
 		isMenuOpen = !isMenuOpen;
 	}
 
+	function toggleFullscreen() {
+		isFullscreen = !isFullscreen;
+	}
+
 	function handleOutsideClick(event: MouseEvent) {
 		if (
 			isMenuOpen &&
@@ -260,15 +267,15 @@
 <!-- Preload the background image -->
 <link rel="preload" as="image" href={bg} />
 
-<div class="meditation-page {currentTheme}-theme" style="height: {realViewportHeight}px;">
+<div
+	class="meditation-page {currentTheme}-theme {isFullscreen ? 'fullscreen' : ''}"
+	style="height: {realViewportHeight}px;"
+>
 	{#if browser}
 		{#if currentTheme === 'light'}
-			<div
-				class="bg-image"
-				class:loaded={bgImageLoaded}
-				style="background-image: url({bg});"
-				in:fade={{ duration: 400, delay: 100 }}
-			></div>
+			<div class="bg-light-clouds" in:fade={{ duration: 400, delay: 100 }}>
+				<div class="swirl-layer"></div>
+			</div>
 		{:else if currentTheme === 'dark'}
 			<div class="bg-dark-clouds" in:fade={{ duration: 400, delay: 100 }}>
 				<div class="swirl-layer"></div>
@@ -282,6 +289,9 @@
 	<div class="navigation-controls">
 		<div class="back-icon" on:click={() => window.history.back()}>
 			<i class="fas fa-arrow-left"></i> <span class="back-text">Back</span>
+		</div>
+		<div class="fullscreen-icon" on:click={toggleFullscreen}>
+			<i class="fas {isFullscreen ? 'fa-compress' : 'fa-expand'}"></i>
 		</div>
 		<div class="menu-icon" on:click|stopPropagation={toggleMenu}>
 			<i class="fas fa-ellipsis-h"></i>
@@ -402,21 +412,12 @@
 		height: var(--real-viewport-height, 100vh);
 	}
 
-	.bg-image {
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background-image: var(--background-image);
-		background-size: cover;
-		background-position: center;
-		opacity: 0; /* Start with opacity 0 */
-		z-index: 0;
-		transition: opacity 0.4s ease-in-out;
+	.meditation-page.fullscreen {
+		position: static;
 	}
 
-	/* Shared swirling clouds background for dark and cosmic themes */
+	/* Shared swirling clouds background for all themes */
+	.bg-light-clouds,
 	.bg-dark-clouds,
 	.bg-cosmic {
 		position: absolute;
@@ -428,7 +429,11 @@
 		overflow: hidden;
 	}
 
-	/* Base background gradient */
+	/* Base background gradient for each theme */
+	.bg-light-clouds {
+		background: linear-gradient(to bottom, #e4eaf7, #25314d);
+	}
+
 	.bg-dark-clouds {
 		background: linear-gradient(to bottom, var(--background-main), rgba(20, 20, 40, 1));
 	}
@@ -438,6 +443,7 @@
 	}
 
 	/* First cloud layer */
+	.bg-light-clouds::before,
 	.bg-dark-clouds::before,
 	.bg-cosmic::before {
 		content: '';
@@ -452,6 +458,11 @@
 	}
 
 	/* Theme-specific colors for first layer */
+	.bg-light-clouds::before {
+		background: radial-gradient(circle at 20% 30%, rgba(79, 172, 254, 0.12) 0%, transparent 60%),
+			radial-gradient(circle at 80% 70%, rgba(0, 242, 254, 0.12) 0%, transparent 60%);
+	}
+
 	.bg-dark-clouds::before {
 		background: radial-gradient(circle at 20% 30%, rgba(79, 172, 254, 0.12) 0%, transparent 60%),
 			radial-gradient(circle at 80% 70%, rgba(0, 242, 254, 0.12) 0%, transparent 60%);
@@ -463,6 +474,7 @@
 	}
 
 	/* Second cloud layer */
+	.bg-light-clouds::after,
 	.bg-dark-clouds::after,
 	.bg-cosmic::after {
 		content: '';
@@ -477,6 +489,11 @@
 	}
 
 	/* Theme-specific colors for second layer */
+	.bg-light-clouds::after {
+		background: radial-gradient(circle at 70% 20%, rgba(102, 126, 234, 0.15) 0%, transparent 60%),
+			radial-gradient(circle at 30% 80%, rgba(118, 75, 162, 0.15) 0%, transparent 60%);
+	}
+
 	.bg-dark-clouds::after {
 		background: radial-gradient(circle at 70% 20%, rgba(102, 126, 234, 0.15) 0%, transparent 60%),
 			radial-gradient(circle at 30% 80%, rgba(118, 75, 162, 0.15) 0%, transparent 60%);
@@ -499,14 +516,14 @@
 	}
 
 	/* Theme-specific colors for swirl layer */
-	.bg-dark-clouds .swirl-layer {
+	.bg-light-clouds .swirl-layer {
 		background: radial-gradient(ellipse at 40% 50%, rgba(79, 172, 254, 0.08) 0%, transparent 70%),
 			radial-gradient(ellipse at 60% 50%, rgba(118, 75, 162, 0.08) 0%, transparent 70%);
 	}
 
-	.bg-cosmic .swirl-layer {
-		background: radial-gradient(ellipse at 40% 50%, rgba(106, 90, 205, 0.1) 0%, transparent 70%),
-			radial-gradient(ellipse at 60% 50%, rgba(123, 104, 238, 0.1) 0%, transparent 70%);
+	.bg-dark-clouds .swirl-layer {
+		background: radial-gradient(ellipse at 40% 50%, rgba(79, 172, 254, 0.08) 0%, transparent 70%),
+			radial-gradient(ellipse at 60% 50%, rgba(118, 75, 162, 0.08) 0%, transparent 70%);
 	}
 
 	@keyframes cloudMove {
@@ -666,6 +683,27 @@
 		font-weight: 500;
 	}
 
+	/* Fullscreen Icon - Shown only on Desktop */
+	.fullscreen-icon {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		cursor: pointer;
+		transition: all 0.3s ease;
+		padding: 0.5rem;
+		color: var(--text-primary);
+		margin-left: auto; /* Push to right */
+		margin-right: 0.5rem; /* Add space between fullscreen and menu icons */
+	}
+
+	.fullscreen-icon:hover {
+		transform: scale(1.1);
+	}
+
+	.fullscreen-icon i {
+		font-size: clamp(1.3rem, 3.5vw, 1.5rem);
+	}
+
 	/* Menu Icon */
 	.menu-icon {
 		display: flex;
@@ -674,7 +712,7 @@
 		cursor: pointer;
 		transition: all 0.3s ease;
 		padding: 0.5rem;
-		margin-left: auto; /* Push to right when back button is hidden */
+		/* Remove margin-left: auto; as it's now on the fullscreen icon */
 	}
 
 	.menu-icon:hover {
@@ -876,9 +914,10 @@
 	/* =======================
    Responsive Design
    ======================= */
-	@media (max-width: 600px) {
+	@media (max-width: 1024px) {
 		.meditation-page {
 			margin: 0 -1rem;
+			position: static;
 		}
 
 		.meditation-content {
@@ -893,6 +932,11 @@
 		/* Show Back Icon on Mobile */
 		.back-icon {
 			display: flex;
+		}
+
+		/* Hide Fullscreen Icon on Mobile */
+		.fullscreen-icon {
+			display: none;
 		}
 
 		.feedback-controls-wrapper {
