@@ -145,8 +145,8 @@
 		});
 	});
 
-	$: isHomePage = $page.url.pathname === '/';
-	$: isSessionPage = $page.url.pathname.includes('/session/');
+	$: hideNav = $page.url.pathname === '/' || $page.url.pathname.includes('/profile-setup');
+	$: hideNavMobile = $page.url.pathname.includes('/session/');
 	$: navItemCount = navItems ? navItems.length : 5;
 
 	// Determine if we're on mobile or desktop for different nav rendering
@@ -218,7 +218,7 @@
 </script>
 
 <div class={themeValue !== 'cosmic' ? themeValue + '-theme' : ''}>
-	{#if !$appContext.isNativeApp && !isHomePage}
+	{#if !$appContext.isNativeApp && !hideNav}
 		<!-- Desktop Navigation -->
 		<nav class="desktop-nav" class:hidden={isMobile}>
 			{#each navItems as item}
@@ -237,7 +237,7 @@
 		</nav>
 	{/if}
 
-	{#if !$appContext.isNativeApp && !isHomePage && !isSessionPage}
+	{#if !$appContext.isNativeApp && !hideNav && !hideNavMobile}
 		<!-- Mobile Navigation -->
 		<nav
 			class="mobile-nav"
@@ -262,9 +262,9 @@
 		</nav>
 	{/if}
 
-	<main class:full-width={isHomePage} class:native-app={$appContext.isNativeApp}>
-		<div class="global-container" class:full-width={isHomePage}>
-			<div class="content-container" class:homepage-content={isHomePage}>
+	<main class:full-width={hideNav} class:native-app={$appContext.isNativeApp}>
+		<div class="global-container" class:full-width={hideNav}>
+			<div class="content-container" class:homepage-content={hideNav}>
 				<slot />
 			</div>
 		</div>
