@@ -12,11 +12,64 @@
 	let profile = data.profile;
 
 	const voiceOptions = [
-		{ id: 0, label: 'Female 1' },
-		{ id: 1, label: 'Female 2' },
-		{ id: 2, label: 'Male 1' },
-		{ id: 3, label: 'Male 2' }
+		{ id: 0, label: 'Female 1', audioSrc: '/audio/female1-sample.mp3' },
+		{ id: 1, label: 'Female 2', audioSrc: '/audio/female2-sample.mp3' },
+		{ id: 2, label: 'Male 1', audioSrc: '/audio/male1-sample.mp3' },
+		{ id: 3, label: 'Male 2', audioSrc: '/audio/male2-sample.mp3' }
 	];
+
+	// Audio player references
+	let audioPlayers: { [key: number]: HTMLAudioElement } = {};
+	let currentlyPlaying: number | null = null;
+
+	function playVoiceSample(voiceId: number) {
+		// Stop any currently playing audio
+		if (currentlyPlaying !== null && currentlyPlaying !== voiceId) {
+			audioPlayers[currentlyPlaying].pause();
+			audioPlayers[currentlyPlaying].currentTime = 0;
+		}
+
+		// Play the selected voice sample
+		if (audioPlayers[voiceId]) {
+			if (currentlyPlaying === voiceId && !audioPlayers[voiceId].paused) {
+				// If clicking the same voice that's already playing, pause it
+				audioPlayers[voiceId].pause();
+				audioPlayers[voiceId].currentTime = 0;
+				currentlyPlaying = null;
+			} else {
+				// Play the selected voice
+				audioPlayers[voiceId].play();
+				currentlyPlaying = voiceId;
+			}
+		}
+	}
+
+	// Handle audio ended event
+	function handleAudioEnded(voiceId: number) {
+		if (currentlyPlaying === voiceId) {
+			currentlyPlaying = null;
+		}
+	}
+
+	// Load audio elements after the component mounts
+	import { onMount } from 'svelte';
+
+	onMount(() => {
+		// Initialize audio players
+		voiceOptions.forEach((voice) => {
+			const audio = new Audio(voice.audioSrc);
+			audio.addEventListener('ended', () => handleAudioEnded(voice.id));
+			audioPlayers[voice.id] = audio;
+		});
+
+		return () => {
+			// Cleanup audio players on component unmount
+			Object.values(audioPlayers).forEach((player) => {
+				player.pause();
+				player.src = '';
+			});
+		};
+	});
 
 	async function handleLogout() {
 		const { error } = await supabase.auth.signOut({ scope: 'local' });
@@ -119,18 +172,45 @@
 				</select>
 			</div>
 			<div class="form-group">
-				<label for="voice_id">Preferred Voice</label>
-				<select id="voice_id" bind:value={voice_id} required>
-					{#each voiceOptions as option}
-						<option value={option.id}>{option.label}</option>
-					{/each}
-				</select>
+				<label for="voice_id">Voice</label>
+				<div class="voice-selection-container">
+					<div class="voice-preview-options">
+						{#each voiceOptions as option}
+							<div
+								class="voice-option-card {voice_id === option.id ? 'selected' : ''}"
+								on:click={() => {
+									voice_id = option.id;
+								}}
+							>
+								<div class="voice-content">
+									<div class="voice-info">
+										<span class="voice-label">{option.label}</span>
+										{#if voice_id === option.id}
+											<i class="fas fa-check selection-indicator"></i>
+										{/if}
+									</div>
+									<button
+										type="button"
+										class="voice-play-button {currentlyPlaying === option.id ? 'playing' : ''}"
+										on:click={(e) => {
+											e.stopPropagation();
+											playVoiceSample(option.id);
+										}}
+										title="Preview {option.label}"
+									>
+										<i class="fas {currentlyPlaying === option.id ? 'fa-stop' : 'fa-play'}"></i>
+									</button>
+								</div>
+							</div>
+						{/each}
+					</div>
+				</div>
 			</div>
 			<button type="submit" class="update-button" disabled={isSubmitting}>
 				{#if isSubmitting}
-					<i class="fas fa-spinner fa-spin"></i> Updating...
+					<i class="fas fa-spinner fa-spin"></i> Saving...
 				{:else}
-					Update Profile
+					Save Changes
 				{/if}
 			</button>
 		</form>
@@ -405,6 +485,86 @@
 		font-size: 0.9rem;
 	}
 
+	.voice-selection-container {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.voice-preview-options {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 0.5rem;
+	}
+
+	.voice-option-card {
+		position: relative;
+		border-radius: 10px;
+		background-color: var(--background-cardHover);
+		border: 1px solid var(--ui-border);
+		transition:
+			background 0.2s ease,
+			color 0.2s ease;
+		overflow: hidden;
+		cursor: pointer;
+	}
+
+	.voice-option-card.selected {
+		background: var(--btn-bg);
+	}
+
+	.voice-content {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 0.5rem 0.75rem;
+	}
+
+	.voice-info {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.voice-label {
+		font-size: 0.85rem;
+		font-weight: 500;
+		color: var(--text-secondary);
+		transition: color 0.2s ease;
+	}
+
+	.selected .voice-label {
+		color: var(--btn-text);
+	}
+
+	.selection-indicator {
+		color: var(--btn-text);
+		font-size: 0.75rem;
+	}
+
+	.voice-play-button {
+		width: 2rem;
+		height: 2rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: var(--play-btn-bg);
+		color: var(--play-btn-text);
+		border: none;
+		border-radius: 50%;
+		cursor: pointer;
+		transition: background 0.2s ease;
+		flex-shrink: 0;
+	}
+
+	.voice-play-button:hover {
+		background: var(--play-btn-bg-hover);
+	}
+
+	.voice-play-button.playing {
+		background: var(--play-btn-bg-hover);
+	}
+
 	@media (max-width: 480px) {
 		.stats-strip {
 			padding: 0.75rem 1rem;
@@ -430,6 +590,10 @@
 		input,
 		select {
 			font-size: 16px;
+		}
+
+		.voice-preview-options {
+			grid-template-columns: 1fr;
 		}
 	}
 </style>
