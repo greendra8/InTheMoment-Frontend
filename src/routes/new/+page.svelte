@@ -26,6 +26,10 @@
 	$: buttonDisabled =
 		$meditationGeneration.isGenerating || (activeTab === 'lesson' && !selectedPlaylist);
 
+	// Button text and icon based on generation state
+	$: buttonText = $meditationGeneration.isGenerating ? 'Generating...' : 'Generate Meditation';
+	$: buttonIcon = $meditationGeneration.isGenerating ? 'fa-spinner fa-spin' : 'fa-paper-plane';
+
 	let duration = 15;
 
 	let postureOptions = [
@@ -367,8 +371,8 @@
 			class="generate-btn"
 			disabled={buttonDisabled || (activeTab === 'lesson' && !selectedPlaylist)}
 		>
-			<i class="fas fa-paper-plane"></i>
-			<span>Generate Meditation</span>
+			<i class="fas {buttonIcon}"></i>
+			<span>{buttonText}</span>
 		</button>
 	</form>
 
@@ -801,6 +805,7 @@
 		box-shadow: none;
 		border-color: transparent;
 		opacity: 0.7;
+		color: var(--text-secondary);
 	}
 
 	.generate-btn:disabled::after {
