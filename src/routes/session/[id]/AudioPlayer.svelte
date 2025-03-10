@@ -59,7 +59,6 @@
 	let displayTime = 0; // Separate time display for iOS UI
 	let savedProgress = 0; // Stored position for delayed seeking
 	let hasStartedPlayback = false; // Track if playback has started at least once
-	let useSimpleAudio = false; // Flag to use simple audio without visualization on iOS
 
 	function updatePlayingState() {
 		isPlaying = !audioElement.paused;
@@ -98,7 +97,7 @@
 	export function togglePlayPause() {
 		if (audioElement.paused) {
 			// First ensure the audio context is resumed before attempting to play
-			if (!useSimpleAudio && audioContext && audioContext.state === 'suspended') {
+			if (!isIOS && audioContext && audioContext.state === 'suspended') {
 				audioContext
 					.resume()
 					.then(() => {
@@ -114,7 +113,7 @@
 			audioElement.pause();
 			isPlaying = false;
 			updateProgress();
-			if (!useSimpleAudio && visualizer) {
+			if (!isIOS && visualizer) {
 				visualizer.setStandbyMode(true);
 			}
 		}
@@ -135,7 +134,7 @@
 			await audioElement.play();
 			isPlaying = true;
 			lastUpdateTime = Date.now();
-			if (!useSimpleAudio && visualizer) {
+			if (!isIOS && visualizer) {
 				visualizer.setStandbyMode(false);
 			}
 
@@ -160,7 +159,7 @@
 
 	function startPlayback() {
 		// Use the same pattern as togglePlayPause for consistency
-		if (!useSimpleAudio && audioContext && audioContext.state === 'suspended') {
+		if (!isIOS && audioContext && audioContext.state === 'suspended') {
 			audioContext
 				.resume()
 				.then(() => {
@@ -362,7 +361,7 @@
 	}
 
 	function handleAudioEnded() {
-		if (!useSimpleAudio && visualizer) {
+		if (!isIOS && visualizer) {
 			visualizer.startCelebration();
 		}
 	}
@@ -389,24 +388,10 @@
 	function handleVisibilityChange() {
 		if (document.visibilityState === 'hidden') {
 			// Page is hidden (app in background)
-			if (isIOS && !useSimpleAudio) {
-				// Disconnect the audio context to allow background playback on iOS
-				if (audioContext) {
-					try {
-						// We don't need to actually disconnect anything here
-						// Just let the audio element continue playing
-						console.log('App went to background on iOS');
-					} catch (error) {
-						console.error('Error handling background transition:', error);
-					}
-				}
-			}
+			console.log('App went to background');
 		} else {
 			// Page is visible again (app in foreground)
-			if (isIOS && !useSimpleAudio && audioContext && isPlaying) {
-				// Reconnect visualization if needed
-				console.log('App returned to foreground on iOS');
-			}
+			console.log('App returned to foreground');
 		}
 	}
 
@@ -419,9 +404,6 @@
 				/iphone|ipad|ipod/.test(userAgent) ||
 				(navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
-			// For iOS, use simple audio without visualization
-			useSimpleAudio = isIOS;
-
 			// Add visibility change listener for background/foreground transitions
 			document.addEventListener('visibilitychange', handleVisibilityChange);
 		}
@@ -429,19 +411,14 @@
 		if (audioElement && canvasElement) {
 			setupCanvas();
 
-			if (!useSimpleAudio) {
-				// Only set up AudioContext and visualization for non-iOS devices
+			if (!isIOS) {
+				// Only set up AudioContext for non-iOS devices
 				audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
 				const analyser = audioContext.createAnalyser();
 				analyser.fftSize = 1024;
 				const source = audioContext.createMediaElementSource(audioElement);
 				source.connect(analyser);
-
-				// For iOS, don't connect the analyser to the destination
-				// This allows the audio element to play directly
-				if (!isIOS) {
-					analyser.connect(audioContext.destination);
-				}
+				analyser.connect(audioContext.destination);
 
 				visualizer = setupAudioVisualizer(
 					audioElement,
@@ -451,6 +428,27 @@
 					canvasHeight
 				);
 				if (visualizer) {
+					visualizer.setStandbyMode(true);
+				}
+			} else {
+				// For iOS, create a dummy analyzer for visualization only
+				// This ensures we don't interfere with the audio element's playback
+				audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+				const analyser = audioContext.createAnalyser();
+				analyser.fftSize = 1024;
+
+				// Don't connect the audio element to the AudioContext
+				// This is the key change that allows background playback on iOS
+
+				visualizer = setupAudioVisualizer(
+					audioElement,
+					canvasElement,
+					analyser,
+					canvasWidth,
+					canvasHeight
+				);
+				if (visualizer) {
+					// Always keep the visualizer in standby mode on iOS
 					visualizer.setStandbyMode(true);
 				}
 			}
@@ -509,16 +507,7 @@
 			on:click={togglePlayPause}
 			style="opacity: {canvasOpacity}; filter: blur({canvasBlur}px); transition: opacity 0.2s ease-in, filter 0.1s ease-in;"
 		>
-			<canvas
-				bind:this={canvasElement}
-				style="width: 300px; height: 300px;"
-				class:hidden={useSimpleAudio}
-			></canvas>
-			{#if useSimpleAudio}
-				<div class="simple-player-circle">
-					<div class="pulse-animation"></div>
-				</div>
-			{/if}
+			<canvas bind:this={canvasElement} style="width: 300px; height: 300px;"></canvas>
 			<button
 				class="play-button"
 				on:click|stopPropagation={togglePlayPause}
@@ -639,56 +628,6 @@
 		display: block;
 		border-radius: 50%;
 		transition: filter 0.3s ease;
-	}
-
-	canvas.hidden {
-		display: none;
-	}
-
-	/* Simple player circle for iOS */
-	.simple-player-circle {
-		width: 300px;
-		height: 300px;
-		border-radius: 50%;
-		background: radial-gradient(
-			circle at 40% 40%,
-			rgba(255, 255, 255, 0.9) 0%,
-			rgba(150, 180, 255, 0.5) 70%,
-			rgba(100, 150, 255, 0.3) 100%
-		);
-		position: relative;
-		overflow: hidden;
-	}
-
-	.pulse-animation {
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		border-radius: 50%;
-		background: radial-gradient(
-			circle at center,
-			rgba(255, 255, 255, 0.8) 0%,
-			rgba(150, 180, 255, 0) 70%
-		);
-		opacity: 0.7;
-		animation: pulse 3s infinite ease-in-out;
-	}
-
-	@keyframes pulse {
-		0% {
-			transform: scale(0.95);
-			opacity: 0.7;
-		}
-		50% {
-			transform: scale(1.05);
-			opacity: 0.9;
-		}
-		100% {
-			transform: scale(0.95);
-			opacity: 0.7;
-		}
 	}
 
 	:global(.dark-theme) canvas,
