@@ -8,8 +8,7 @@
 		getAudioProgress,
 		clearAudioProgress,
 		cleanupExpiredProgress,
-		forceSaveAudioProgress,
-		setScrubbing
+		forceSaveAudioProgress
 	} from '$lib/audioProgress';
 
 	export let audioUrl: string;
@@ -43,9 +42,6 @@
 	let canvasOpacity = 0;
 	let canvasBlur = 3; // Initial blur amount in pixels
 
-	let isAudioLoaded = false;
-	let pendingSeekTime: number | null = null;
-
 	function updatePlayingState() {
 		isPlaying = !audioElement.paused;
 	}
@@ -63,20 +59,6 @@
 				canvasContext.scale(dpr, dpr);
 			}
 		}
-	}
-
-	// Handle audio loaded event
-	function handleAudioLoaded() {
-		isAudioLoaded = true;
-
-		// Apply any pending seek operation now that audio is loaded
-		if (pendingSeekTime !== null && audioElement) {
-			audioElement.currentTime = pendingSeekTime;
-			currentTime = pendingSeekTime;
-			pendingSeekTime = null;
-		}
-
-		updateProgress();
 	}
 
 	export function togglePlayPause() {
@@ -105,13 +87,6 @@
 	// Separate function to handle audio playback after context is resumed
 	async function playAudio() {
 		try {
-			// On iOS, we need to ensure the currentTime is set correctly before playing
-			if (pendingSeekTime !== null && isAudioLoaded) {
-				audioElement.currentTime = pendingSeekTime;
-				currentTime = pendingSeekTime;
-				pendingSeekTime = null;
-			}
-
 			await audioElement.play();
 			isPlaying = true;
 			lastUpdateTime = Date.now();
@@ -145,14 +120,10 @@
 		}
 		lastUpdateTime = now;
 
-		// Only update currentTime from audioElement if we're not actively seeking
-		// This prevents the UI from jumping during scrubbing
-		if (!isSeekingProgress) {
-			currentTime = audioElement.currentTime;
-		}
+		currentTime = audioElement.currentTime;
 
 		// Save progress to localStorage (debounced)
-		if (browser && !isSeekingProgress) {
+		if (browser) {
 			saveAudioProgress(meditationId, currentTime, duration);
 		}
 
@@ -180,26 +151,28 @@
 	}
 
 	function startSeek(event: MouseEvent | TouchEvent) {
-		event.preventDefault(); // Prevent default to avoid iOS issues
 		isSeekingProgress = true;
-		setScrubbing(true); // Set scrubbing flag to true
 		seek(event);
+
+		// Prevent default behavior on touch devices to avoid scrolling
+		if (event instanceof TouchEvent) {
+			event.preventDefault();
+		}
 	}
 
 	function seeking(event: MouseEvent | TouchEvent) {
 		if (isSeekingProgress) {
-			event.preventDefault(); // Prevent default to avoid iOS issues
 			seek(event);
+
+			// Prevent default behavior on touch devices
+			if (event instanceof TouchEvent) {
+				event.preventDefault();
+			}
 		}
 	}
 
 	function endSeek() {
 		isSeekingProgress = false;
-		setScrubbing(false); // Set scrubbing flag to false
-		// Force update audio element time to ensure sync
-		if (audioElement) {
-			updateProgress();
-		}
 	}
 
 	function seek(event: MouseEvent | TouchEvent) {
@@ -214,41 +187,15 @@
 			clientX = event.touches[0].clientX;
 		}
 
+		// Calculate position as percentage of width
 		const clickPosition = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-		const newTime = clickPosition * audioElement.duration;
 
-		// Update UI immediately for responsive feel
-		currentTime = newTime;
-
-		// On iOS, we need special handling
-		if (isIOS()) {
-			// For iOS, we need to pause and play to ensure the seek works correctly
-			const wasPlaying = !audioElement.paused;
-
-			// Set the time - this might not take effect immediately on iOS
-			audioElement.currentTime = newTime;
-
-			// If we were playing, we need to restart playback
-			if (wasPlaying) {
-				// Use a small timeout to ensure the time change is processed
-				setTimeout(() => {
-					// Double-check that the time was set correctly
-					if (Math.abs(audioElement.currentTime - newTime) > 1) {
-						audioElement.currentTime = newTime;
-					}
-
-					// Resume playback
-					audioElement.play().catch((err) => {
-						console.error('Error resuming playback after seek:', err);
-					});
-				}, 50);
-			}
-		} else {
-			// For non-iOS, we can simply set the time
-			audioElement.currentTime = newTime;
+		// Update audio time
+		if (audioElement && !isNaN(audioElement.duration)) {
+			audioElement.currentTime = clickPosition * audioElement.duration;
+			// Force update progress immediately for better visual feedback
+			currentTime = audioElement.currentTime;
 		}
-
-		updateProgress();
 	}
 
 	function setVolume(event: Event) {
@@ -344,24 +291,6 @@
 		requestAnimationFrame(updateCanvasStyle);
 	}
 
-	// Function to detect iOS
-	function isIOS() {
-		if (!browser) return false;
-		return (
-			[
-				'iPad Simulator',
-				'iPhone Simulator',
-				'iPod Simulator',
-				'iPad',
-				'iPhone',
-				'iPod',
-				'MacIntel' // iPad on iOS 13 detection
-			].includes(navigator.platform) ||
-			// iPad on iOS 13 detection alternative check
-			(navigator.userAgent.includes('Mac') && 'ontouchend' in document)
-		);
-	}
-
 	onMount(() => {
 		if (audioElement && canvasElement) {
 			setupCanvas();
@@ -387,28 +316,7 @@
 				cleanupExpiredProgress(); // Clean up any expired progress
 				const savedProgress = getAudioProgress(meditationId);
 				if (savedProgress !== null) {
-					// Always update the UI immediately regardless of platform
-					currentTime = savedProgress;
-
-					// On iOS, we need to wait until the audio is loaded before setting currentTime
-					if (isIOS()) {
-						pendingSeekTime = savedProgress;
-
-						// For iOS, we need to add an additional event listener to ensure the time is set
-						const iosTimeSetHandler = () => {
-							if (audioElement && pendingSeekTime !== null) {
-								audioElement.currentTime = pendingSeekTime;
-							}
-						};
-
-						// Add multiple event listeners to catch the right moment
-						audioElement.addEventListener('canplay', iosTimeSetHandler, { once: true });
-						audioElement.addEventListener('canplaythrough', iosTimeSetHandler, { once: true });
-						audioElement.addEventListener('loadeddata', iosTimeSetHandler, { once: true });
-					} else {
-						// For non-iOS devices, we can set the time immediately
-						audioElement.currentTime = savedProgress;
-					}
+					audioElement.currentTime = savedProgress;
 				}
 			}
 		} else {
@@ -465,7 +373,6 @@
 			crossorigin="anonymous"
 			on:timeupdate={updateProgress}
 			on:loadedmetadata={updateProgress}
-			on:canplaythrough={handleAudioLoaded}
 			on:play={updatePlayingState}
 			on:pause={handlePause}
 			on:ended={handleAudioEnded}
@@ -515,8 +422,6 @@
 						step="0.01"
 						bind:value={volume}
 						on:input={setVolume}
-						on:touchstart|preventDefault={() => {}}
-						on:touchmove|preventDefault={() => {}}
 						class="volume-slider"
 					/>
 				</div>
@@ -793,15 +698,6 @@
 	@media (max-height: 600px) {
 		.audio-player {
 			transform: translate(-50%, -50%) scale(0.8);
-		}
-	}
-
-	/* iOS-specific fixes - only keeping the essential touch handling properties */
-	@supports (-webkit-touch-callout: none) {
-		.progress-container {
-			touch-action: none; /* Disable browser handling of gestures */
-			-webkit-user-select: none; /* Prevent text selection during drag */
-			user-select: none;
 		}
 	}
 </style>
