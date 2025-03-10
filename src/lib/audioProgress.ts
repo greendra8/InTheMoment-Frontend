@@ -12,11 +12,19 @@ interface AudioProgress {
 
 // Keep track of last save time for each meditation
 const lastSaveTime: { [key: string]: number } = {};
+// Flag to temporarily disable saving during scrubbing
+let isScrubbing = false;
+
+export function setScrubbing(scrubbing: boolean): void {
+    isScrubbing = scrubbing;
+}
 
 export function saveAudioProgress(meditationId: string, currentTime: number, duration: number): void {
-    // Don't save if we're at the start or near the end
-    if (currentTime < MIN_SAVE_TIME || duration - currentTime < END_THRESHOLD) {
-        clearAudioProgress(meditationId);
+    // Don't save if we're scrubbing, at the start, or near the end
+    if (isScrubbing || currentTime < MIN_SAVE_TIME || duration - currentTime < END_THRESHOLD) {
+        if (duration - currentTime < END_THRESHOLD) {
+            clearAudioProgress(meditationId);
+        }
         return;
     }
 
@@ -27,13 +35,17 @@ export function saveAudioProgress(meditationId: string, currentTime: number, dur
         return;
     }
 
-    const data: AudioProgress = {
-        timestamp: now,
-        progress: currentTime
-    };
+    try {
+        const data: AudioProgress = {
+            timestamp: now,
+            progress: currentTime
+        };
 
-    localStorage.setItem(STORAGE_PREFIX + meditationId, JSON.stringify(data));
-    lastSaveTime[meditationId] = now;
+        localStorage.setItem(STORAGE_PREFIX + meditationId, JSON.stringify(data));
+        lastSaveTime[meditationId] = now;
+    } catch (error) {
+        console.error('Error saving audio progress:', error);
+    }
 }
 
 // Force save progress regardless of debounce time

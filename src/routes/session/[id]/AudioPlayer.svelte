@@ -8,7 +8,8 @@
 		getAudioProgress,
 		clearAudioProgress,
 		cleanupExpiredProgress,
-		forceSaveAudioProgress
+		forceSaveAudioProgress,
+		setScrubbing
 	} from '$lib/audioProgress';
 
 	export let audioUrl: string;
@@ -120,10 +121,14 @@
 		}
 		lastUpdateTime = now;
 
-		currentTime = audioElement.currentTime;
+		// Only update currentTime from audioElement if we're not actively seeking
+		// This prevents the UI from jumping during scrubbing
+		if (!isSeekingProgress) {
+			currentTime = audioElement.currentTime;
+		}
 
 		// Save progress to localStorage (debounced)
-		if (browser) {
+		if (browser && !isSeekingProgress) {
 			saveAudioProgress(meditationId, currentTime, duration);
 		}
 
@@ -151,18 +156,26 @@
 	}
 
 	function startSeek(event: MouseEvent | TouchEvent) {
+		event.preventDefault(); // Prevent default to avoid iOS issues
 		isSeekingProgress = true;
+		setScrubbing(true); // Set scrubbing flag to true
 		seek(event);
 	}
 
 	function seeking(event: MouseEvent | TouchEvent) {
 		if (isSeekingProgress) {
+			event.preventDefault(); // Prevent default to avoid iOS issues
 			seek(event);
 		}
 	}
 
 	function endSeek() {
 		isSeekingProgress = false;
+		setScrubbing(false); // Set scrubbing flag to false
+		// Force update audio element time to ensure sync
+		if (audioElement) {
+			updateProgress();
+		}
 	}
 
 	function seek(event: MouseEvent | TouchEvent) {
@@ -173,11 +186,13 @@
 		if (event instanceof MouseEvent) {
 			clientX = event.clientX;
 		} else {
+			// For touch events, ensure we're getting the correct touch point
 			clientX = event.touches[0].clientX;
 		}
 
-		const clickPosition = (clientX - rect.left) / rect.width;
+		const clickPosition = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
 		audioElement.currentTime = clickPosition * audioElement.duration;
+		currentTime = audioElement.currentTime; // Update local state immediately
 		updateProgress();
 	}
 
@@ -370,8 +385,8 @@
 				on:mousemove={seeking}
 				on:mouseup={endSeek}
 				on:mouseleave={endSeek}
-				on:touchstart={startSeek}
-				on:touchmove={seeking}
+				on:touchstart|preventDefault={startSeek}
+				on:touchmove|preventDefault={seeking}
 				on:touchend={endSeek}
 				on:touchcancel={endSeek}
 			>
@@ -405,6 +420,8 @@
 						step="0.01"
 						bind:value={volume}
 						on:input={setVolume}
+						on:touchstart|preventDefault={() => {}}
+						on:touchmove|preventDefault={() => {}}
 						class="volume-slider"
 					/>
 				</div>
@@ -681,6 +698,36 @@
 	@media (max-height: 600px) {
 		.audio-player {
 			transform: translate(-50%, -50%) scale(0.8);
+		}
+	}
+
+	/* iOS-specific fixes */
+	@supports (-webkit-touch-callout: none) {
+		.progress-container {
+			cursor: pointer;
+			touch-action: none; /* Disable browser handling of gestures */
+			-webkit-user-select: none; /* Prevent text selection during drag */
+			user-select: none;
+			height: 1rem; /* Increase touch target size */
+			padding: 0.5rem 0; /* Add padding for easier touch */
+			margin: -0.5rem 0; /* Offset padding to maintain layout */
+			position: relative;
+		}
+
+		.progress-bar {
+			top: 0.5rem; /* Adjust for the increased container height */
+		}
+
+		.progress-knob {
+			width: 1rem; /* Larger touch target */
+			height: 1rem;
+			top: 0.5rem;
+			transform: translateX(-50%); /* Center horizontally */
+			box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+		}
+
+		.volume-slider {
+			height: 1.5rem; /* Increase touch target size */
 		}
 	}
 </style>
