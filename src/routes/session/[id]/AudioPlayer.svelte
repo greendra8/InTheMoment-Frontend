@@ -120,7 +120,11 @@
 		}
 		lastUpdateTime = now;
 
-		currentTime = audioElement.currentTime;
+		// Only update currentTime from audio element if we're not actively seeking
+		// This prevents the progress bar from jumping during seek operations
+		if (!isSeekingProgress) {
+			currentTime = audioElement.currentTime;
+		}
 
 		// Save progress to localStorage (debounced)
 		if (browser) {
@@ -151,6 +155,14 @@
 	}
 
 	function startSeek(event: MouseEvent | TouchEvent) {
+		// Pause audio during seeking for more consistent behavior on iOS
+		const wasPlaying = !audioElement.paused;
+		if (wasPlaying && browser) {
+			// Store the playing state to resume after seeking
+			audioElement.dataset.wasPlaying = 'true';
+			audioElement.pause();
+		}
+
 		isSeekingProgress = true;
 		seek(event);
 
@@ -172,6 +184,23 @@
 	}
 
 	function endSeek() {
+		if (isSeekingProgress) {
+			// Ensure the audio time is synchronized with our UI position
+			if (audioElement && !isNaN(audioElement.duration)) {
+				audioElement.currentTime = currentTime;
+
+				// Resume playback if it was playing before seeking started
+				if (audioElement.dataset.wasPlaying === 'true') {
+					// Use a small timeout to ensure the seek completes before playback resumes
+					// This is especially important for iOS
+					setTimeout(() => {
+						playAudio().catch((err) => console.error('Error resuming after seek:', err));
+						delete audioElement.dataset.wasPlaying;
+					}, 50);
+				}
+			}
+		}
+
 		isSeekingProgress = false;
 	}
 
@@ -190,11 +219,16 @@
 		// Calculate position as percentage of width
 		const clickPosition = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
 
-		// Update audio time
-		if (audioElement && !isNaN(audioElement.duration)) {
-			audioElement.currentTime = clickPosition * audioElement.duration;
-			// Force update progress immediately for better visual feedback
-			currentTime = audioElement.currentTime;
+		// Update our UI time immediately
+		currentTime = clickPosition * duration;
+
+		// On iOS, we'll update the actual audio element time in endSeek
+		// This helps prevent the audio from becoming detached from the UI
+		if (!navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
+			// For non-iOS devices, update immediately
+			if (audioElement && !isNaN(audioElement.duration)) {
+				audioElement.currentTime = currentTime;
+			}
 		}
 	}
 
