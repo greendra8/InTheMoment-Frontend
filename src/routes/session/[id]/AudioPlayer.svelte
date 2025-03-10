@@ -394,8 +394,10 @@
 		flex-grow: 1;
 		transition: opacity 0.5s ease-in-out;
 		position: absolute;
-		top: calc(50%);
-		transform: translateY(-50%);
+		left: 50%;
+		top: 55%;
+		transform: translate(-50%, -50%);
+		width: 100%;
 	}
 
 	.audio-player.hidden {
@@ -406,7 +408,7 @@
 	.canvas-container {
 		position: relative;
 		cursor: pointer;
-		margin-bottom: 1.25rem;
+		margin-bottom: 0;
 		opacity: 0;
 		filter: blur(1.25rem);
 		transition:
@@ -448,21 +450,19 @@
 	.controls-wrapper {
 		width: 100%;
 		max-width: 400px;
-		position: absolute;
-		bottom: 6rem;
+		position: fixed;
+		bottom: 4rem;
 		left: 50%;
 		transform: translateX(-50%);
 		display: flex;
 		flex-direction: column;
 		align-items: flex-end;
-		z-index: 1; /* Ensure it's above the feedback-controls-wrapper */
+		z-index: 1;
 	}
 
-	@media (max-width: 600px) {
-		.controls-wrapper {
-			max-width: 85%;
-			bottom: 7rem;
-		}
+	/* Native app specific positioning */
+	:global(.native-app) .controls-wrapper {
+		bottom: 6rem; /* More space at bottom for native app navigation */
 	}
 
 	.custom-audio-controls {
@@ -603,11 +603,27 @@
 	@media (max-width: 600px) {
 		.controls-wrapper {
 			max-width: 85%;
-			bottom: 6rem;
 		}
 
 		.volume-control {
 			display: none;
+		}
+	}
+
+	/* Adjust for smaller screens */
+	@media (max-height: 700px) {
+		.audio-player {
+			transform: translate(-50%, -50%) scale(0.9);
+		}
+		.controls-wrapper {
+			bottom: 1rem;
+		}
+	}
+
+	/* Adjust for very small screens */
+	@media (max-height: 600px) {
+		.audio-player {
+			transform: translate(-50%, -50%) scale(0.8);
 		}
 	}
 </style>

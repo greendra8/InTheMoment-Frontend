@@ -578,10 +578,6 @@
 	.meditation-content {
 		display: flex;
 		flex-direction: column;
-		justify-content: center;
-		align-items: center;
-		flex-grow: 1;
-		padding: 1.25rem;
 		height: var(--real-viewport-height, 100vh);
 		box-sizing: border-box;
 		position: relative;
@@ -592,16 +588,17 @@
    Header and Meditation Info
    ======================= */
 	header {
-		position: absolute;
-		top: clamp(1rem, 10vh, 4rem);
-		left: 0.25rem;
-		right: 0.25rem;
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
 		padding: 1rem;
 		box-sizing: border-box;
 		display: flex;
 		justify-content: center;
 		text-align: center;
-		margin-bottom: 1.25rem;
+		z-index: 2;
+		padding-top: clamp(3rem, 10vh, 4rem);
 	}
 
 	.header-content {
@@ -673,7 +670,7 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		z-index: 2;
+		z-index: 10;
 		padding: 0 0.5rem;
 		transition:
 			filter 0.3s ease,
@@ -769,7 +766,7 @@
 		);
 		border-radius: 16px;
 		box-shadow: 0 4px 20px var(--ui-shadow);
-		z-index: 2;
+		z-index: 10;
 		overflow: hidden;
 		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
 		backdrop-filter: blur(5px);
@@ -856,7 +853,6 @@
 
 	.show-feedback-button,
 	.hide-feedback-button {
-		margin-bottom: clamp(1.5rem, 4vw, 2rem);
 		padding: clamp(0.4rem, 1.5vw, 0.5rem) clamp(0.8rem, 2.5vw, 1rem);
 		font-size: clamp(0.875rem, 2.5vw, 1rem);
 		font-family: 'Space Grotesk', sans-serif;
@@ -901,7 +897,7 @@
 	}
 
 	.feedback-controls-wrapper {
-		position: absolute;
+		position: fixed;
 		bottom: 7rem;
 		left: 50%;
 		transform: translateX(-50%);
@@ -910,7 +906,12 @@
 		display: flex;
 		flex-direction: column;
 		align-items: flex-end;
-		z-index: 0;
+		z-index: 2;
+	}
+
+	/* Native app specific positioning */
+	:global(.native-app) .feedback-controls-wrapper {
+		bottom: 7rem; /* More space at bottom for native app navigation */
 	}
 
 	/* =======================
@@ -950,45 +951,55 @@
 			display: none;
 		}
 
-		.feedback-controls-wrapper {
-			max-width: clamp(80%, 85vw, 85%);
-			bottom: 7rem;
-		}
-
 		.feedback-container {
 			padding: 0;
 			max-height: 70vh;
 		}
 	}
 
-	@media (max-height: 900px) {
-		:global(.audio-player) {
-			top: calc(50% + 1rem) !important;
+	@media (max-width: 600px) {
+		.feedback-controls-wrapper {
+			max-width: 85%;
 		}
 	}
 
+	/* Adjust for smaller screens */
 	@media (max-height: 700px) {
-		.meditation-content {
-			justify-content: flex-start;
+		header {
+			padding-top: 2rem;
 		}
 
-		header {
-			top: 1rem;
-			scale: 0.9;
+		h2 {
+			font-size: 1.5rem;
 		}
 
 		.title-wrapper {
-			padding-top: 0rem;
-		}
-
-		:global(.audio-player) {
-			top: calc(50% + 1rem) !important;
+			padding-top: 1rem;
 		}
 
 		.listened-icon {
-			top: -1.2rem;
+			top: -0.5rem;
+		}
+
+		.feedback-controls-wrapper {
+			bottom: 3.5rem;
 		}
 	}
+
+	/* Adjust for very small screens */
+	/* @media (max-height: 600px) {
+		header {
+			padding-top: 1.5rem;
+		}
+
+		h2 {
+			font-size: 1.25rem;
+		}
+
+		.meditation-info {
+			font-size: 0.75rem;
+		}
+	} */
 
 	/* Hypnosis Session Styling */
 
