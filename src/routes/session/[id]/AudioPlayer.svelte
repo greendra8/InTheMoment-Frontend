@@ -44,6 +44,7 @@
 
 	let audioContextInitialized = false;
 
+	let isSafari = false;
 	let audioLoaded = false;
 	let playAttemptPending = false;
 
@@ -170,139 +171,90 @@
 		}
 	}
 
+	function detectSafari() {
+		const userAgent = window.navigator.userAgent.toLowerCase();
+		isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
+		console.log('[AudioPlayer] Safari browser detected:', isSafari);
+		return isSafari;
+	}
+
 	export function togglePlayPause() {
 		console.log('[AudioPlayer] togglePlayPause called, current paused state:', audioElement.paused);
-
-		// Initialize AudioContext on first user interaction if not already done
-		if (!audioContextInitialized) {
-			console.log('[AudioPlayer] First user interaction, initializing AudioContext');
-			initializeAudioContext();
-		}
-
-		console.log('[AudioPlayer] AudioContext state at toggle start:', audioContext?.state);
+		console.log('[AudioPlayer] Audio readyState:', audioElement.readyState);
+		console.log('[AudioPlayer] Audio networkState:', audioElement.networkState);
+		console.log('[AudioPlayer] Audio currentSrc:', audioElement.currentSrc);
 
 		if (audioElement.paused) {
+			// Initialize AudioContext if needed
+			if (!audioContextInitialized) {
+				console.log('[AudioPlayer] First user interaction, initializing AudioContext');
+				initializeAudioContext();
+			}
+
 			// Check if audio is ready
-			if (!audioLoaded && audioElement.readyState < 2) {
+			if (!audioLoaded && audioElement.readyState < 3) {
+				// Changed from 2 to 3 for Safari
 				console.log('[AudioPlayer] Audio not fully loaded yet, setting pending play attempt');
 				playAttemptPending = true;
+				// Start loading if needed
+				if (audioElement.networkState === 0) {
+					console.log('[AudioPlayer] Triggering audio load');
+					audioElement.load();
+				}
 				return;
 			}
 
-			// On iOS, we need to ensure we always resume the AudioContext first
-			// and then immediately play within the same user gesture handler
 			try {
-				// Always try to resume the AudioContext first, regardless of its reported state
 				if (audioContext) {
-					console.log('[AudioPlayer] Attempting to resume AudioContext...');
-
-					// For iOS, we need to use a more direct approach
-					audioContext
-						.resume()
-						.then(() => {
-							console.log(
-								'[AudioPlayer] AudioContext resumed successfully, state:',
-								audioContext.state
-							);
-
-							// Try to play immediately after resuming
-							try {
-								// Check audio readiness again
-								console.log('[AudioPlayer] Audio readyState before play:', audioElement.readyState);
-								console.log(
-									'[AudioPlayer] Audio networkState before play:',
-									audioElement.networkState
-								);
-								console.log('[AudioPlayer] Audio URL:', audioUrl);
-
-								// Force reload the audio source if it seems to be in a bad state
-								if (audioElement.error || audioElement.networkState === 3) {
-									console.log('[AudioPlayer] Audio appears to be in error state, reloading source');
-									audioElement.src = audioUrl;
-									audioElement.load();
-									playAttemptPending = true;
-									return;
-								}
-
-								console.log('[AudioPlayer] Attempting to play audio immediately after resume...');
-								audioElement
-									.play()
-									.then(() => {
-										console.log('[AudioPlayer] Audio playback started successfully');
-										isPlaying = true;
-										lastUpdateTime = Date.now();
-										visualizer?.setStandbyMode(false);
-									})
-									.catch((error) => {
-										console.error('[AudioPlayer] Error playing audio after context resume:', error);
-
-										// Try a different approach for iOS
-										console.log('[AudioPlayer] Trying iOS-specific approach...');
-
-										// Create a user-initiated touch event handler
-										const unlockAudio = () => {
-											console.log('[AudioPlayer] Unlock audio function called from touch event');
-
-											// Remove the event listener
-											document.removeEventListener('touchend', unlockAudio);
-
-											// Try to play with a slight delay
-											setTimeout(() => {
-												console.log('[AudioPlayer] Attempting iOS unlock play...');
-												audioElement
-													.play()
-													.then(() => {
-														console.log('[AudioPlayer] iOS unlock play successful');
-														isPlaying = true;
-														lastUpdateTime = Date.now();
-														visualizer?.setStandbyMode(false);
-													})
-													.catch((iosError) => {
-														console.error('[AudioPlayer] iOS unlock play failed:', iosError);
-														isPlaying = false;
-													});
-											}, 100);
-										};
-
-										// Add the touch event listener
-										document.addEventListener('touchend', unlockAudio, false);
-
-										// Simulate a touch if we're already in a user gesture context
-										setTimeout(() => {
-											console.log('[AudioPlayer] Retrying playback after delay...');
-											audioElement
-												.play()
-												.then(() => {
-													console.log('[AudioPlayer] Delayed playback successful');
-													isPlaying = true;
-													lastUpdateTime = Date.now();
-													visualizer?.setStandbyMode(false);
-												})
-												.catch((retryError) => {
-													console.error('[AudioPlayer] Retry playback failed:', retryError);
-													isPlaying = false;
-												});
-										}, 300);
-									});
-							} catch (playError) {
-								console.error('[AudioPlayer] Exception during play attempt:', playError);
-								isPlaying = false;
-							}
-						})
-						.catch((resumeError) => {
-							console.error('[AudioPlayer] Error resuming AudioContext:', resumeError);
-							// Still try to play even if resume fails
-							playAudio();
-						});
+					console.log('[AudioPlayer] Current AudioContext state:', audioContext.state);
+					audioContext.resume().then(() => {
+						console.log('[AudioPlayer] AudioContext resumed, attempting playback');
+						audioElement
+							.play()
+							.then(() => {
+								console.log('[AudioPlayer] Playback started successfully');
+								isPlaying = true;
+								lastUpdateTime = Date.now();
+								visualizer?.setStandbyMode(false);
+							})
+							.catch((error) => {
+								console.error('[AudioPlayer] Playback failed:', error);
+								// Try one more time with a delay
+								setTimeout(() => {
+									console.log('[AudioPlayer] Retrying playback');
+									audioElement
+										.play()
+										.then(() => {
+											console.log('[AudioPlayer] Delayed playback successful');
+											isPlaying = true;
+											lastUpdateTime = Date.now();
+											visualizer?.setStandbyMode(false);
+										})
+										.catch((retryError) => {
+											console.error('[AudioPlayer] Retry failed:', retryError);
+											isPlaying = false;
+										});
+								}, 100);
+							});
+					});
 				} else {
-					// No AudioContext, just try to play
-					console.log('[AudioPlayer] No AudioContext available, playing directly');
-					playAudio();
+					console.log('[AudioPlayer] No AudioContext, attempting direct playback');
+					audioElement
+						.play()
+						.then(() => {
+							console.log('[AudioPlayer] Direct playback successful');
+							isPlaying = true;
+							lastUpdateTime = Date.now();
+							visualizer?.setStandbyMode(false);
+						})
+						.catch((error) => {
+							console.error('[AudioPlayer] Direct playback failed:', error);
+							isPlaying = false;
+						});
 				}
 			} catch (error) {
-				console.error('[AudioPlayer] Exception in togglePlayPause:', error);
-				// Fallback to the original playAudio method
-				playAudio();
+				console.error('[AudioPlayer] Error in play attempt:', error);
+				isPlaying = false;
 			}
 		} else {
 			console.log('[AudioPlayer] Pausing audio');
@@ -310,21 +262,6 @@
 			isPlaying = false;
 			updateProgress();
 			visualizer?.setStandbyMode(true);
-		}
-	}
-
-	// Separate function to handle audio playback after context is resumed
-	async function playAudio() {
-		try {
-			console.log('[AudioPlayer] Attempting to play audio via playAudio function...');
-			await audioElement.play();
-			console.log('[AudioPlayer] Audio playback started successfully');
-			isPlaying = true;
-			lastUpdateTime = Date.now();
-			visualizer?.setStandbyMode(false);
-		} catch (error) {
-			console.error('[AudioPlayer] Error playing audio:', error);
-			isPlaying = false;
 		}
 	}
 
@@ -539,42 +476,38 @@
 		requestAnimationFrame(updateCanvasStyle);
 	}
 
-	// Add a function to handle audio loading
 	function handleAudioLoaded() {
 		console.log('[AudioPlayer] Audio loaded event');
+		console.log('[AudioPlayer] Audio readyState:', audioElement?.readyState);
+		console.log('[AudioPlayer] Audio networkState:', audioElement?.networkState);
 		audioLoaded = true;
 
-		// If there was a pending play attempt, try again now
 		if (playAttemptPending) {
 			console.log('[AudioPlayer] Executing pending play attempt now that audio is loaded');
 			playAttemptPending = false;
+			// Use a small delay to ensure everything is ready
 			setTimeout(() => {
+				console.log('[AudioPlayer] Attempting delayed play after load');
 				togglePlayPause();
-			}, 50);
+			}, 100);
 		}
 	}
 
 	onMount(() => {
 		console.log('[AudioPlayer] Component mounted');
-
-		// Detect iOS
-		detectIOS();
+		detectSafari();
 
 		if (audioElement && canvasElement) {
-			console.log('[AudioPlayer] Audio and canvas elements found, initializing canvas...');
+			console.log('[AudioPlayer] Audio and canvas elements found, initializing...');
 			setupCanvas();
 
-			// We no longer initialize AudioContext here - it will be initialized on first user interaction
-			console.log('[AudioPlayer] AudioContext initialization deferred until user interaction');
-
-			// Setup iOS-specific audio unlock if needed
-			if (isIOS) {
-				setupIOSAudioUnlock();
-			}
+			// Start loading the audio
+			console.log('[AudioPlayer] Starting audio load');
+			audioElement.load();
 
 			// Load saved progress
 			if (browser) {
-				cleanupExpiredProgress(); // Clean up any expired progress
+				cleanupExpiredProgress();
 				const savedProgress = getAudioProgress(meditationId);
 				if (savedProgress !== null) {
 					console.log('[AudioPlayer] Loaded saved progress:', savedProgress);
@@ -587,7 +520,6 @@
 
 		fadeInCanvas();
 
-		// Initialize CSS variable
 		if (browser) {
 			document.documentElement.style.setProperty('--volume-percentage', `${volume * 100}%`);
 		}
@@ -641,22 +573,35 @@
 			bind:this={audioElement}
 			src={audioUrl}
 			crossorigin="anonymous"
-			on:timeupdate={updateProgress}
-			on:loadedmetadata={updateProgress}
+			preload="auto"
+			on:loadedmetadata={() => {
+				console.log('[AudioPlayer] Metadata loaded');
+				updateProgress();
+			}}
+			on:loadeddata={() => {
+				console.log('[AudioPlayer] Audio data loaded');
+				handleAudioLoaded();
+			}}
+			on:canplay={() => {
+				console.log('[AudioPlayer] Can play event');
+				handleAudioLoaded();
+			}}
+			on:canplaythrough={() => {
+				console.log('[AudioPlayer] Can play through event');
+				handleAudioLoaded();
+			}}
 			on:play={updatePlayingState}
 			on:pause={handlePause}
 			on:ended={handleAudioEnded}
-			on:canplay={() => console.log('[AudioPlayer] Audio can play event')}
-			on:canplaythrough={() => {
-				console.log('[AudioPlayer] Audio can play through event');
-				handleAudioLoaded();
+			on:error={(e) => {
+				console.error('[AudioPlayer] Audio error:', e.target.error);
 			}}
-			on:loadeddata={() => {
-				console.log('[AudioPlayer] Audio loaded data event');
-				handleAudioLoaded();
+			on:stalled={() => {
+				console.log('[AudioPlayer] Audio stalled');
 			}}
-			on:error={(e) => console.error('[AudioPlayer] Audio error event:', e.target.error)}
-			preload="auto"
+			on:waiting={() => {
+				console.log('[AudioPlayer] Audio waiting');
+			}}
 		></audio>
 	</div>
 
