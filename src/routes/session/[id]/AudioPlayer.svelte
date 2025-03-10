@@ -387,16 +387,17 @@
 				cleanupExpiredProgress(); // Clean up any expired progress
 				const savedProgress = getAudioProgress(meditationId);
 				if (savedProgress !== null) {
+					// Always update the UI immediately regardless of platform
+					currentTime = savedProgress;
+
 					// On iOS, we need to wait until the audio is loaded before setting currentTime
 					if (isIOS()) {
 						pendingSeekTime = savedProgress;
-						currentTime = savedProgress; // Update UI immediately
 
 						// For iOS, we need to add an additional event listener to ensure the time is set
 						const iosTimeSetHandler = () => {
 							if (audioElement && pendingSeekTime !== null) {
 								audioElement.currentTime = pendingSeekTime;
-								currentTime = pendingSeekTime;
 							}
 						};
 
@@ -407,7 +408,6 @@
 					} else {
 						// For non-iOS devices, we can set the time immediately
 						audioElement.currentTime = savedProgress;
-						currentTime = savedProgress;
 					}
 				}
 			}
@@ -796,35 +796,12 @@
 		}
 	}
 
-	/* iOS-specific fixes */
+	/* iOS-specific fixes - only keeping the essential touch handling properties */
 	@supports (-webkit-touch-callout: none) {
 		.progress-container {
-			cursor: pointer;
 			touch-action: none; /* Disable browser handling of gestures */
 			-webkit-user-select: none; /* Prevent text selection during drag */
 			user-select: none;
-			height: 0.275rem; /* Keep the same height as non-iOS */
-			position: relative;
-			/* Add invisible padding for better touch target without changing appearance */
-			padding: 0.5rem 0;
-			margin: -0.5rem 0;
-		}
-
-		.progress-bar {
-			top: 0; /* Keep at the top of the container */
-			height: 0.275rem; /* Match the container height */
-		}
-
-		.progress-knob {
-			width: 0.75rem; /* Keep original size */
-			height: 0.75rem;
-			top: 50%; /* Center vertically */
-			transform: translateY(-50%); /* Center vertically */
-			box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
-		}
-
-		.volume-slider {
-			height: 1.5rem; /* Increase touch target size */
 		}
 	}
 </style>
