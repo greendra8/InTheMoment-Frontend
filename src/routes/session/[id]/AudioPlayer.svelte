@@ -803,21 +803,23 @@
 			touch-action: none; /* Disable browser handling of gestures */
 			-webkit-user-select: none; /* Prevent text selection during drag */
 			user-select: none;
-			height: 1rem; /* Increase touch target size */
-			padding: 0.5rem 0; /* Add padding for easier touch */
-			margin: -0.5rem 0; /* Offset padding to maintain layout */
+			height: 0.275rem; /* Keep the same height as non-iOS */
 			position: relative;
+			/* Add invisible padding for better touch target without changing appearance */
+			padding: 0.5rem 0;
+			margin: -0.5rem 0;
 		}
 
 		.progress-bar {
-			top: 0.5rem; /* Adjust for the increased container height */
+			top: 0; /* Keep at the top of the container */
+			height: 0.275rem; /* Match the container height */
 		}
 
 		.progress-knob {
-			width: 1rem; /* Larger touch target */
-			height: 1rem;
-			top: 0.5rem;
-			transform: translateX(-50%); /* Center horizontally */
+			width: 0.75rem; /* Keep original size */
+			height: 0.75rem;
+			top: 50%; /* Center vertically */
+			transform: translateY(-50%); /* Center vertically */
 			box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
 		}
 
