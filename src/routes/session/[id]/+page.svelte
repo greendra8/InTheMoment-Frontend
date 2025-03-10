@@ -63,11 +63,14 @@
 	function handleKeydown(event: KeyboardEvent) {
 		if (isFeedbackFocused) return; // Exit early if the feedback form is focused
 
+		console.log('[Page] Keydown event:', event.key);
+
 		if (event.key === 'ArrowLeft') {
 			audioPlayerComponent.seekBackward(10);
 		} else if (event.key === 'ArrowRight') {
 			audioPlayerComponent.seekForward(10);
 		} else if (event.key === ' ' || event.key.toLowerCase() === 'k') {
+			console.log('[Page] Play/pause key pressed');
 			event.preventDefault();
 			audioPlayerComponent.togglePlayPause();
 		} else if (event.key.toLowerCase() === 'm') {
@@ -188,6 +191,7 @@
 	}
 
 	onMount(() => {
+		console.log('[Page] Page component mounted');
 		window.addEventListener('keydown', handleKeydown);
 
 		if (browser) {
@@ -203,6 +207,16 @@
 		checkDownloadStatus();
 
 		document.addEventListener('click', handleOutsideClick);
+
+		// Add a global click handler to help with iOS audio permissions
+		console.log('[Page] Adding global click handler for iOS audio permissions');
+		const handleGlobalClick = () => {
+			console.log('[Page] Global click detected - could be used to initialize audio');
+			// We don't need to do anything here, just capturing the user interaction
+			// This might help with iOS permissions
+			document.removeEventListener('click', handleGlobalClick);
+		};
+		document.addEventListener('click', handleGlobalClick);
 
 		return () => {
 			window.removeEventListener('keydown', handleKeydown);

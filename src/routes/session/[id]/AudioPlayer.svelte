@@ -23,8 +23,7 @@
 	let canvasContext: CanvasRenderingContext2D | null;
 	let canvasWidth = 300;
 	let canvasHeight = 300;
-	let audioContext: AudioContext | null = null;
-	let isAudioSetup = false;
+	let audioContext: AudioContext;
 
 	let isPlaying = false;
 	let currentTime = 0;
@@ -45,10 +44,12 @@
 
 	function updatePlayingState() {
 		isPlaying = !audioElement.paused;
+		console.log('[AudioPlayer] Playing state updated:', isPlaying);
 	}
 
 	function setupCanvas() {
 		if (canvasElement && window) {
+			console.log('[AudioPlayer] Setting up canvas');
 			const dpr = window.devicePixelRatio || 1;
 			const rect = canvasElement.getBoundingClientRect();
 			canvasWidth = rect.width;
@@ -62,81 +63,70 @@
 		}
 	}
 
-	async function setupAudioContext() {
-		if (isAudioSetup || !audioElement || !canvasElement) return;
+	export function togglePlayPause() {
+		console.log('[AudioPlayer] togglePlayPause called, current paused state:', audioElement.paused);
 
-		try {
-			audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-			const analyser = audioContext.createAnalyser();
-			analyser.fftSize = 1024;
-			const source = audioContext.createMediaElementSource(audioElement);
-			source.connect(analyser);
-			analyser.connect(audioContext.destination);
-			visualizer = setupAudioVisualizer(
-				audioElement,
-				canvasElement,
-				analyser,
-				canvasWidth,
-				canvasHeight
-			);
-			if (visualizer) {
-				visualizer.setStandbyMode(true);
-			}
-			isAudioSetup = true;
-		} catch (error) {
-			console.error('Error setting up audio context:', error);
-			throw error;
-		}
-	}
-
-	export async function togglePlayPause() {
-		try {
-			if (!isAudioSetup) {
-				await setupAudioContext();
-			}
-
-			if (audioElement.paused) {
-				if (audioContext && audioContext.state === 'suspended') {
-					await audioContext.resume();
-				}
-				await playAudio();
+		if (audioElement.paused) {
+			// First ensure the audio context is resumed before attempting to play
+			if (audioContext && audioContext.state === 'suspended') {
+				console.log('[AudioPlayer] AudioContext is suspended, attempting to resume...');
+				audioContext
+					.resume()
+					.then(() => {
+						console.log('[AudioPlayer] AudioContext resumed successfully');
+						return playAudio();
+					})
+					.catch((error) => {
+						console.error('[AudioPlayer] Error resuming audio context:', error);
+					});
 			} else {
-				audioElement.pause();
-				isPlaying = false;
-				updateProgress();
-				visualizer?.setStandbyMode(true);
+				console.log(
+					'[AudioPlayer] AudioContext is already running or not needed, playing audio directly'
+				);
+				playAudio();
 			}
-		} catch (error) {
-			console.error('Error in togglePlayPause:', error);
-			throw error;
+		} else {
+			console.log('[AudioPlayer] Pausing audio');
+			audioElement.pause();
+			isPlaying = false;
+			updateProgress();
+			visualizer?.setStandbyMode(true);
 		}
 	}
 
 	// Separate function to handle audio playback after context is resumed
 	async function playAudio() {
 		try {
+			console.log('[AudioPlayer] Attempting to play audio...');
 			await audioElement.play();
+			console.log('[AudioPlayer] Audio playback started successfully');
 			isPlaying = true;
 			lastUpdateTime = Date.now();
 			visualizer?.setStandbyMode(false);
 		} catch (error) {
-			console.error('Error playing audio:', error);
+			console.error('[AudioPlayer] Error playing audio:', error);
 			isPlaying = false;
 		}
 	}
 
 	function startPlayback() {
+		console.log('[AudioPlayer] startPlayback called');
 		// Use the same pattern as togglePlayPause for consistency
 		if (audioContext && audioContext.state === 'suspended') {
+			console.log('[AudioPlayer] AudioContext is suspended, attempting to resume...');
 			audioContext
 				.resume()
 				.then(() => {
+					console.log('[AudioPlayer] AudioContext resumed successfully from startPlayback');
 					return playAudio();
 				})
 				.catch((error) => {
-					console.error('Error resuming audio context:', error);
+					console.error('[AudioPlayer] Error resuming audio context from startPlayback:', error);
 				});
 		} else {
+			console.log(
+				'[AudioPlayer] AudioContext is already running or not needed, playing audio directly from startPlayback'
+			);
 			playAudio();
 		}
 	}
@@ -171,6 +161,7 @@
 	}
 
 	function handlePause() {
+		console.log('[AudioPlayer] handlePause called');
 		updatePlayingState();
 		// Force save progress when user explicitly pauses
 		if (browser) {
@@ -303,19 +294,54 @@
 	}
 
 	onMount(() => {
+		console.log('[AudioPlayer] Component mounted');
 		if (audioElement && canvasElement) {
+			console.log('[AudioPlayer] Audio and canvas elements found, initializing...');
 			setupCanvas();
+
+			console.log('[AudioPlayer] Creating AudioContext...');
+			try {
+				audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+				console.log('[AudioPlayer] AudioContext created, state:', audioContext.state);
+
+				const analyser = audioContext.createAnalyser();
+				analyser.fftSize = 1024;
+
+				console.log('[AudioPlayer] Creating media element source...');
+				const source = audioContext.createMediaElementSource(audioElement);
+				console.log('[AudioPlayer] Media element source created');
+
+				source.connect(analyser);
+				analyser.connect(audioContext.destination);
+				console.log('[AudioPlayer] Audio graph connected');
+
+				visualizer = setupAudioVisualizer(
+					audioElement,
+					canvasElement,
+					analyser,
+					canvasWidth,
+					canvasHeight
+				);
+				console.log('[AudioPlayer] Visualizer setup complete');
+
+				if (visualizer) {
+					visualizer.setStandbyMode(true);
+				}
+			} catch (error) {
+				console.error('[AudioPlayer] Error setting up audio context:', error);
+			}
 
 			// Load saved progress
 			if (browser) {
 				cleanupExpiredProgress(); // Clean up any expired progress
 				const savedProgress = getAudioProgress(meditationId);
 				if (savedProgress !== null) {
+					console.log('[AudioPlayer] Loaded saved progress:', savedProgress);
 					audioElement.currentTime = savedProgress;
 				}
 			}
 		} else {
-			console.error('Audio or Canvas element is missing');
+			console.error('[AudioPlayer] Audio or Canvas element is missing');
 		}
 
 		fadeInCanvas();
@@ -371,6 +397,9 @@
 			on:play={updatePlayingState}
 			on:pause={handlePause}
 			on:ended={handleAudioEnded}
+			on:canplay={() => console.log('[AudioPlayer] Audio can play event')}
+			on:canplaythrough={() => console.log('[AudioPlayer] Audio can play through event')}
+			on:error={(e) => console.error('[AudioPlayer] Audio error event:', e)}
 		></audio>
 	</div>
 
