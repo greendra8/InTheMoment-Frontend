@@ -58,8 +58,8 @@
 							<i class="fas fa-play"></i>
 						</a>
 						<a href="/session/{meditation.id}" class="meditation-info">
-							<h3 class="title-wrapper">
-								<span class="title-text">{meditation.title || 'Untitled Meditation'}</span>
+							<div class="title-wrapper">
+								<h3 class="title-text">{meditation.title || 'Untitled Meditation'}</h3>
 								<div class="icon-wrapper">
 									{#if meditation.listened}
 										<i class="fas fa-check-circle listened-icon"></i>
@@ -71,7 +71,7 @@
 										{meditation.content_type === 'hypnosis' ? 'Hypnosis' : 'Meditation'}
 									</span>
 								</div>
-							</h3>
+							</div>
 							<p>
 								{meditation.lesson_playlists
 									? `Playlist: ${meditation.lesson_playlists.playlist_name}`
@@ -403,14 +403,16 @@
 	.title-wrapper {
 		display: flex;
 		align-items: center;
+		flex-wrap: wrap;
 		gap: 0.5rem;
-		margin: 0;
-		font-size: 1rem;
-		font-weight: 500;
+		margin: 0 0 0.3rem 0;
 	}
 
 	.title-text {
-		flex: 1;
+		font-size: 1rem;
+		font-weight: 500;
+		margin: 0;
+		color: var(--text-primary);
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
@@ -443,6 +445,7 @@
 		font-weight: 500;
 		text-transform: capitalize;
 		border: 1px solid rgba(255, 255, 255, 0.1);
+		display: inline-block;
 	}
 
 	.content-type-badge.hypnosis {
@@ -738,6 +741,12 @@
 
 		.title-wrapper {
 			font-size: 0.95rem;
+			gap: 0.4rem;
+		}
+
+		.content-type-badge {
+			font-size: 0.65rem;
+			padding: 0.15rem 0.4rem;
 		}
 
 		.meditation-info p {

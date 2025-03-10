@@ -201,15 +201,15 @@
 					<i class="fas fa-play"></i>
 				</div>
 				<div class="featured-info">
-					<h3>
-						{meditations[0].title || 'Untitled Meditation'}
+					<div class="title-row">
+						<h3>{meditations[0].title || 'Untitled Meditation'}</h3>
 						<span
 							class="content-type-badge"
 							class:hypnosis={meditations[0].content_type === 'hypnosis'}
 						>
 							{meditations[0].content_type === 'hypnosis' ? 'Hypnosis' : 'Meditation'}
 						</span>
-					</h3>
+					</div>
 					<div class="featured-meta">
 						<span><i class="far fa-clock"></i> {meditations[0].length || 'N/A'} min</span>
 						<span class="dot-separator">•</span>
@@ -275,15 +275,15 @@
 							<i class="fas fa-play"></i>
 						</div>
 						<div class="session-info">
-							<h3>
-								{meditation.title || 'Untitled Meditation'}
+							<div class="title-row">
+								<h3>{meditation.title || 'Untitled Meditation'}</h3>
 								<span
 									class="content-type-badge"
 									class:hypnosis={meditation.content_type === 'hypnosis'}
 								>
 									{meditation.content_type === 'hypnosis' ? 'Hypnosis' : 'Meditation'}
 								</span>
-							</h3>
+							</div>
 							<div class="session-meta">
 								<span><i class="far fa-clock"></i> {meditation.length || 'N/A'} min</span>
 								<span class="dot-separator">•</span>
@@ -635,14 +635,19 @@
 		z-index: 1;
 	}
 
+	.title-row {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		margin-bottom: 0.3rem;
+	}
+
 	.featured-info h3 {
 		font-size: 1.2rem;
 		font-weight: 600;
-		margin-bottom: 0.3rem;
+		margin: 0;
 		color: var(--text-primary);
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
 	}
 
 	.content-type-icon {
@@ -660,6 +665,7 @@
 		font-weight: 500;
 		text-transform: capitalize;
 		border: 1px solid rgba(255, 255, 255, 0.1);
+		display: inline-block;
 	}
 
 	.content-type-badge.hypnosis {
@@ -844,11 +850,12 @@
 	.session-info h3 {
 		font-size: 1rem;
 		font-weight: 500;
-		margin-bottom: 0.2rem;
+		margin: 0;
 		color: var(--text-primary);
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
+	}
+
+	.session-info .title-row {
+		margin-bottom: 0.2rem;
 	}
 
 	/* Ensure consistent badge styling in session info */
@@ -1165,6 +1172,55 @@
 		.create-btn {
 			padding: 0.6rem 1.2rem;
 			font-size: 0.8rem;
+		}
+
+		/* Featured session mobile improvements */
+		.featured-session {
+			padding: 1rem;
+		}
+
+		.featured-play-button {
+			width: 45px;
+			height: 45px;
+			margin-right: 1rem;
+			font-size: 1rem;
+		}
+
+		.featured-info h3 {
+			font-size: 1rem;
+			line-height: 1.3;
+		}
+
+		.title-row {
+			gap: 0.4rem;
+		}
+
+		.featured-meta {
+			font-size: 0.8rem;
+		}
+
+		.content-type-badge {
+			font-size: 0.65rem;
+			padding: 0.15rem 0.4rem;
+		}
+
+		/* Session item mobile improvements */
+		.session-item {
+			padding: 0.8rem;
+		}
+
+		.session-play-button {
+			width: 35px;
+			height: 35px;
+			margin-right: 0.8rem;
+		}
+
+		.session-info h3 {
+			font-size: 0.9rem;
+		}
+
+		.session-meta {
+			font-size: 0.75rem;
 		}
 	}
 </style>
