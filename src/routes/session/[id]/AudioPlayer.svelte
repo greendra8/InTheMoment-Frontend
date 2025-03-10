@@ -42,16 +42,28 @@
 	let canvasOpacity = 0;
 	let canvasBlur = 3; // Initial blur amount in pixels
 
-	// Add iOS detection
-	let isIOS = false;
-	let displayTime = 0; // Separate display time for iOS
-	let savedProgress = 0; // Store saved progress
+	/**
+	 * iOS-specific variables and handling
+	 *
+	 * iOS has strict limitations on HTML5 audio:
+	 * 1. Cannot set currentTime reliably before playback starts
+	 * 2. Cannot seek when paused (must play first, then seek)
+	 * 3. May reset position when paused for a while
+	 *
+	 * Our strategy:
+	 * - Use separate display time for UI to provide immediate visual feedback
+	 * - Only apply actual seeks after playback has started
+	 * - Store desired position when seeking while paused
+	 */
+	let isIOS = false; // Whether current device is iOS
+	let displayTime = 0; // Separate time display for iOS UI
+	let savedProgress = 0; // Stored position for delayed seeking
 	let hasStartedPlayback = false; // Track if playback has started at least once
 
 	function updatePlayingState() {
 		isPlaying = !audioElement.paused;
 
-		// On iOS, when playback starts, update the current time to reflect actual position
+		// iOS-specific: When playback starts, update the time display to match actual position
 		if (isIOS && isPlaying) {
 			// Mark that playback has started at least once
 			hasStartedPlayback = true;
@@ -105,10 +117,14 @@
 		}
 	}
 
-	// Separate function to handle audio playback after context is resumed
+	/**
+	 * Handle audio playback with iOS-specific considerations
+	 * On iOS, we need to start playback before we can reliably set the current time
+	 */
 	async function playAudio() {
 		try {
-			// On iOS, set the time before playing if we have saved progress
+			// iOS-specific: Set the time before playing if we have saved progress
+			// This may not work reliably, but we try anyway as a first attempt
 			if (isIOS && savedProgress > 0 && !hasStartedPlayback) {
 				audioElement.currentTime = savedProgress;
 			}
@@ -118,17 +134,16 @@
 			lastUpdateTime = Date.now();
 			visualizer?.setStandbyMode(false);
 
-			// On iOS, after playback starts, update the current time
+			// iOS-specific: After playback starts, apply any pending seek operation
+			// This is more reliable than trying to seek before playback
 			if (isIOS && savedProgress > 0) {
 				// Small delay to ensure iOS has properly started playback
 				setTimeout(() => {
 					if (audioElement && isPlaying) {
-						// If we were seeking, apply the seek now
-						if (savedProgress > 0) {
-							audioElement.currentTime = savedProgress;
-							currentTime = savedProgress;
-							savedProgress = 0;
-						}
+						// Apply the saved position now that playback has started
+						audioElement.currentTime = savedProgress;
+						currentTime = savedProgress;
+						savedProgress = 0; // Clear the saved progress
 					}
 				}, 100);
 			}
@@ -161,7 +176,8 @@
 		}
 		lastUpdateTime = now;
 
-		// On iOS, only update currentTime from audio element if playback has started at least once
+		// iOS-specific: Only update currentTime from audio element if playback has started
+		// This prevents the UI from jumping back to 0 on iOS when paused
 		if (!isIOS || hasStartedPlayback) {
 			currentTime = audioElement.currentTime;
 
@@ -224,6 +240,14 @@
 		isSeekingProgress = false;
 	}
 
+	/**
+	 * Handle seeking with special consideration for iOS
+	 *
+	 * On iOS, we need to:
+	 * 1. Update the UI immediately for responsive feel
+	 * 2. Start playback if paused (iOS requires playback to seek)
+	 * 3. Apply the actual seek after playback has started
+	 */
 	function seek(event: MouseEvent | TouchEvent) {
 		const progressBar = event.currentTarget as HTMLDivElement;
 		const rect = progressBar.getBoundingClientRect();
@@ -235,7 +259,7 @@
 			clientX = event.touches[0].clientX;
 		}
 
-		// Calculate position as percentage of width
+		// Calculate position as percentage of width (with bounds checking)
 		const clickPosition = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
 		const newTime = clickPosition * audioElement.duration;
 
@@ -246,18 +270,18 @@
 
 			if (audioElement.paused) {
 				// On iOS, we need to play first to make seeking work
-				// Store the current position in the UI but don't try to seek yet
+				// Store the desired position but don't try to seek yet
 				savedProgress = newTime;
 
 				// Start playback - the updatePlayingState will handle seeking
 				startPlayback();
 			} else {
-				// If already playing, we can seek directly
+				// If already playing, we can seek directly (works on iOS)
 				audioElement.currentTime = newTime;
 				currentTime = newTime;
 			}
 		} else {
-			// Non-iOS behavior remains unchanged
+			// Non-iOS behavior: directly set the current time
 			audioElement.currentTime = newTime;
 			currentTime = newTime;
 		}
@@ -357,7 +381,8 @@
 	}
 
 	onMount(() => {
-		// Detect iOS
+		// Detect iOS devices
+		// This is important for our special audio handling
 		if (browser) {
 			const userAgent = window.navigator.userAgent.toLowerCase();
 			isIOS =
@@ -384,16 +409,18 @@
 				visualizer.setStandbyMode(true);
 			}
 
-			// Load saved progress
+			// Load saved progress with iOS-specific handling
 			if (browser) {
 				cleanupExpiredProgress(); // Clean up any expired progress
 				const progress = getAudioProgress(meditationId);
 				if (progress !== null) {
-					// On iOS, store the saved progress but don't set it yet
 					if (isIOS) {
+						// On iOS: Store progress but don't set it yet
+						// We'll apply it when playback starts
 						savedProgress = progress;
 						displayTime = progress; // Show the saved time in the UI
 					} else {
+						// On other platforms: Set time directly
 						audioElement.currentTime = progress;
 					}
 				}
@@ -471,6 +498,7 @@
 				on:touchend={endSeek}
 				on:touchcancel={endSeek}
 			>
+				<!-- Use displayTime for iOS to show immediate visual feedback -->
 				<div
 					class="progress-bar"
 					style="width: {((isIOS ? displayTime : currentTime) / duration) * 100}%"
