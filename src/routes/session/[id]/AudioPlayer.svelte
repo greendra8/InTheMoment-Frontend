@@ -43,6 +43,9 @@
 	let canvasBlur = 3; // Initial blur amount in pixels
 
 	let audioContextInitialized = false;
+	let audioSourceConnected = false;
+	let retryCount = 0;
+	const MAX_RETRIES = 3;
 
 	let isSafari = false;
 	let audioLoaded = false;
@@ -119,17 +122,25 @@
 		try {
 			audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
 			console.log('[AudioPlayer] AudioContext created, state:', audioContext.state);
+			audioContextInitialized = true;
+		} catch (error) {
+			console.error('[AudioPlayer] Error creating AudioContext:', error);
+		}
+	}
 
+	function connectAudioSource() {
+		if (audioSourceConnected || !audioContext || !audioElement) {
+			return;
+		}
+
+		try {
+			console.log('[AudioPlayer] Connecting audio source to context');
 			const analyser = audioContext.createAnalyser();
 			analyser.fftSize = 1024;
 
-			console.log('[AudioPlayer] Creating media element source...');
 			const source = audioContext.createMediaElementSource(audioElement);
-			console.log('[AudioPlayer] Media element source created');
-
 			source.connect(analyser);
 			analyser.connect(audioContext.destination);
-			console.log('[AudioPlayer] Audio graph connected');
 
 			visualizer = setupAudioVisualizer(
 				audioElement,
@@ -138,15 +149,15 @@
 				canvasWidth,
 				canvasHeight
 			);
-			console.log('[AudioPlayer] Visualizer setup complete');
 
 			if (visualizer) {
 				visualizer.setStandbyMode(true);
 			}
 
-			audioContextInitialized = true;
+			audioSourceConnected = true;
+			console.log('[AudioPlayer] Audio source connected successfully');
 		} catch (error) {
-			console.error('[AudioPlayer] Error setting up audio context:', error);
+			console.error('[AudioPlayer] Error connecting audio source:', error);
 		}
 	}
 
@@ -182,22 +193,24 @@
 		console.log('[AudioPlayer] togglePlayPause called, current paused state:', audioElement.paused);
 		console.log('[AudioPlayer] Audio readyState:', audioElement.readyState);
 		console.log('[AudioPlayer] Audio networkState:', audioElement.networkState);
-		console.log('[AudioPlayer] Audio currentSrc:', audioElement.currentSrc);
 
 		if (audioElement.paused) {
 			// Initialize AudioContext if needed
 			if (!audioContextInitialized) {
-				console.log('[AudioPlayer] First user interaction, initializing AudioContext');
 				initializeAudioContext();
 			}
 
+			// Connect audio source if needed (only after audio is somewhat loaded)
+			if (!audioSourceConnected && audioElement.readyState >= 1) {
+				connectAudioSource();
+			}
+
 			// Check if audio is ready
-			if (!audioLoaded && audioElement.readyState < 3) {
-				// Changed from 2 to 3 for Safari
-				console.log('[AudioPlayer] Audio not fully loaded yet, setting pending play attempt');
+			if (audioElement.readyState < 2) {
+				console.log('[AudioPlayer] Audio not ready yet, setting pending play attempt');
 				playAttemptPending = true;
-				// Start loading if needed
-				if (audioElement.networkState === 0) {
+				if (audioElement.networkState !== 2) {
+					// If not already loading
 					console.log('[AudioPlayer] Triggering audio load');
 					audioElement.load();
 				}
@@ -206,7 +219,7 @@
 
 			try {
 				if (audioContext) {
-					console.log('[AudioPlayer] Current AudioContext state:', audioContext.state);
+					console.log('[AudioPlayer] Resuming AudioContext, current state:', audioContext.state);
 					audioContext.resume().then(() => {
 						console.log('[AudioPlayer] AudioContext resumed, attempting playback');
 						audioElement
@@ -218,14 +231,14 @@
 								visualizer?.setStandbyMode(false);
 							})
 							.catch((error) => {
-								console.error('[AudioPlayer] Playback failed:', error);
-								// Try one more time with a delay
+								console.error('[AudioPlayer] Initial playback failed:', error);
+								// One retry with a delay
 								setTimeout(() => {
 									console.log('[AudioPlayer] Retrying playback');
 									audioElement
 										.play()
 										.then(() => {
-											console.log('[AudioPlayer] Delayed playback successful');
+											console.log('[AudioPlayer] Retry playback successful');
 											isPlaying = true;
 											lastUpdateTime = Date.now();
 											visualizer?.setStandbyMode(false);
@@ -238,14 +251,12 @@
 							});
 					});
 				} else {
-					console.log('[AudioPlayer] No AudioContext, attempting direct playback');
 					audioElement
 						.play()
 						.then(() => {
 							console.log('[AudioPlayer] Direct playback successful');
 							isPlaying = true;
 							lastUpdateTime = Date.now();
-							visualizer?.setStandbyMode(false);
 						})
 						.catch((error) => {
 							console.error('[AudioPlayer] Direct playback failed:', error);
@@ -480,16 +491,28 @@
 		console.log('[AudioPlayer] Audio loaded event');
 		console.log('[AudioPlayer] Audio readyState:', audioElement?.readyState);
 		console.log('[AudioPlayer] Audio networkState:', audioElement?.networkState);
+
 		audioLoaded = true;
+		retryCount = 0;
 
 		if (playAttemptPending) {
 			console.log('[AudioPlayer] Executing pending play attempt now that audio is loaded');
 			playAttemptPending = false;
-			// Use a small delay to ensure everything is ready
 			setTimeout(() => {
-				console.log('[AudioPlayer] Attempting delayed play after load');
 				togglePlayPause();
-			}, 100);
+			}, 50);
+		}
+	}
+
+	function handleAudioStalled() {
+		console.log('[AudioPlayer] Audio stalled');
+		if (retryCount < MAX_RETRIES) {
+			retryCount++;
+			console.log(`[AudioPlayer] Retrying load (attempt ${retryCount}/${MAX_RETRIES})`);
+			setTimeout(() => {
+				console.log('[AudioPlayer] Reloading audio after stall');
+				audioElement.load();
+			}, 1000 * retryCount); // Exponential backoff
 		}
 	}
 
@@ -504,16 +527,6 @@
 			// Start loading the audio
 			console.log('[AudioPlayer] Starting audio load');
 			audioElement.load();
-
-			// Load saved progress
-			if (browser) {
-				cleanupExpiredProgress();
-				const savedProgress = getAudioProgress(meditationId);
-				if (savedProgress !== null) {
-					console.log('[AudioPlayer] Loaded saved progress:', savedProgress);
-					audioElement.currentTime = savedProgress;
-				}
-			}
 		} else {
 			console.error('[AudioPlayer] Audio or Canvas element is missing');
 		}
@@ -596,9 +609,7 @@
 			on:error={(e) => {
 				console.error('[AudioPlayer] Audio error:', e.target.error);
 			}}
-			on:stalled={() => {
-				console.log('[AudioPlayer] Audio stalled');
-			}}
+			on:stalled={handleAudioStalled}
 			on:waiting={() => {
 				console.log('[AudioPlayer] Audio waiting');
 			}}
