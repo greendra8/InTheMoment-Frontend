@@ -5,7 +5,6 @@
 	import type { PageData } from './$types';
 	import { browser } from '$app/environment';
 	import FeedbackForm from '$lib/components/FeedbackForm.svelte';
-	import bg from '$lib/assets/med-bg.webp';
 	import { writable } from 'svelte/store';
 	import { fly, slide, fade } from 'svelte/transition';
 	import AudioPlayer from './AudioPlayer.svelte';
@@ -32,28 +31,12 @@
 	let isMenuOpen = false;
 
 	// Current theme
-	let currentTheme = 'light';
-
-	// Background image loading state
-	let bgImageLoaded = false;
+	let currentTheme = themeStore.subscribe((value) => {
+		return value;
+	});
 
 	// Fullscreen mode state
 	let isFullscreen = false;
-
-	themeStore.subscribe((value) => {
-		currentTheme = value;
-	});
-
-	// Preload the background image
-	function preloadBackgroundImage() {
-		if (browser) {
-			const img = new Image();
-			img.src = bg;
-			img.onload = () => {
-				bgImageLoaded = true;
-			};
-		}
-	}
 
 	function setRealViewportHeight() {
 		realViewportHeight = window.innerHeight;
@@ -208,8 +191,6 @@
 
 		if (browser) {
 			window.addEventListener('resize', handleResize);
-			// Preload the background image
-			preloadBackgroundImage();
 		}
 		setRealViewportHeight();
 		window.addEventListener('resize', setRealViewportHeight);
@@ -264,37 +245,17 @@
 	/>
 </svelte:head>
 
-<!-- Preload the background image -->
-<link rel="preload" as="image" href={bg} />
-
 <div
 	class="meditation-page {currentTheme}-theme {isFullscreen ? 'fullscreen' : ''} {isFeedbackVisible
 		? 'feedback-open'
-		: ''} {meditation.content_type === 'hypnosis' ? 'hypnosis-session' : 'meditation-session'}"
+		: ''}"
 	style="height: {realViewportHeight}px;"
 >
 	{#if browser}
-		{#if currentTheme === 'light'}
-			<div class="bg-light-clouds" in:fade={{ duration: 400, delay: 100 }}>
-				<div class="swirl-layer"></div>
-				{#if meditation.content_type === 'hypnosis'}
-					<div class="hypnosis-layer"></div>
-				{/if}
-			</div>
-		{:else if currentTheme === 'dark'}
-			<div class="bg-dark-clouds" in:fade={{ duration: 400, delay: 100 }}>
-				<div class="swirl-layer"></div>
-				{#if meditation.content_type === 'hypnosis'}
-					<div class="hypnosis-layer"></div>
-				{/if}
-			</div>
-		{:else if currentTheme === 'cosmic'}
-			<div class="bg-cosmic" in:fade={{ duration: 400, delay: 100 }}>
-				<div class="swirl-layer"></div>
-				{#if meditation.content_type === 'hypnosis'}
-					<div class="hypnosis-layer"></div>
-				{/if}
-			</div>
+		{#if currentTheme === 'dark'}
+			<div class="bg-dark-clouds"></div>
+		{:else}
+			<div class="bg-cosmic"></div>
 		{/if}
 	{/if}
 	<div class="navigation-controls {isFeedbackVisible ? 'blurred' : ''}">
@@ -436,8 +397,7 @@
 		position: static;
 	}
 
-	/* Shared swirling clouds background for all themes */
-	.bg-light-clouds,
+	/* Shared background for all themes */
 	.bg-dark-clouds,
 	.bg-cosmic {
 		position: absolute;
@@ -450,10 +410,6 @@
 	}
 
 	/* Base background gradient for each theme */
-	.bg-light-clouds {
-		background: linear-gradient(to bottom, #e4eaf7, #25314d);
-	}
-
 	.bg-dark-clouds {
 		background: linear-gradient(to bottom, var(--background-main), rgba(20, 20, 40, 1));
 	}
@@ -533,41 +489,6 @@
 		bottom: 0;
 		filter: blur(50px);
 		animation: swirlEffect 30s infinite linear;
-	}
-
-	/* Theme-specific colors for swirl layer */
-	.bg-light-clouds .swirl-layer {
-		background: radial-gradient(ellipse at 40% 50%, rgba(79, 172, 254, 0.08) 0%, transparent 70%),
-			radial-gradient(ellipse at 60% 50%, rgba(118, 75, 162, 0.08) 0%, transparent 70%);
-	}
-
-	.bg-dark-clouds .swirl-layer {
-		background: radial-gradient(ellipse at 40% 50%, rgba(79, 172, 254, 0.08) 0%, transparent 70%),
-			radial-gradient(ellipse at 60% 50%, rgba(118, 75, 162, 0.08) 0%, transparent 70%);
-	}
-
-	@keyframes cloudMove {
-		0% {
-			transform: translateX(-8%) translateY(-8%) scale(1);
-		}
-		50% {
-			transform: translateX(0%) translateY(0%) scale(1.1);
-		}
-		100% {
-			transform: translateX(8%) translateY(8%) scale(1);
-		}
-	}
-
-	@keyframes swirlEffect {
-		0% {
-			transform: rotate(0deg) scale(1);
-		}
-		50% {
-			transform: rotate(180deg) scale(1.2);
-		}
-		100% {
-			transform: rotate(360deg) scale(1);
-		}
 	}
 
 	/* Show the image when loaded */
@@ -856,8 +777,12 @@
 		padding: clamp(0.4rem, 1.5vw, 0.5rem) clamp(0.8rem, 2.5vw, 1rem);
 		font-size: clamp(0.875rem, 2.5vw, 1rem);
 		font-family: 'Space Grotesk', sans-serif;
-		background: var(--background-button);
-		color: var(--text-light);
+		background: linear-gradient(
+			135deg,
+			rgba(var(--interactive-gradient-1), var(--interactive-opacity-1)) 0%,
+			rgba(var(--interactive-gradient-2), var(--interactive-opacity-2)) 100%
+		);
+		color: var(--text-primary);
 		border: 2px solid rgba(var(--interactive-gradient-1), 0.2);
 		border-radius: clamp(0.4rem, 1.5vw, 0.5rem);
 		cursor: pointer;
@@ -867,28 +792,6 @@
 
 	.show-feedback-button:hover,
 	.hide-feedback-button:hover {
-		background: var(--background-buttonHover);
-		transform: translateY(-2px);
-		box-shadow: 0 4px 12px var(--ui-shadowHover);
-	}
-
-	/* Apply gradients only for themed versions */
-	:global(.dark-theme) .show-feedback-button,
-	:global(.cosmic-theme) .show-feedback-button,
-	:global(.dark-theme) .hide-feedback-button,
-	:global(.cosmic-theme) .hide-feedback-button {
-		background: linear-gradient(
-			135deg,
-			rgba(var(--interactive-gradient-1), var(--interactive-opacity-1)) 0%,
-			rgba(var(--interactive-gradient-2), var(--interactive-opacity-2)) 100%
-		);
-		color: var(--text-primary);
-	}
-
-	:global(.dark-theme) .show-feedback-button:hover,
-	:global(.cosmic-theme) .show-feedback-button:hover,
-	:global(.dark-theme) .hide-feedback-button:hover,
-	:global(.cosmic-theme) .hide-feedback-button:hover {
 		background: linear-gradient(
 			135deg,
 			rgba(var(--interactive-gradient-1), var(--interactive-hover-opacity-1)) 0%,
@@ -1001,55 +904,6 @@
 		}
 	} */
 
-	/* Hypnosis Session Styling */
-
-	/* Dark and cosmic theme hypnosis styling */
-	.meditation-page.hypnosis-session.dark-theme .bg-dark-clouds::before,
-	.meditation-page.hypnosis-session.cosmic-theme .bg-cosmic::before {
-		background: radial-gradient(circle at 20% 30%, rgba(147, 112, 219, 0.15) 0%, transparent 60%),
-			radial-gradient(circle at 80% 70%, rgba(138, 43, 226, 0.15) 0%, transparent 60%);
-	}
-
-	.meditation-page.hypnosis-session.dark-theme .bg-dark-clouds::after,
-	.meditation-page.hypnosis-session.cosmic-theme .bg-cosmic::after {
-		background: radial-gradient(circle at 70% 20%, rgba(123, 104, 238, 0.18) 0%, transparent 60%),
-			radial-gradient(circle at 30% 80%, rgba(106, 90, 205, 0.18) 0%, transparent 60%);
-	}
-
-	.meditation-page.hypnosis-session.dark-theme .swirl-layer,
-	.meditation-page.hypnosis-session.cosmic-theme .swirl-layer {
-		background: radial-gradient(ellipse at 40% 50%, rgba(147, 112, 219, 0.1) 0%, transparent 70%),
-			radial-gradient(ellipse at 60% 50%, rgba(138, 43, 226, 0.1) 0%, transparent 70%);
-	}
-
-	/* Shared hypnosis animation for all themes */
-	.meditation-page.hypnosis-session .swirl-layer {
-		animation: hypnosisSwirl 20s infinite linear;
-	}
-
-	@keyframes hypnosisSwirl {
-		0% {
-			transform: rotate(0deg) scale(1);
-			opacity: 0.7;
-		}
-		25% {
-			transform: rotate(120deg) scale(1.3);
-			opacity: 0.9;
-		}
-		50% {
-			transform: rotate(240deg) scale(1.1);
-			opacity: 0.8;
-		}
-		75% {
-			transform: rotate(300deg) scale(1.2);
-			opacity: 0.9;
-		}
-		100% {
-			transform: rotate(360deg) scale(1);
-			opacity: 0.7;
-		}
-	}
-
 	/* Session Type Badge */
 	.session-type-indicator {
 		display: flex;
@@ -1074,43 +928,5 @@
 		background: var(--hypnosis-badge-bg);
 		color: var(--hypnosis-badge-text);
 		border: 1px solid rgba(255, 255, 255, 0.1);
-	}
-
-	/* Additional hypnosis animation layer */
-	.hypnosis-layer {
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		filter: blur(40px);
-		animation: hypnosisWave 20s infinite alternate ease-in-out;
-		z-index: 0;
-	}
-
-	/* Dark and cosmic theme hypnosis layer */
-	.dark-theme .hypnosis-layer,
-	.cosmic-theme .hypnosis-layer {
-		background: radial-gradient(circle at 30% 40%, rgba(147, 112, 219, 0.08) 0%, transparent 50%),
-			radial-gradient(circle at 70% 60%, rgba(138, 43, 226, 0.08) 0%, transparent 50%);
-	}
-
-	@keyframes hypnosisWave {
-		0% {
-			transform: translateX(-5%) translateY(-5%) scale(1.1);
-			opacity: 0.5;
-		}
-		33% {
-			transform: translateX(3%) translateY(2%) scale(1.2);
-			opacity: 0.7;
-		}
-		66% {
-			transform: translateX(-2%) translateY(4%) scale(1.3);
-			opacity: 0.6;
-		}
-		100% {
-			transform: translateX(5%) translateY(-3%) scale(1.1);
-			opacity: 0.5;
-		}
 	}
 </style>
