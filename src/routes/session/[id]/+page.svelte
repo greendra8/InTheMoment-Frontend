@@ -31,8 +31,9 @@
 	let isMenuOpen = false;
 
 	// Current theme
-	let currentTheme = themeStore.subscribe((value) => {
-		return value;
+	let currentTheme: string;
+	themeStore.subscribe((value) => {
+		currentTheme = value;
 	});
 
 	// Fullscreen mode state

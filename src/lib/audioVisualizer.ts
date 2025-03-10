@@ -257,12 +257,21 @@ export function setupAudioVisualizer(audio: HTMLAudioElement, canvas: HTMLCanvas
     isStandbyMode = standby;
   }
 
+  // Ensure audio context is resumed - can be called before any audio operation
+  function ensureAudioContextResumed(audioContext: AudioContext): Promise<void> {
+    if (audioContext.state === 'suspended') {
+      return audioContext.resume();
+    }
+    return Promise.resolve();
+  }
+
   // Start the animation loop
   draw();
 
   // Return public methods
   return {
     startCelebration,
-    setStandbyMode
+    setStandbyMode,
+    ensureAudioContextResumed
   };
 }

@@ -63,22 +63,19 @@
 
 	export function togglePlayPause() {
 		if (audioElement.paused) {
-			if (audioContext.state === 'suspended') {
-				audioContext.resume().catch((error) => {
-					console.error('Error resuming audio context:', error);
-				});
+			// First ensure the audio context is resumed before attempting to play
+			if (audioContext && audioContext.state === 'suspended') {
+				audioContext
+					.resume()
+					.then(() => {
+						return playAudio();
+					})
+					.catch((error) => {
+						console.error('Error resuming audio context:', error);
+					});
+			} else {
+				playAudio();
 			}
-			audioElement
-				.play()
-				.then(() => {
-					isPlaying = true;
-					lastUpdateTime = Date.now();
-					visualizer?.setStandbyMode(false);
-				})
-				.catch((error) => {
-					console.error('Error playing audio:', error);
-					isPlaying = false;
-				});
 		} else {
 			audioElement.pause();
 			isPlaying = false;
@@ -87,11 +84,33 @@
 		}
 	}
 
+	// Separate function to handle audio playback after context is resumed
+	async function playAudio() {
+		try {
+			await audioElement.play();
+			isPlaying = true;
+			lastUpdateTime = Date.now();
+			visualizer?.setStandbyMode(false);
+		} catch (error) {
+			console.error('Error playing audio:', error);
+			isPlaying = false;
+		}
+	}
+
 	function startPlayback() {
-		audioElement.play();
-		isPlaying = true;
-		lastUpdateTime = Date.now();
-		visualizer?.setStandbyMode(false);
+		// Use the same pattern as togglePlayPause for consistency
+		if (audioContext && audioContext.state === 'suspended') {
+			audioContext
+				.resume()
+				.then(() => {
+					return playAudio();
+				})
+				.catch((error) => {
+					console.error('Error resuming audio context:', error);
+				});
+		} else {
+			playAudio();
+		}
 	}
 
 	function updateProgress() {
@@ -319,11 +338,17 @@
 			style="opacity: {canvasOpacity}; filter: blur({canvasBlur}px); transition: opacity 0.2s ease-in, filter 0.1s ease-in;"
 		>
 			<canvas bind:this={canvasElement} style="width: 300px; height: 300px;"></canvas>
-			<div class="play-overlay" class:visible={!isPlaying}>
-				<svg viewBox="0 0 24 24" width="48" height="48">
-					<polygon points="5,3 19,12 5,21" fill="#FFFFFF" />
-				</svg>
-			</div>
+			<button
+				class="play-button"
+				on:click|stopPropagation={togglePlayPause}
+				aria-label={isPlaying ? 'Pause' : 'Play'}
+			>
+				<div class="play-overlay" class:visible={!isPlaying}>
+					<svg viewBox="0 0 24 24" width="48" height="48">
+						<polygon points="5,3 19,12 5,21" fill="#FFFFFF" />
+					</svg>
+				</div>
+			</button>
 		</div>
 		<audio
 			bind:this={audioElement}
@@ -404,7 +429,7 @@
 		transition: opacity 0.5s ease-in-out;
 		position: absolute;
 		left: 50%;
-		top: 55%;
+		top: 50%;
 		transform: translate(-50%, -50%);
 		width: 100%;
 	}
@@ -434,6 +459,23 @@
 	:global(.dark-theme) canvas,
 	:global(.cosmic-theme) canvas {
 		opacity: 0.85;
+	}
+
+	.play-button {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background: transparent;
+		border: none;
+		border-radius: 50%;
+		cursor: pointer;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		padding: 0;
+		margin: 0;
 	}
 
 	.play-overlay {
@@ -620,6 +662,12 @@
 	}
 
 	/* Adjust for smaller screens */
+	@media (max-height: 900px) {
+		.audio-player {
+			top: 55%;
+		}
+	}
+
 	@media (max-height: 700px) {
 		.audio-player {
 			transform: translate(-50%, -50%) scale(0.9);
