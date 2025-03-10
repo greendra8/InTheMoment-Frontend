@@ -44,21 +44,26 @@
 
 	// Add iOS detection
 	let isIOS = false;
-	let pendingSeekTime: number | null = null;
+	let displayTime = 0; // Separate display time for iOS
+	let savedProgress = 0; // Store saved progress
+	let hasStartedPlayback = false; // Track if playback has started at least once
 
 	function updatePlayingState() {
 		isPlaying = !audioElement.paused;
 
-		// Handle pending seek on iOS when playback starts
-		if (isIOS && pendingSeekTime !== null && isPlaying) {
-			// Small delay to ensure iOS is ready to accept the seek
+		// On iOS, when playback starts, update the current time to reflect actual position
+		if (isIOS && isPlaying) {
+			// Mark that playback has started at least once
+			hasStartedPlayback = true;
+
+			// Small delay to ensure iOS has properly started playback
 			setTimeout(() => {
-				if (audioElement && pendingSeekTime !== null) {
-					audioElement.currentTime = pendingSeekTime;
-					currentTime = pendingSeekTime;
-					pendingSeekTime = null;
+				if (audioElement && isPlaying) {
+					// Update display time to match actual audio position
+					displayTime = audioElement.currentTime;
+					currentTime = audioElement.currentTime;
 				}
-			}, 50);
+			}, 100);
 		}
 	}
 
@@ -103,10 +108,30 @@
 	// Separate function to handle audio playback after context is resumed
 	async function playAudio() {
 		try {
+			// On iOS, set the time before playing if we have saved progress
+			if (isIOS && savedProgress > 0 && !hasStartedPlayback) {
+				audioElement.currentTime = savedProgress;
+			}
+
 			await audioElement.play();
 			isPlaying = true;
 			lastUpdateTime = Date.now();
 			visualizer?.setStandbyMode(false);
+
+			// On iOS, after playback starts, update the current time
+			if (isIOS && savedProgress > 0) {
+				// Small delay to ensure iOS has properly started playback
+				setTimeout(() => {
+					if (audioElement && isPlaying) {
+						// If we were seeking, apply the seek now
+						if (savedProgress > 0) {
+							audioElement.currentTime = savedProgress;
+							currentTime = savedProgress;
+							savedProgress = 0;
+						}
+					}
+				}, 100);
+			}
 		} catch (error) {
 			console.error('Error playing audio:', error);
 			isPlaying = false;
@@ -136,7 +161,15 @@
 		}
 		lastUpdateTime = now;
 
-		currentTime = audioElement.currentTime;
+		// On iOS, only update currentTime from audio element if playback has started at least once
+		if (!isIOS || hasStartedPlayback) {
+			currentTime = audioElement.currentTime;
+
+			// Also update display time for iOS
+			if (isIOS) {
+				displayTime = currentTime;
+			}
+		}
 
 		// Save progress to localStorage (debounced)
 		if (browser) {
@@ -199,7 +232,6 @@
 		if (event instanceof MouseEvent) {
 			clientX = event.clientX;
 		} else {
-			// For touch events, ensure we're getting the correct touch point
 			clientX = event.touches[0].clientX;
 		}
 
@@ -209,14 +241,15 @@
 
 		// iOS-specific handling
 		if (isIOS) {
+			// Update display time immediately for visual feedback
+			displayTime = newTime;
+
 			if (audioElement.paused) {
-				// Store the desired seek time for when playback starts
-				pendingSeekTime = newTime;
+				// On iOS, we need to play first to make seeking work
+				// Store the current position in the UI but don't try to seek yet
+				savedProgress = newTime;
 
-				// Update UI immediately for visual feedback
-				currentTime = newTime;
-
-				// Start playback to enable seeking
+				// Start playback - the updatePlayingState will handle seeking
 				startPlayback();
 			} else {
 				// If already playing, we can seek directly
@@ -354,9 +387,15 @@
 			// Load saved progress
 			if (browser) {
 				cleanupExpiredProgress(); // Clean up any expired progress
-				const savedProgress = getAudioProgress(meditationId);
-				if (savedProgress !== null) {
-					audioElement.currentTime = savedProgress;
+				const progress = getAudioProgress(meditationId);
+				if (progress !== null) {
+					// On iOS, store the saved progress but don't set it yet
+					if (isIOS) {
+						savedProgress = progress;
+						displayTime = progress; // Show the saved time in the UI
+					} else {
+						audioElement.currentTime = progress;
+					}
 				}
 			}
 		} else {
@@ -432,15 +471,18 @@
 				on:touchend={endSeek}
 				on:touchcancel={endSeek}
 			>
-				<div class="progress-bar" style="width: {(currentTime / duration) * 100}%"></div>
+				<div
+					class="progress-bar"
+					style="width: {((isIOS ? displayTime : currentTime) / duration) * 100}%"
+				></div>
 				<div
 					class="progress-knob"
-					style="left: calc({(currentTime / duration) * 100}% - 8px)"
+					style="left: calc({((isIOS ? displayTime : currentTime) / duration) * 100}% - 8px)"
 				></div>
 			</div>
 			<div class="controls-row">
 				<div class="time-display">
-					{formatTime(currentTime)} / {formatTime(duration)}
+					{formatTime(isIOS ? displayTime : currentTime)} / {formatTime(duration)}
 				</div>
 				<div class="volume-control">
 					<i
