@@ -51,7 +51,7 @@
 </script>
 
 <svelte:head>
-	<title>Neo Dashboard - In The Moment</title>
+	<title>Dashboard - In The Moment</title>
 	<link
 		href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
 		rel="stylesheet"
@@ -271,7 +271,7 @@
 						tabindex="0"
 						role="button"
 					>
-						<div class="session-play">
+						<div class="session-play-button">
 							<i class="fas fa-play"></i>
 						</div>
 						<div class="session-info">
@@ -655,16 +655,34 @@
 		font-size: 0.7rem;
 		padding: 0.2rem 0.5rem;
 		border-radius: 10px;
-		background: rgba(var(--interactive-gradient-1), 0.1);
-		color: var(--text-secondary);
+		background: var(--meditation-badge-bg);
+		color: var(--meditation-badge-text);
 		font-weight: 500;
 		text-transform: capitalize;
-		margin-left: 0.5rem;
+		border: 1px solid rgba(255, 255, 255, 0.1);
 	}
 
 	.content-type-badge.hypnosis {
-		background: rgba(var(--gradient-3), 0.15);
-		color: var(--text-primary);
+		background: var(--hypnosis-badge-bg);
+		color: var(--hypnosis-badge-text);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+	}
+
+	/* Ensure all badges have the same style regardless of where they appear */
+	.featured-session .content-type-badge,
+	.session-item .content-type-badge,
+	.playlist-card .content-type-badge {
+		background: var(--meditation-badge-bg);
+		color: var(--meditation-badge-text);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+	}
+
+	.featured-session .content-type-badge.hypnosis,
+	.session-item .content-type-badge.hypnosis,
+	.playlist-card .content-type-badge.hypnosis {
+		background: var(--hypnosis-badge-bg);
+		color: var(--hypnosis-badge-text);
+		border: 1px solid rgba(255, 255, 255, 0.1);
 	}
 
 	.featured-meta {
@@ -793,10 +811,10 @@
 		box-shadow: 0 6px 15px var(--ui-shadowHover);
 	}
 
-	.session-play {
+	.session-play-button {
 		width: 40px;
 		height: 40px;
-		background: var(--session-play-bg);
+		background: var(--play-btn-bg);
 		color: var(--play-btn-text);
 		border-radius: 50%;
 		display: flex;
@@ -804,15 +822,15 @@
 		justify-content: center;
 		margin-right: 1rem;
 		flex-shrink: 0;
+		box-shadow: 0 0 15px rgba(var(--interactive-gradient-1), 0.2);
 		transition: all 0.3s ease;
 		position: relative;
 		z-index: 1;
-		box-shadow: 0 0 10px rgba(var(--interactive-gradient-1), 0.1);
 	}
 
-	.session-item:hover .session-play {
-		background: var(--session-play-bg-hover);
-		box-shadow: 0 0 15px rgba(var(--interactive-gradient-1), 0.2);
+	.session-item:hover .session-play-button {
+		background: var(--play-btn-bg-hover);
+		box-shadow: 0 0 20px rgba(var(--interactive-gradient-1), 0.3);
 		transform: scale(1.05);
 	}
 
@@ -826,10 +844,24 @@
 	.session-info h3 {
 		font-size: 1rem;
 		font-weight: 500;
-		margin: 0 0 0.3rem 0;
+		margin-bottom: 0.2rem;
+		color: var(--text-primary);
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
+	}
+
+	/* Ensure consistent badge styling in session info */
+	.session-info .content-type-badge {
+		background: var(--meditation-badge-bg);
+		color: var(--meditation-badge-text);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+	}
+
+	.session-info .content-type-badge.hypnosis {
+		background: var(--hypnosis-badge-bg);
+		color: var(--hypnosis-badge-text);
+		border: 1px solid rgba(255, 255, 255, 0.1);
 	}
 
 	.session-meta {

@@ -637,7 +637,6 @@
 
 	.listened-icon i {
 		border-radius: 50%;
-		box-shadow: 0 0 6px 2px rgba(76, 175, 80, 0.4);
 	}
 
 	.meditation-info {
@@ -974,7 +973,7 @@
 		}
 
 		header {
-			top: 0rem;
+			top: 1rem;
 			scale: 0.9;
 		}
 
@@ -984,6 +983,10 @@
 
 		:global(.audio-player) {
 			top: calc(50% + 1rem) !important;
+		}
+
+		.listened-icon {
+			top: -1.2rem;
 		}
 	}
 
@@ -1048,44 +1051,18 @@
 		font-size: 0.8rem;
 		padding: 0.3rem 0.8rem;
 		border-radius: 12px;
-		background: rgba(var(--interactive-gradient-1), 0.15);
-		color: var(--text-secondary);
+		background: var(--meditation-badge-bg);
+		color: var(--meditation-badge-text);
 		font-weight: 500;
 		text-transform: capitalize;
 		letter-spacing: 0.5px;
+		border: 1px solid rgba(255, 255, 255, 0.1);
 	}
 
-	/* Light theme badges */
-	.light-theme .session-type-badge {
-		background: rgba(79, 172, 254, 0.15);
-		color: #1a1a1a;
-	}
-
-	.light-theme .session-type-badge.hypnosis {
-		background: rgba(0, 242, 254, 0.15);
-		color: #1a1a1a;
-	}
-
-	/* Dark theme badges */
-	.dark-theme .session-type-badge {
-		background: rgba(var(--interactive-gradient-1), 0.15);
-		color: var(--text-secondary);
-	}
-
-	.dark-theme .session-type-badge.hypnosis {
-		background: rgba(147, 112, 219, 0.2);
-		color: var(--text-primary);
-	}
-
-	/* Cosmic theme badges */
-	.cosmic-theme .session-type-badge {
-		background: rgba(var(--interactive-gradient-1), 0.15);
-		color: var(--text-secondary);
-	}
-
-	.cosmic-theme .session-type-badge.hypnosis {
-		background: rgba(138, 43, 226, 0.2);
-		color: var(--text-primary);
+	.session-type-badge.hypnosis {
+		background: var(--hypnosis-badge-bg);
+		color: var(--hypnosis-badge-text);
+		border: 1px solid rgba(255, 255, 255, 0.1);
 	}
 
 	/* Additional hypnosis animation layer */

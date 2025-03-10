@@ -28,6 +28,12 @@
         --btn-text: #ffffff;
         --play-btn-text: #ffffff;
 
+        /* NEW: Badge colors for meditation and hypnosis - more subtle */
+        --meditation-badge-bg: rgba(106, 90, 205, 0.25);
+        --meditation-badge-text: #e0e4fc;
+        --hypnosis-badge-bg: rgba(138, 43, 226, 0.25);
+        --hypnosis-badge-text: #e0e4fc;
+
         /* Background colors */
         --background-main: #0a0a20;
         --background-gradient-1: rgba(106, 90, 205, 0.15);
@@ -180,96 +186,96 @@ main,
 
 /* Light theme */
 /* Light theme overrides: Using solid colors for buttons, sliders, and interactive elements to avoid gradient appearance */
-.light-theme {
-        /* Text colors */
-        --text-primary: #1a1a1a;
-        --text-secondary: #555;
-        --text-light: #ffffff;
-        --text-error: #d32f2f;
-        --text-success: #2e7d32;
+/* .light-theme { */
+/* Text colors */
+/* --text-primary: #1a1a1a; */
+/* --text-secondary: #555; */
+/* --text-light: #ffffff; */
+/* --text-error: #d32f2f; */
+/* --text-success: #2e7d32; */
 
-        /* NEW: Button text color for light theme */
-        --btn-text: #ffffff;
-        --play-btn-text: #ffffff;
+/* NEW: Button text color for light theme */
+/* --btn-text: #ffffff; */
+/* --play-btn-text: #ffffff; */
 
-        /* Background colors */
-        --background-main: #f8f9fa;
-        --background-gradient-1: rgba(200, 200, 200, 0.1);
-        --background-gradient-2: rgba(180, 180, 180, 0.1);
-        --background-gradient-3: rgba(220, 220, 220, 0.1);
-        --background-card: rgba(255, 255, 255, 0.92);
-        --background-cardHover: rgba(255, 255, 255, 0.98);
-        --background-button: #000000;
-        --background-buttonHover: #333333;
-        --background-input: #fff;
-        --background-error: #ffebee;
+/* Background colors */
+/* --background-main: #f8f9fa; */
+/* --background-gradient-1: rgba(200, 200, 200, 0.1); */
+/* --background-gradient-2: rgba(180, 180, 180, 0.1); */
+/* --background-gradient-3: rgba(220, 220, 220, 0.1); */
+/* --background-card: rgba(255, 255, 255, 0.92); */
+/* --background-cardHover: rgba(255, 255, 255, 0.98); */
+/* --background-button: #000000; */
+/* --background-buttonHover: #333333; */
+/* --background-input: #fff; */
+/* --background-error: #ffebee; */
 
-        /* Background image with subtle gradients */
-        --background-image:
-                radial-gradient(circle at 50% -20%, var(--background-gradient-1), transparent 60%),
-                radial-gradient(circle at -10% 50%, var(--background-gradient-2), transparent 50%),
-                radial-gradient(circle at 100% 80%, var(--background-gradient-3), transparent 40%),
-                var(--background-main);
-        --background-attachment: fixed;
-        --background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%;
+/* Background image with subtle gradients */
+/* --background-image: */
+/*         radial-gradient(circle at 50% -20%, var(--background-gradient-1), transparent 60%), */
+/*         radial-gradient(circle at -10% 50%, var(--background-gradient-2), transparent 50%), */
+/*         radial-gradient(circle at 100% 80%, var(--background-gradient-3), transparent 40%), */
+/*         var(--background-main); */
+/* --background-attachment: fixed; */
+/* --background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%; */
 
-        /* UI element colors */
-        --ui-divider: rgba(0, 0, 0, 0.08);
-        --ui-shadow: rgba(0, 0, 0, 0.04);
-        --ui-shadowHover: rgba(0, 0, 0, 0.08);
-        --ui-border: rgba(0, 0, 0, 0.06);
-        --ui-focus: #000;
-        --ui-success: #4CAF50;
-        --ui-success-hover: #45a049;
-        --ui-danger: #f44336;
-        --ui-danger-hover: #d32f2f;
-        --ui-disabled: #d1d5db;
+/* UI element colors */
+/* --ui-divider: rgba(0, 0, 0, 0.08); */
+/* --ui-shadow: rgba(0, 0, 0, 0.04); */
+/* --ui-shadowHover: rgba(0, 0, 0, 0.08); */
+/* --ui-border: rgba(0, 0, 0, 0.06); */
+/* --ui-focus: #000; */
+/* --ui-success: #4CAF50; */
+/* --ui-success-hover: #45a049; */
+/* --ui-danger: #f44336; */
+/* --ui-danger-hover: #d32f2f; */
+/* --ui-disabled: #d1d5db; */
 
-        /* Icon colors */
-        --icon-primary: #000;
-        --icon-secondary: #555;
-        --icon-danger: #e53935;
+/* Icon colors */
+/* --icon-primary: #000; */
+/* --icon-secondary: #555; */
+/* --icon-danger: #e53935; */
 
-        /* RGB values for transparency */
-        --background-card-rgb: 255, 255, 255;
-        --icon-primary-rgb: 0, 0, 0;
-        --text-primary-rgb: 26, 26, 26;
+/* RGB values for transparency */
+/* --background-card-rgb: 255, 255, 255; */
+/* --icon-primary-rgb: 0, 0, 0; */
+/* --text-primary-rgb: 26, 26, 26; */
 
-        /* Gradient colors - keeping these neutral */
-        --gradient-1: 0, 0, 0;
-        --gradient-2: 51, 51, 51;
-        --gradient-3: 102, 102, 102;
-        --gradient-4: 153, 153, 153;
-        --gradient-5: 0, 0, 0;
-        --gradient-6: 51, 51, 51;
-        --gradient-7: 102, 102, 102;
-        --gradient-8: 153, 153, 153;
+/* Gradient colors - keeping these neutral */
+/* --gradient-1: 0, 0, 0; */
+/* --gradient-2: 51, 51, 51; */
+/* --gradient-3: 102, 102, 102; */
+/* --gradient-4: 153, 153, 153; */
+/* --gradient-5: 0, 0, 0; */
+/* --gradient-6: 51, 51, 51; */
+/* --gradient-7: 102, 102, 102; */
+/* --gradient-8: 153, 153, 153; */
 
-        /* Interactive element gradients */
-        --interactive-gradient-1: 100, 100, 100;
-        --interactive-gradient-2: 200, 200, 200;
-        --interactive-opacity-1: 1;
-        --interactive-opacity-2: 1;
-        --interactive-hover-opacity-1: 1;
-        --interactive-hover-opacity-2: 1;
+/* Interactive element gradients */
+/* --interactive-gradient-1: 100, 100, 100; */
+/* --interactive-gradient-2: 200, 200, 200; */
+/* --interactive-opacity-1: 1; */
+/* --interactive-opacity-2: 1; */
+/* --interactive-hover-opacity-1: 1; */
+/* --interactive-hover-opacity-2: 1; */
 
-        /* Define CSS variables for transparent and faded variants */
-        --background-card-transparent: rgba(var(--background-card-rgb), 0.5);
-        --icon-primary-faded: rgba(var(--icon-primary-rgb), 0.85);
-        --text-primary-faded: rgba(var(--text-primary-rgb), 0.85);
+/* Define CSS variables for transparent and faded variants */
+/* --background-card-transparent: rgba(var(--background-card-rgb), 0.5); */
+/* --icon-primary-faded: rgba(var(--icon-primary-rgb), 0.85); */
+/* --text-primary-faded: rgba(var(--text-primary-rgb), 0.85); */
 
-        /* NEW: Override button and interactive element backgrounds for light theme (solid colors) */
-        --btn-bg: #000000;
-        --btn-bg-hover: #333333;
-        --play-btn-bg: #000000;
-        --play-btn-bg-hover: #333333;
-        --session-play-bg: #000000;
-        --session-play-bg-hover: #333333;
+/* NEW: Override button and interactive element backgrounds for light theme (solid colors) */
+/* --btn-bg: #000000; */
+/* --btn-bg-hover: #333333; */
+/* --play-btn-bg: #000000; */
+/* --play-btn-bg-hover: #333333; */
+/* --session-play-bg: #000000; */
+/* --session-play-bg-hover: #333333; */
 
-        /* NEW: Override slider backgrounds for light theme (solid colors) */
-        --slider-bg: #000000;
-        --slider-progress-bg: #000000;
-}
+/* NEW: Override slider backgrounds for light theme (solid colors) */
+/* --slider-bg: #000000; */
+/* --slider-progress-bg: #000000; */
+/* } */
 
 /* Dark theme - can be enabled by adding class "dark-theme" to an element */
 /* Dark theme: Utilizing vibrant gradients for interactive elements */
@@ -284,6 +290,12 @@ main,
         /* NEW: Button text color for dark theme */
         --btn-text: #ffffff;
         --play-btn-text: #ffffff;
+
+        /* NEW: Badge colors for meditation and hypnosis in dark theme - more subtle */
+        --meditation-badge-bg: rgba(79, 172, 254, 0.25);
+        --meditation-badge-text: #e8e8e8;
+        --hypnosis-badge-bg: rgba(147, 112, 219, 0.25);
+        --hypnosis-badge-text: #e8e8e8;
 
         /* Background colors */
         --background-main: #121212;
