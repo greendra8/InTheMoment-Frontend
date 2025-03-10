@@ -14,6 +14,7 @@
 	const voiceOptions = [
 		{ id: 0, label: 'Female 1', audioSrc: '/audio/female1-sample.mp3' },
 		{ id: 1, label: 'Female 2', audioSrc: '/audio/female2-sample.mp3' },
+		{ id: 4, label: 'Female 3', audioSrc: '/audio/female3-sample.mp3' },
 		{ id: 2, label: 'Male 1', audioSrc: '/audio/male1-sample.mp3' },
 		{ id: 3, label: 'Male 2', audioSrc: '/audio/male2-sample.mp3' }
 	];
