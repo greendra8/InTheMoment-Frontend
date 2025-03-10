@@ -63,10 +63,17 @@
 
 	export function togglePlayPause() {
 		if (audioElement.paused) {
-			if (audioContext.state === 'suspended') {
-				audioContext.resume().then(() => {
-					startPlayback();
-				});
+			if (audioContext && audioContext.state === 'suspended') {
+				audioContext
+					.resume()
+					.then(() => {
+						startPlayback();
+					})
+					.catch((error) => {
+						console.error('Failed to resume audio context:', error);
+						// Try to play anyway
+						startPlayback();
+					});
 			} else {
 				startPlayback();
 			}
@@ -249,21 +256,38 @@
 	onMount(() => {
 		if (audioElement && canvasElement) {
 			setupCanvas();
-			audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-			const analyser = audioContext.createAnalyser();
-			analyser.fftSize = 1024;
-			const source = audioContext.createMediaElementSource(audioElement);
-			source.connect(analyser);
-			analyser.connect(audioContext.destination);
-			visualizer = setupAudioVisualizer(
-				audioElement,
-				canvasElement,
-				analyser,
-				canvasWidth,
-				canvasHeight
-			);
-			if (visualizer) {
-				visualizer.setStandbyMode(true);
+			try {
+				audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+
+				// Add event listener to resume AudioContext on user interaction
+				const resumeAudioContext = () => {
+					if (audioContext && audioContext.state === 'suspended') {
+						audioContext
+							.resume()
+							.catch((err) => console.error('Failed to resume AudioContext:', err));
+					}
+				};
+
+				document.addEventListener('click', resumeAudioContext);
+				document.addEventListener('touchstart', resumeAudioContext);
+
+				const analyser = audioContext.createAnalyser();
+				analyser.fftSize = 1024;
+				const source = audioContext.createMediaElementSource(audioElement);
+				source.connect(analyser);
+				analyser.connect(audioContext.destination);
+				visualizer = setupAudioVisualizer(
+					audioElement,
+					canvasElement,
+					analyser,
+					canvasWidth,
+					canvasHeight
+				);
+				if (visualizer) {
+					visualizer.setStandbyMode(true);
+				}
+			} catch (error) {
+				console.error('Error initializing audio context:', error);
 			}
 
 			// Load saved progress
@@ -290,6 +314,19 @@
 				audioElement.removeEventListener('play', updatePlayingState);
 				audioElement.removeEventListener('pause', updatePlayingState);
 				audioElement.removeEventListener('ended', handleAudioEnded);
+			}
+
+			// Remove event listeners for resuming AudioContext
+			document.removeEventListener('click', resumeAudioContext);
+			document.removeEventListener('touchstart', resumeAudioContext);
+
+			// Close AudioContext if it exists
+			if (audioContext) {
+				try {
+					audioContext.close().catch((err) => console.error('Error closing AudioContext:', err));
+				} catch (error) {
+					console.error('Error closing AudioContext:', error);
+				}
 			}
 		};
 	});
