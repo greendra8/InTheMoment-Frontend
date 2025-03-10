@@ -962,6 +962,12 @@
 		}
 	}
 
+	@media (max-height: 900px) {
+		:global(.audio-player) {
+			top: calc(50% + 1rem) !important;
+		}
+	}
+
 	@media (max-height: 700px) {
 		.meditation-content {
 			justify-content: flex-start;

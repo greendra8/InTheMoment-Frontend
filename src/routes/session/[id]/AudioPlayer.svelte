@@ -394,7 +394,7 @@
 		flex-grow: 1;
 		transition: opacity 0.5s ease-in-out;
 		position: absolute;
-		top: calc(50% + 3rem);
+		top: calc(50%);
 		transform: translateY(-50%);
 	}
 
