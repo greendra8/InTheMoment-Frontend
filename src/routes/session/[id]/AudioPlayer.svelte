@@ -44,6 +44,70 @@
 
 	let audioContextInitialized = false;
 
+	let audioLoaded = false;
+	let playAttemptPending = false;
+
+	// Add iOS detection
+	let isIOS = false;
+
+	function detectIOS() {
+		const userAgent = window.navigator.userAgent.toLowerCase();
+		isIOS = /iphone|ipad|ipod|macintosh/.test(userAgent) && 'ontouchend' in document;
+		console.log('[AudioPlayer] iOS device detected:', isIOS);
+		return isIOS;
+	}
+
+	// Special function for iOS audio unlock
+	function setupIOSAudioUnlock() {
+		if (!isIOS) return;
+
+		console.log('[AudioPlayer] Setting up iOS audio unlock');
+
+		// Function to unlock audio on iOS
+		const unlockAudio = () => {
+			console.log('[AudioPlayer] iOS unlock function triggered');
+
+			// Create and play a silent audio element
+			const silentAudio = document.createElement('audio');
+			silentAudio.setAttribute(
+				'src',
+				'data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABIADAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV6urq6urq6urq6urq6urq6urq6urq6urq6v////////////////////////////////8AAAAATGF2YzU4LjU0AAAAAAAAAAAAAAAAJAAAAAAAAAAAASDs90hvAAAAAAAAAAAAAAAAAAAA//MUZAAAAAGkAAAAAAAAA0gAAAAATEFN//MUZAMAAAGkAAAAAAAAA0gAAAAARTMu//MUZAYAAAGkAAAAAAAAA0gAAAAAOTku//MUZAkAAAGkAAAAAAAAA0gAAAAANVVV'
+			);
+			silentAudio.setAttribute('playsinline', 'true');
+			silentAudio.setAttribute('preload', 'auto');
+			silentAudio
+				.play()
+				.then(() => {
+					console.log('[AudioPlayer] Silent audio played successfully for iOS unlock');
+
+					// Initialize AudioContext if needed
+					if (!audioContextInitialized) {
+						initializeAudioContext();
+					}
+
+					// Resume AudioContext
+					if (audioContext) {
+						audioContext.resume().then(() => {
+							console.log('[AudioPlayer] AudioContext resumed during iOS unlock');
+						});
+					}
+
+					// Remove the event listeners once unlocked
+					document.removeEventListener('touchstart', unlockAudio);
+					document.removeEventListener('touchend', unlockAudio);
+					document.removeEventListener('click', unlockAudio);
+				})
+				.catch((error) => {
+					console.error('[AudioPlayer] Silent audio play failed:', error);
+				});
+		};
+
+		// Add event listeners for user interactions
+		document.addEventListener('touchstart', unlockAudio, false);
+		document.addEventListener('touchend', unlockAudio, false);
+		document.addEventListener('click', unlockAudio, false);
+	}
+
 	function initializeAudioContext() {
 		if (audioContextInitialized) {
 			console.log('[AudioPlayer] AudioContext already initialized');
@@ -118,6 +182,13 @@
 		console.log('[AudioPlayer] AudioContext state at toggle start:', audioContext?.state);
 
 		if (audioElement.paused) {
+			// Check if audio is ready
+			if (!audioLoaded && audioElement.readyState < 2) {
+				console.log('[AudioPlayer] Audio not fully loaded yet, setting pending play attempt');
+				playAttemptPending = true;
+				return;
+			}
+
 			// On iOS, we need to ensure we always resume the AudioContext first
 			// and then immediately play within the same user gesture handler
 			try {
@@ -136,6 +207,23 @@
 
 							// Try to play immediately after resuming
 							try {
+								// Check audio readiness again
+								console.log('[AudioPlayer] Audio readyState before play:', audioElement.readyState);
+								console.log(
+									'[AudioPlayer] Audio networkState before play:',
+									audioElement.networkState
+								);
+								console.log('[AudioPlayer] Audio URL:', audioUrl);
+
+								// Force reload the audio source if it seems to be in a bad state
+								if (audioElement.error || audioElement.networkState === 3) {
+									console.log('[AudioPlayer] Audio appears to be in error state, reloading source');
+									audioElement.src = audioUrl;
+									audioElement.load();
+									playAttemptPending = true;
+									return;
+								}
+
 								console.log('[AudioPlayer] Attempting to play audio immediately after resume...');
 								audioElement
 									.play()
@@ -147,7 +235,39 @@
 									})
 									.catch((error) => {
 										console.error('[AudioPlayer] Error playing audio after context resume:', error);
-										// Try one more time with a slight delay
+
+										// Try a different approach for iOS
+										console.log('[AudioPlayer] Trying iOS-specific approach...');
+
+										// Create a user-initiated touch event handler
+										const unlockAudio = () => {
+											console.log('[AudioPlayer] Unlock audio function called from touch event');
+
+											// Remove the event listener
+											document.removeEventListener('touchend', unlockAudio);
+
+											// Try to play with a slight delay
+											setTimeout(() => {
+												console.log('[AudioPlayer] Attempting iOS unlock play...');
+												audioElement
+													.play()
+													.then(() => {
+														console.log('[AudioPlayer] iOS unlock play successful');
+														isPlaying = true;
+														lastUpdateTime = Date.now();
+														visualizer?.setStandbyMode(false);
+													})
+													.catch((iosError) => {
+														console.error('[AudioPlayer] iOS unlock play failed:', iosError);
+														isPlaying = false;
+													});
+											}, 100);
+										};
+
+										// Add the touch event listener
+										document.addEventListener('touchend', unlockAudio, false);
+
+										// Simulate a touch if we're already in a user gesture context
 										setTimeout(() => {
 											console.log('[AudioPlayer] Retrying playback after delay...');
 											audioElement
@@ -162,7 +282,7 @@
 													console.error('[AudioPlayer] Retry playback failed:', retryError);
 													isPlaying = false;
 												});
-										}, 100);
+										}, 300);
 									});
 							} catch (playError) {
 								console.error('[AudioPlayer] Exception during play attempt:', playError);
@@ -419,14 +539,38 @@
 		requestAnimationFrame(updateCanvasStyle);
 	}
 
+	// Add a function to handle audio loading
+	function handleAudioLoaded() {
+		console.log('[AudioPlayer] Audio loaded event');
+		audioLoaded = true;
+
+		// If there was a pending play attempt, try again now
+		if (playAttemptPending) {
+			console.log('[AudioPlayer] Executing pending play attempt now that audio is loaded');
+			playAttemptPending = false;
+			setTimeout(() => {
+				togglePlayPause();
+			}, 50);
+		}
+	}
+
 	onMount(() => {
 		console.log('[AudioPlayer] Component mounted');
+
+		// Detect iOS
+		detectIOS();
+
 		if (audioElement && canvasElement) {
 			console.log('[AudioPlayer] Audio and canvas elements found, initializing canvas...');
 			setupCanvas();
 
 			// We no longer initialize AudioContext here - it will be initialized on first user interaction
 			console.log('[AudioPlayer] AudioContext initialization deferred until user interaction');
+
+			// Setup iOS-specific audio unlock if needed
+			if (isIOS) {
+				setupIOSAudioUnlock();
+			}
 
 			// Load saved progress
 			if (browser) {
@@ -503,8 +647,16 @@
 			on:pause={handlePause}
 			on:ended={handleAudioEnded}
 			on:canplay={() => console.log('[AudioPlayer] Audio can play event')}
-			on:canplaythrough={() => console.log('[AudioPlayer] Audio can play through event')}
-			on:error={(e) => console.error('[AudioPlayer] Audio error event:', e)}
+			on:canplaythrough={() => {
+				console.log('[AudioPlayer] Audio can play through event');
+				handleAudioLoaded();
+			}}
+			on:loadeddata={() => {
+				console.log('[AudioPlayer] Audio loaded data event');
+				handleAudioLoaded();
+			}}
+			on:error={(e) => console.error('[AudioPlayer] Audio error event:', e.target.error)}
+			preload="auto"
 		></audio>
 	</div>
 
