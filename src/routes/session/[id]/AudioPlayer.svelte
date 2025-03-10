@@ -23,7 +23,8 @@
 	let canvasContext: CanvasRenderingContext2D | null;
 	let canvasWidth = 300;
 	let canvasHeight = 300;
-	let audioContext: AudioContext;
+	let audioContext: AudioContext | null = null;
+	let isAudioSetup = false;
 
 	let isPlaying = false;
 	let currentTime = 0;
@@ -61,26 +62,53 @@
 		}
 	}
 
-	export function togglePlayPause() {
-		if (audioElement.paused) {
-			// First ensure the audio context is resumed before attempting to play
-			if (audioContext && audioContext.state === 'suspended') {
-				audioContext
-					.resume()
-					.then(() => {
-						return playAudio();
-					})
-					.catch((error) => {
-						console.error('Error resuming audio context:', error);
-					});
-			} else {
-				playAudio();
+	async function setupAudioContext() {
+		if (isAudioSetup || !audioElement || !canvasElement) return;
+
+		try {
+			audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+			const analyser = audioContext.createAnalyser();
+			analyser.fftSize = 1024;
+			const source = audioContext.createMediaElementSource(audioElement);
+			source.connect(analyser);
+			analyser.connect(audioContext.destination);
+			visualizer = setupAudioVisualizer(
+				audioElement,
+				canvasElement,
+				analyser,
+				canvasWidth,
+				canvasHeight
+			);
+			if (visualizer) {
+				visualizer.setStandbyMode(true);
 			}
-		} else {
-			audioElement.pause();
-			isPlaying = false;
-			updateProgress();
-			visualizer?.setStandbyMode(true);
+			isAudioSetup = true;
+		} catch (error) {
+			console.error('Error setting up audio context:', error);
+			throw error;
+		}
+	}
+
+	export async function togglePlayPause() {
+		try {
+			if (!isAudioSetup) {
+				await setupAudioContext();
+			}
+
+			if (audioElement.paused) {
+				if (audioContext && audioContext.state === 'suspended') {
+					await audioContext.resume();
+				}
+				await playAudio();
+			} else {
+				audioElement.pause();
+				isPlaying = false;
+				updateProgress();
+				visualizer?.setStandbyMode(true);
+			}
+		} catch (error) {
+			console.error('Error in togglePlayPause:', error);
+			throw error;
 		}
 	}
 
@@ -277,22 +305,6 @@
 	onMount(() => {
 		if (audioElement && canvasElement) {
 			setupCanvas();
-			audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-			const analyser = audioContext.createAnalyser();
-			analyser.fftSize = 1024;
-			const source = audioContext.createMediaElementSource(audioElement);
-			source.connect(analyser);
-			analyser.connect(audioContext.destination);
-			visualizer = setupAudioVisualizer(
-				audioElement,
-				canvasElement,
-				analyser,
-				canvasWidth,
-				canvasHeight
-			);
-			if (visualizer) {
-				visualizer.setStandbyMode(true);
-			}
 
 			// Load saved progress
 			if (browser) {
