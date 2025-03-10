@@ -43,6 +43,9 @@
 	let canvasOpacity = 0;
 	let canvasBlur = 3; // Initial blur amount in pixels
 
+	let isAudioLoaded = false;
+	let pendingSeekTime: number | null = null;
+
 	function updatePlayingState() {
 		isPlaying = !audioElement.paused;
 	}
@@ -60,6 +63,20 @@
 				canvasContext.scale(dpr, dpr);
 			}
 		}
+	}
+
+	// Handle audio loaded event
+	function handleAudioLoaded() {
+		isAudioLoaded = true;
+
+		// Apply any pending seek operation now that audio is loaded
+		if (pendingSeekTime !== null && audioElement) {
+			audioElement.currentTime = pendingSeekTime;
+			currentTime = pendingSeekTime;
+			pendingSeekTime = null;
+		}
+
+		updateProgress();
 	}
 
 	export function togglePlayPause() {
@@ -88,6 +105,13 @@
 	// Separate function to handle audio playback after context is resumed
 	async function playAudio() {
 		try {
+			// On iOS, we need to ensure the currentTime is set correctly before playing
+			if (pendingSeekTime !== null && isAudioLoaded) {
+				audioElement.currentTime = pendingSeekTime;
+				currentTime = pendingSeekTime;
+				pendingSeekTime = null;
+			}
+
 			await audioElement.play();
 			isPlaying = true;
 			lastUpdateTime = Date.now();
@@ -191,8 +215,39 @@
 		}
 
 		const clickPosition = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-		audioElement.currentTime = clickPosition * audioElement.duration;
-		currentTime = audioElement.currentTime; // Update local state immediately
+		const newTime = clickPosition * audioElement.duration;
+
+		// Update UI immediately for responsive feel
+		currentTime = newTime;
+
+		// On iOS, we need special handling
+		if (isIOS()) {
+			// For iOS, we need to pause and play to ensure the seek works correctly
+			const wasPlaying = !audioElement.paused;
+
+			// Set the time - this might not take effect immediately on iOS
+			audioElement.currentTime = newTime;
+
+			// If we were playing, we need to restart playback
+			if (wasPlaying) {
+				// Use a small timeout to ensure the time change is processed
+				setTimeout(() => {
+					// Double-check that the time was set correctly
+					if (Math.abs(audioElement.currentTime - newTime) > 1) {
+						audioElement.currentTime = newTime;
+					}
+
+					// Resume playback
+					audioElement.play().catch((err) => {
+						console.error('Error resuming playback after seek:', err);
+					});
+				}, 50);
+			}
+		} else {
+			// For non-iOS, we can simply set the time
+			audioElement.currentTime = newTime;
+		}
+
 		updateProgress();
 	}
 
@@ -289,6 +344,24 @@
 		requestAnimationFrame(updateCanvasStyle);
 	}
 
+	// Function to detect iOS
+	function isIOS() {
+		if (!browser) return false;
+		return (
+			[
+				'iPad Simulator',
+				'iPhone Simulator',
+				'iPod Simulator',
+				'iPad',
+				'iPhone',
+				'iPod',
+				'MacIntel' // iPad on iOS 13 detection
+			].includes(navigator.platform) ||
+			// iPad on iOS 13 detection alternative check
+			(navigator.userAgent.includes('Mac') && 'ontouchend' in document)
+		);
+	}
+
 	onMount(() => {
 		if (audioElement && canvasElement) {
 			setupCanvas();
@@ -314,7 +387,28 @@
 				cleanupExpiredProgress(); // Clean up any expired progress
 				const savedProgress = getAudioProgress(meditationId);
 				if (savedProgress !== null) {
-					audioElement.currentTime = savedProgress;
+					// On iOS, we need to wait until the audio is loaded before setting currentTime
+					if (isIOS()) {
+						pendingSeekTime = savedProgress;
+						currentTime = savedProgress; // Update UI immediately
+
+						// For iOS, we need to add an additional event listener to ensure the time is set
+						const iosTimeSetHandler = () => {
+							if (audioElement && pendingSeekTime !== null) {
+								audioElement.currentTime = pendingSeekTime;
+								currentTime = pendingSeekTime;
+							}
+						};
+
+						// Add multiple event listeners to catch the right moment
+						audioElement.addEventListener('canplay', iosTimeSetHandler, { once: true });
+						audioElement.addEventListener('canplaythrough', iosTimeSetHandler, { once: true });
+						audioElement.addEventListener('loadeddata', iosTimeSetHandler, { once: true });
+					} else {
+						// For non-iOS devices, we can set the time immediately
+						audioElement.currentTime = savedProgress;
+						currentTime = savedProgress;
+					}
 				}
 			}
 		} else {
@@ -371,6 +465,7 @@
 			crossorigin="anonymous"
 			on:timeupdate={updateProgress}
 			on:loadedmetadata={updateProgress}
+			on:canplaythrough={handleAudioLoaded}
 			on:play={updatePlayingState}
 			on:pause={handlePause}
 			on:ended={handleAudioEnded}
