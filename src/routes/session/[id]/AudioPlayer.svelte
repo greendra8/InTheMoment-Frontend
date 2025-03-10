@@ -42,133 +42,12 @@
 	let canvasOpacity = 0;
 	let canvasBlur = 3; // Initial blur amount in pixels
 
-	let audioContextInitialized = false;
-	let audioSourceConnected = false;
-	let retryCount = 0;
-	const MAX_RETRIES = 3;
-
-	let isSafari = false;
-	let audioLoaded = false;
-	let playAttemptPending = false;
-
-	// Add iOS detection
-	let isIOS = false;
-
-	function detectIOS() {
-		const userAgent = window.navigator.userAgent.toLowerCase();
-		isIOS = /iphone|ipad|ipod|macintosh/.test(userAgent) && 'ontouchend' in document;
-		console.log('[AudioPlayer] iOS device detected:', isIOS);
-		return isIOS;
-	}
-
-	// Special function for iOS audio unlock
-	function setupIOSAudioUnlock() {
-		if (!isIOS) return;
-
-		console.log('[AudioPlayer] Setting up iOS audio unlock');
-
-		// Function to unlock audio on iOS
-		const unlockAudio = () => {
-			console.log('[AudioPlayer] iOS unlock function triggered');
-
-			// Create and play a silent audio element
-			const silentAudio = document.createElement('audio');
-			silentAudio.setAttribute(
-				'src',
-				'data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABIADAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV6urq6urq6urq6urq6urq6urq6urq6urq6v////////////////////////////////8AAAAATGF2YzU4LjU0AAAAAAAAAAAAAAAAJAAAAAAAAAAAASDs90hvAAAAAAAAAAAAAAAAAAAA//MUZAAAAAGkAAAAAAAAA0gAAAAATEFN//MUZAMAAAGkAAAAAAAAA0gAAAAARTMu//MUZAYAAAGkAAAAAAAAA0gAAAAAOTku//MUZAkAAAGkAAAAAAAAA0gAAAAANVVV'
-			);
-			silentAudio.setAttribute('playsinline', 'true');
-			silentAudio.setAttribute('preload', 'auto');
-			silentAudio
-				.play()
-				.then(() => {
-					console.log('[AudioPlayer] Silent audio played successfully for iOS unlock');
-
-					// Initialize AudioContext if needed
-					if (!audioContextInitialized) {
-						initializeAudioContext();
-					}
-
-					// Resume AudioContext
-					if (audioContext) {
-						audioContext.resume().then(() => {
-							console.log('[AudioPlayer] AudioContext resumed during iOS unlock');
-						});
-					}
-
-					// Remove the event listeners once unlocked
-					document.removeEventListener('touchstart', unlockAudio);
-					document.removeEventListener('touchend', unlockAudio);
-					document.removeEventListener('click', unlockAudio);
-				})
-				.catch((error) => {
-					console.error('[AudioPlayer] Silent audio play failed:', error);
-				});
-		};
-
-		// Add event listeners for user interactions
-		document.addEventListener('touchstart', unlockAudio, false);
-		document.addEventListener('touchend', unlockAudio, false);
-		document.addEventListener('click', unlockAudio, false);
-	}
-
-	function initializeAudioContext() {
-		if (audioContextInitialized) {
-			console.log('[AudioPlayer] AudioContext already initialized');
-			return;
-		}
-
-		console.log('[AudioPlayer] Initializing AudioContext on user interaction');
-		try {
-			audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-			console.log('[AudioPlayer] AudioContext created, state:', audioContext.state);
-			audioContextInitialized = true;
-		} catch (error) {
-			console.error('[AudioPlayer] Error creating AudioContext:', error);
-		}
-	}
-
-	function connectAudioSource() {
-		if (audioSourceConnected || !audioContext || !audioElement) {
-			return;
-		}
-
-		try {
-			console.log('[AudioPlayer] Connecting audio source to context');
-			const analyser = audioContext.createAnalyser();
-			analyser.fftSize = 1024;
-
-			const source = audioContext.createMediaElementSource(audioElement);
-			source.connect(analyser);
-			analyser.connect(audioContext.destination);
-
-			visualizer = setupAudioVisualizer(
-				audioElement,
-				canvasElement,
-				analyser,
-				canvasWidth,
-				canvasHeight
-			);
-
-			if (visualizer) {
-				visualizer.setStandbyMode(true);
-			}
-
-			audioSourceConnected = true;
-			console.log('[AudioPlayer] Audio source connected successfully');
-		} catch (error) {
-			console.error('[AudioPlayer] Error connecting audio source:', error);
-		}
-	}
-
 	function updatePlayingState() {
 		isPlaying = !audioElement.paused;
-		console.log('[AudioPlayer] Playing state updated:', isPlaying);
 	}
 
 	function setupCanvas() {
 		if (canvasElement && window) {
-			console.log('[AudioPlayer] Setting up canvas');
 			const dpr = window.devicePixelRatio || 1;
 			const rect = canvasElement.getBoundingClientRect();
 			canvasWidth = rect.width;
@@ -182,93 +61,22 @@
 		}
 	}
 
-	function detectSafari() {
-		const userAgent = window.navigator.userAgent.toLowerCase();
-		isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
-		console.log('[AudioPlayer] Safari browser detected:', isSafari);
-		return isSafari;
-	}
-
 	export function togglePlayPause() {
-		console.log('[AudioPlayer] togglePlayPause called, current paused state:', audioElement.paused);
-		console.log('[AudioPlayer] Audio readyState:', audioElement.readyState);
-		console.log('[AudioPlayer] Audio networkState:', audioElement.networkState);
-
 		if (audioElement.paused) {
-			// Initialize AudioContext if needed
-			if (!audioContextInitialized) {
-				initializeAudioContext();
-			}
-
-			// Connect audio source if needed (only after audio is somewhat loaded)
-			if (!audioSourceConnected && audioElement.readyState >= 1) {
-				connectAudioSource();
-			}
-
-			// Check if audio is ready
-			if (audioElement.readyState < 2) {
-				console.log('[AudioPlayer] Audio not ready yet, setting pending play attempt');
-				playAttemptPending = true;
-				if (audioElement.networkState !== 2) {
-					// If not already loading
-					console.log('[AudioPlayer] Triggering audio load');
-					audioElement.load();
-				}
-				return;
-			}
-
-			try {
-				if (audioContext) {
-					console.log('[AudioPlayer] Resuming AudioContext, current state:', audioContext.state);
-					audioContext.resume().then(() => {
-						console.log('[AudioPlayer] AudioContext resumed, attempting playback');
-						audioElement
-							.play()
-							.then(() => {
-								console.log('[AudioPlayer] Playback started successfully');
-								isPlaying = true;
-								lastUpdateTime = Date.now();
-								visualizer?.setStandbyMode(false);
-							})
-							.catch((error) => {
-								console.error('[AudioPlayer] Initial playback failed:', error);
-								// One retry with a delay
-								setTimeout(() => {
-									console.log('[AudioPlayer] Retrying playback');
-									audioElement
-										.play()
-										.then(() => {
-											console.log('[AudioPlayer] Retry playback successful');
-											isPlaying = true;
-											lastUpdateTime = Date.now();
-											visualizer?.setStandbyMode(false);
-										})
-										.catch((retryError) => {
-											console.error('[AudioPlayer] Retry failed:', retryError);
-											isPlaying = false;
-										});
-								}, 100);
-							});
+			// First ensure the audio context is resumed before attempting to play
+			if (audioContext && audioContext.state === 'suspended') {
+				audioContext
+					.resume()
+					.then(() => {
+						return playAudio();
+					})
+					.catch((error) => {
+						console.error('Error resuming audio context:', error);
 					});
-				} else {
-					audioElement
-						.play()
-						.then(() => {
-							console.log('[AudioPlayer] Direct playback successful');
-							isPlaying = true;
-							lastUpdateTime = Date.now();
-						})
-						.catch((error) => {
-							console.error('[AudioPlayer] Direct playback failed:', error);
-							isPlaying = false;
-						});
-				}
-			} catch (error) {
-				console.error('[AudioPlayer] Error in play attempt:', error);
-				isPlaying = false;
+			} else {
+				playAudio();
 			}
 		} else {
-			console.log('[AudioPlayer] Pausing audio');
 			audioElement.pause();
 			isPlaying = false;
 			updateProgress();
@@ -276,31 +84,31 @@
 		}
 	}
 
-	function startPlayback() {
-		console.log('[AudioPlayer] startPlayback called');
-
-		// Initialize AudioContext if needed
-		if (!audioContextInitialized) {
-			console.log('[AudioPlayer] First playback, initializing AudioContext');
-			initializeAudioContext();
+	// Separate function to handle audio playback after context is resumed
+	async function playAudio() {
+		try {
+			await audioElement.play();
+			isPlaying = true;
+			lastUpdateTime = Date.now();
+			visualizer?.setStandbyMode(false);
+		} catch (error) {
+			console.error('Error playing audio:', error);
+			isPlaying = false;
 		}
+	}
 
+	function startPlayback() {
 		// Use the same pattern as togglePlayPause for consistency
 		if (audioContext && audioContext.state === 'suspended') {
-			console.log('[AudioPlayer] AudioContext is suspended, attempting to resume...');
 			audioContext
 				.resume()
 				.then(() => {
-					console.log('[AudioPlayer] AudioContext resumed successfully from startPlayback');
 					return playAudio();
 				})
 				.catch((error) => {
-					console.error('[AudioPlayer] Error resuming audio context from startPlayback:', error);
+					console.error('Error resuming audio context:', error);
 				});
 		} else {
-			console.log(
-				'[AudioPlayer] AudioContext is already running or not needed, playing audio directly from startPlayback'
-			);
 			playAudio();
 		}
 	}
@@ -335,7 +143,6 @@
 	}
 
 	function handlePause() {
-		console.log('[AudioPlayer] handlePause called');
 		updatePlayingState();
 		// Force save progress when user explicitly pauses
 		if (browser) {
@@ -398,11 +205,6 @@
 	}
 
 	export function toggleMute() {
-		// Initialize AudioContext if needed (for iOS)
-		if (!audioContextInitialized && isPlaying) {
-			initializeAudioContext();
-		}
-
 		isMuted = !isMuted;
 		audioElement.muted = isMuted;
 		if (isMuted) {
@@ -421,11 +223,6 @@
 	}
 
 	export function adjustVolume(delta: number) {
-		// Initialize AudioContext if needed (for iOS)
-		if (!audioContextInitialized && isPlaying) {
-			initializeAudioContext();
-		}
-
 		volume = Math.max(0, Math.min(1, volume + delta));
 		audioElement.volume = volume;
 		if (volume > 0) {
@@ -444,21 +241,11 @@
 	}
 
 	export function seekBackward(seconds: number) {
-		// Initialize AudioContext if needed (for iOS)
-		if (!audioContextInitialized && isPlaying) {
-			initializeAudioContext();
-		}
-
 		audioElement.currentTime = Math.max(audioElement.currentTime - seconds, 0);
 		updateProgress();
 	}
 
 	export function seekForward(seconds: number) {
-		// Initialize AudioContext if needed (for iOS)
-		if (!audioContextInitialized && isPlaying) {
-			initializeAudioContext();
-		}
-
 		audioElement.currentTime = Math.min(audioElement.currentTime + seconds, audioElement.duration);
 		updateProgress();
 	}
@@ -487,62 +274,43 @@
 		requestAnimationFrame(updateCanvasStyle);
 	}
 
-	function handleAudioLoaded() {
-		console.log('[AudioPlayer] Audio loaded event');
-		console.log('[AudioPlayer] Audio readyState:', audioElement?.readyState);
-		console.log('[AudioPlayer] Audio networkState:', audioElement?.networkState);
-
-		audioLoaded = true;
-		retryCount = 0;
-
-		if (playAttemptPending) {
-			console.log('[AudioPlayer] Executing pending play attempt now that audio is loaded');
-			playAttemptPending = false;
-			setTimeout(() => {
-				togglePlayPause();
-			}, 50);
-		}
-	}
-
-	function handleAudioStalled() {
-		console.log('[AudioPlayer] Audio stalled');
-		if (retryCount < MAX_RETRIES) {
-			retryCount++;
-			console.log(`[AudioPlayer] Retrying load (attempt ${retryCount}/${MAX_RETRIES})`);
-			setTimeout(() => {
-				console.log('[AudioPlayer] Reloading audio after stall');
-				audioElement.load();
-			}, 1000 * retryCount); // Exponential backoff
-		}
-	}
-
 	onMount(() => {
-		console.log('[AudioPlayer] Component mounted');
-		detectSafari();
-
 		if (audioElement && canvasElement) {
-			console.log('[AudioPlayer] Audio and canvas elements found, initializing...');
 			setupCanvas();
+			audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+			const analyser = audioContext.createAnalyser();
+			analyser.fftSize = 1024;
+			const source = audioContext.createMediaElementSource(audioElement);
+			source.connect(analyser);
+			analyser.connect(audioContext.destination);
+			visualizer = setupAudioVisualizer(
+				audioElement,
+				canvasElement,
+				analyser,
+				canvasWidth,
+				canvasHeight
+			);
+			if (visualizer) {
+				visualizer.setStandbyMode(true);
+			}
 
-			// Start loading the audio
-			console.log('[AudioPlayer] Starting audio load');
-			audioElement.load();
+			// Load saved progress
+			if (browser) {
+				cleanupExpiredProgress(); // Clean up any expired progress
+				const savedProgress = getAudioProgress(meditationId);
+				if (savedProgress !== null) {
+					audioElement.currentTime = savedProgress;
+				}
+			}
 		} else {
-			console.error('[AudioPlayer] Audio or Canvas element is missing');
+			console.error('Audio or Canvas element is missing');
 		}
 
 		fadeInCanvas();
 
+		// Initialize CSS variable
 		if (browser) {
 			document.documentElement.style.setProperty('--volume-percentage', `${volume * 100}%`);
-		}
-
-		// Add event listeners for user interactions that might initialize audio
-		const canvasContainer = document.querySelector('.canvas-container');
-		if (canvasContainer) {
-			canvasContainer.addEventListener('click', () => {
-				console.log('[AudioPlayer] Canvas container clicked - user interaction detected');
-			});
 		}
 
 		return () => {
@@ -586,33 +354,11 @@
 			bind:this={audioElement}
 			src={audioUrl}
 			crossorigin="anonymous"
-			preload="auto"
-			on:loadedmetadata={() => {
-				console.log('[AudioPlayer] Metadata loaded');
-				updateProgress();
-			}}
-			on:loadeddata={() => {
-				console.log('[AudioPlayer] Audio data loaded');
-				handleAudioLoaded();
-			}}
-			on:canplay={() => {
-				console.log('[AudioPlayer] Can play event');
-				handleAudioLoaded();
-			}}
-			on:canplaythrough={() => {
-				console.log('[AudioPlayer] Can play through event');
-				handleAudioLoaded();
-			}}
+			on:timeupdate={updateProgress}
+			on:loadedmetadata={updateProgress}
 			on:play={updatePlayingState}
 			on:pause={handlePause}
 			on:ended={handleAudioEnded}
-			on:error={(e) => {
-				console.error('[AudioPlayer] Audio error:', e.target.error);
-			}}
-			on:stalled={handleAudioStalled}
-			on:waiting={() => {
-				console.log('[AudioPlayer] Audio waiting');
-			}}
 		></audio>
 	</div>
 
