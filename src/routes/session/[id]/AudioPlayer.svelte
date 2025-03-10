@@ -62,56 +62,22 @@
 	}
 
 	export function togglePlayPause() {
-		if (!audioContext) {
-			// If audioContext doesn't exist yet, create it first
-			try {
-				audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-
-				const analyser = audioContext.createAnalyser();
-				analyser.fftSize = 1024;
-				const source = audioContext.createMediaElementSource(audioElement);
-				source.connect(analyser);
-				analyser.connect(audioContext.destination);
-				visualizer = setupAudioVisualizer(
-					audioElement,
-					canvasElement,
-					analyser,
-					canvasWidth,
-					canvasHeight
-				);
-				if (visualizer) {
-					visualizer.setStandbyMode(!audioElement.paused);
-				}
-			} catch (error) {
-				console.error('Error creating audio context on demand:', error);
-			}
-		}
-
 		if (audioElement.paused) {
-			// Use a promise chain to handle play() properly
-			Promise.resolve()
-				.then(() => {
-					// First try to resume the audio context if it's suspended
-					if (audioContext && audioContext.state === 'suspended') {
-						return audioContext.resume();
-					}
-					return Promise.resolve();
-				})
-				.then(() => {
-					// Then try to play the audio
-					return audioElement.play();
-				})
+			if (audioContext.state === 'suspended') {
+				audioContext.resume().catch((error) => {
+					console.error('Error resuming audio context:', error);
+				});
+			}
+			audioElement
+				.play()
 				.then(() => {
 					isPlaying = true;
 					lastUpdateTime = Date.now();
 					visualizer?.setStandbyMode(false);
 				})
 				.catch((error) => {
-					console.error('Error starting playback:', error);
-					// If we get a NotAllowedError, show a message to the user
-					if (error.name === 'NotAllowedError') {
-						alert('Please interact with the page first to enable audio playback.');
-					}
+					console.error('Error playing audio:', error);
+					isPlaying = false;
 				});
 		} else {
 			audioElement.pause();
@@ -119,6 +85,13 @@
 			updateProgress();
 			visualizer?.setStandbyMode(true);
 		}
+	}
+
+	function startPlayback() {
+		audioElement.play();
+		isPlaying = true;
+		lastUpdateTime = Date.now();
+		visualizer?.setStandbyMode(false);
 	}
 
 	function updateProgress() {
@@ -283,58 +256,23 @@
 	}
 
 	onMount(() => {
-		// Define resumeAudioContext at the top level of onMount so it's accessible in the cleanup function
-		const resumeAudioContext = () => {
-			if (audioContext && audioContext.state === 'suspended') {
-				audioContext.resume().catch((err) => console.error('Failed to resume AudioContext:', err));
-			}
-		};
-
 		if (audioElement && canvasElement) {
 			setupCanvas();
-			try {
-				// Create audio context only after user interaction
-				const setupAudio = () => {
-					try {
-						if (!audioContext) {
-							audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-
-							const analyser = audioContext.createAnalyser();
-							analyser.fftSize = 1024;
-							const source = audioContext.createMediaElementSource(audioElement);
-							source.connect(analyser);
-							analyser.connect(audioContext.destination);
-							visualizer = setupAudioVisualizer(
-								audioElement,
-								canvasElement,
-								analyser,
-								canvasWidth,
-								canvasHeight
-							);
-							if (visualizer) {
-								visualizer.setStandbyMode(true);
-							}
-						}
-					} catch (error) {
-						console.error('Error setting up audio context:', error);
-					}
-				};
-
-				// Add event listeners for user interaction
-				document.addEventListener('click', resumeAudioContext);
-				document.addEventListener('touchstart', resumeAudioContext);
-
-				// Setup audio on first user interaction
-				const initialSetup = () => {
-					setupAudio();
-					document.removeEventListener('click', initialSetup);
-					document.removeEventListener('touchstart', initialSetup);
-				};
-
-				document.addEventListener('click', initialSetup);
-				document.addEventListener('touchstart', initialSetup);
-			} catch (error) {
-				console.error('Error initializing audio context:', error);
+			audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+			const analyser = audioContext.createAnalyser();
+			analyser.fftSize = 1024;
+			const source = audioContext.createMediaElementSource(audioElement);
+			source.connect(analyser);
+			analyser.connect(audioContext.destination);
+			visualizer = setupAudioVisualizer(
+				audioElement,
+				canvasElement,
+				analyser,
+				canvasWidth,
+				canvasHeight
+			);
+			if (visualizer) {
+				visualizer.setStandbyMode(true);
 			}
 
 			// Load saved progress
@@ -361,23 +299,6 @@
 				audioElement.removeEventListener('play', updatePlayingState);
 				audioElement.removeEventListener('pause', updatePlayingState);
 				audioElement.removeEventListener('ended', handleAudioEnded);
-			}
-
-			// Remove event listeners for resuming AudioContext
-			document.removeEventListener('click', resumeAudioContext);
-			document.removeEventListener('touchstart', resumeAudioContext);
-
-			// Also remove initialSetup listeners if they're still there
-			document.removeEventListener('click', initialSetup);
-			document.removeEventListener('touchstart', initialSetup);
-
-			// Close AudioContext if it exists
-			if (audioContext) {
-				try {
-					audioContext.close().catch((err) => console.error('Error closing AudioContext:', err));
-				} catch (error) {
-					console.error('Error closing AudioContext:', error);
-				}
 			}
 		};
 	});
@@ -408,7 +329,6 @@
 			bind:this={audioElement}
 			src={audioUrl}
 			crossorigin="anonymous"
-			playsinline
 			on:timeupdate={updateProgress}
 			on:loadedmetadata={updateProgress}
 			on:play={updatePlayingState}
