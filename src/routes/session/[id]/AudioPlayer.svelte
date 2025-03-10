@@ -42,6 +42,49 @@
 	let canvasOpacity = 0;
 	let canvasBlur = 3; // Initial blur amount in pixels
 
+	let audioContextInitialized = false;
+
+	function initializeAudioContext() {
+		if (audioContextInitialized) {
+			console.log('[AudioPlayer] AudioContext already initialized');
+			return;
+		}
+
+		console.log('[AudioPlayer] Initializing AudioContext on user interaction');
+		try {
+			audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+			console.log('[AudioPlayer] AudioContext created, state:', audioContext.state);
+
+			const analyser = audioContext.createAnalyser();
+			analyser.fftSize = 1024;
+
+			console.log('[AudioPlayer] Creating media element source...');
+			const source = audioContext.createMediaElementSource(audioElement);
+			console.log('[AudioPlayer] Media element source created');
+
+			source.connect(analyser);
+			analyser.connect(audioContext.destination);
+			console.log('[AudioPlayer] Audio graph connected');
+
+			visualizer = setupAudioVisualizer(
+				audioElement,
+				canvasElement,
+				analyser,
+				canvasWidth,
+				canvasHeight
+			);
+			console.log('[AudioPlayer] Visualizer setup complete');
+
+			if (visualizer) {
+				visualizer.setStandbyMode(true);
+			}
+
+			audioContextInitialized = true;
+		} catch (error) {
+			console.error('[AudioPlayer] Error setting up audio context:', error);
+		}
+	}
+
 	function updatePlayingState() {
 		isPlaying = !audioElement.paused;
 		console.log('[AudioPlayer] Playing state updated:', isPlaying);
@@ -66,23 +109,79 @@
 	export function togglePlayPause() {
 		console.log('[AudioPlayer] togglePlayPause called, current paused state:', audioElement.paused);
 
+		// Initialize AudioContext on first user interaction if not already done
+		if (!audioContextInitialized) {
+			console.log('[AudioPlayer] First user interaction, initializing AudioContext');
+			initializeAudioContext();
+		}
+
+		console.log('[AudioPlayer] AudioContext state at toggle start:', audioContext?.state);
+
 		if (audioElement.paused) {
-			// First ensure the audio context is resumed before attempting to play
-			if (audioContext && audioContext.state === 'suspended') {
-				console.log('[AudioPlayer] AudioContext is suspended, attempting to resume...');
-				audioContext
-					.resume()
-					.then(() => {
-						console.log('[AudioPlayer] AudioContext resumed successfully');
-						return playAudio();
-					})
-					.catch((error) => {
-						console.error('[AudioPlayer] Error resuming audio context:', error);
-					});
-			} else {
-				console.log(
-					'[AudioPlayer] AudioContext is already running or not needed, playing audio directly'
-				);
+			// On iOS, we need to ensure we always resume the AudioContext first
+			// and then immediately play within the same user gesture handler
+			try {
+				// Always try to resume the AudioContext first, regardless of its reported state
+				if (audioContext) {
+					console.log('[AudioPlayer] Attempting to resume AudioContext...');
+
+					// For iOS, we need to use a more direct approach
+					audioContext
+						.resume()
+						.then(() => {
+							console.log(
+								'[AudioPlayer] AudioContext resumed successfully, state:',
+								audioContext.state
+							);
+
+							// Try to play immediately after resuming
+							try {
+								console.log('[AudioPlayer] Attempting to play audio immediately after resume...');
+								audioElement
+									.play()
+									.then(() => {
+										console.log('[AudioPlayer] Audio playback started successfully');
+										isPlaying = true;
+										lastUpdateTime = Date.now();
+										visualizer?.setStandbyMode(false);
+									})
+									.catch((error) => {
+										console.error('[AudioPlayer] Error playing audio after context resume:', error);
+										// Try one more time with a slight delay
+										setTimeout(() => {
+											console.log('[AudioPlayer] Retrying playback after delay...');
+											audioElement
+												.play()
+												.then(() => {
+													console.log('[AudioPlayer] Delayed playback successful');
+													isPlaying = true;
+													lastUpdateTime = Date.now();
+													visualizer?.setStandbyMode(false);
+												})
+												.catch((retryError) => {
+													console.error('[AudioPlayer] Retry playback failed:', retryError);
+													isPlaying = false;
+												});
+										}, 100);
+									});
+							} catch (playError) {
+								console.error('[AudioPlayer] Exception during play attempt:', playError);
+								isPlaying = false;
+							}
+						})
+						.catch((resumeError) => {
+							console.error('[AudioPlayer] Error resuming AudioContext:', resumeError);
+							// Still try to play even if resume fails
+							playAudio();
+						});
+				} else {
+					// No AudioContext, just try to play
+					console.log('[AudioPlayer] No AudioContext available, playing directly');
+					playAudio();
+				}
+			} catch (error) {
+				console.error('[AudioPlayer] Exception in togglePlayPause:', error);
+				// Fallback to the original playAudio method
 				playAudio();
 			}
 		} else {
@@ -97,7 +196,7 @@
 	// Separate function to handle audio playback after context is resumed
 	async function playAudio() {
 		try {
-			console.log('[AudioPlayer] Attempting to play audio...');
+			console.log('[AudioPlayer] Attempting to play audio via playAudio function...');
 			await audioElement.play();
 			console.log('[AudioPlayer] Audio playback started successfully');
 			isPlaying = true;
@@ -111,6 +210,13 @@
 
 	function startPlayback() {
 		console.log('[AudioPlayer] startPlayback called');
+
+		// Initialize AudioContext if needed
+		if (!audioContextInitialized) {
+			console.log('[AudioPlayer] First playback, initializing AudioContext');
+			initializeAudioContext();
+		}
+
 		// Use the same pattern as togglePlayPause for consistency
 		if (audioContext && audioContext.state === 'suspended') {
 			console.log('[AudioPlayer] AudioContext is suspended, attempting to resume...');
@@ -224,6 +330,11 @@
 	}
 
 	export function toggleMute() {
+		// Initialize AudioContext if needed (for iOS)
+		if (!audioContextInitialized && isPlaying) {
+			initializeAudioContext();
+		}
+
 		isMuted = !isMuted;
 		audioElement.muted = isMuted;
 		if (isMuted) {
@@ -242,6 +353,11 @@
 	}
 
 	export function adjustVolume(delta: number) {
+		// Initialize AudioContext if needed (for iOS)
+		if (!audioContextInitialized && isPlaying) {
+			initializeAudioContext();
+		}
+
 		volume = Math.max(0, Math.min(1, volume + delta));
 		audioElement.volume = volume;
 		if (volume > 0) {
@@ -260,11 +376,21 @@
 	}
 
 	export function seekBackward(seconds: number) {
+		// Initialize AudioContext if needed (for iOS)
+		if (!audioContextInitialized && isPlaying) {
+			initializeAudioContext();
+		}
+
 		audioElement.currentTime = Math.max(audioElement.currentTime - seconds, 0);
 		updateProgress();
 	}
 
 	export function seekForward(seconds: number) {
+		// Initialize AudioContext if needed (for iOS)
+		if (!audioContextInitialized && isPlaying) {
+			initializeAudioContext();
+		}
+
 		audioElement.currentTime = Math.min(audioElement.currentTime + seconds, audioElement.duration);
 		updateProgress();
 	}
@@ -296,40 +422,11 @@
 	onMount(() => {
 		console.log('[AudioPlayer] Component mounted');
 		if (audioElement && canvasElement) {
-			console.log('[AudioPlayer] Audio and canvas elements found, initializing...');
+			console.log('[AudioPlayer] Audio and canvas elements found, initializing canvas...');
 			setupCanvas();
 
-			console.log('[AudioPlayer] Creating AudioContext...');
-			try {
-				audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-				console.log('[AudioPlayer] AudioContext created, state:', audioContext.state);
-
-				const analyser = audioContext.createAnalyser();
-				analyser.fftSize = 1024;
-
-				console.log('[AudioPlayer] Creating media element source...');
-				const source = audioContext.createMediaElementSource(audioElement);
-				console.log('[AudioPlayer] Media element source created');
-
-				source.connect(analyser);
-				analyser.connect(audioContext.destination);
-				console.log('[AudioPlayer] Audio graph connected');
-
-				visualizer = setupAudioVisualizer(
-					audioElement,
-					canvasElement,
-					analyser,
-					canvasWidth,
-					canvasHeight
-				);
-				console.log('[AudioPlayer] Visualizer setup complete');
-
-				if (visualizer) {
-					visualizer.setStandbyMode(true);
-				}
-			} catch (error) {
-				console.error('[AudioPlayer] Error setting up audio context:', error);
-			}
+			// We no longer initialize AudioContext here - it will be initialized on first user interaction
+			console.log('[AudioPlayer] AudioContext initialization deferred until user interaction');
 
 			// Load saved progress
 			if (browser) {
@@ -349,6 +446,14 @@
 		// Initialize CSS variable
 		if (browser) {
 			document.documentElement.style.setProperty('--volume-percentage', `${volume * 100}%`);
+		}
+
+		// Add event listeners for user interactions that might initialize audio
+		const canvasContainer = document.querySelector('.canvas-container');
+		if (canvasContainer) {
+			canvasContainer.addEventListener('click', () => {
+				console.log('[AudioPlayer] Canvas container clicked - user interaction detected');
+			});
 		}
 
 		return () => {
