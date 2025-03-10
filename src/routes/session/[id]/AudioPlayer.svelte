@@ -42,8 +42,24 @@
 	let canvasOpacity = 0;
 	let canvasBlur = 3; // Initial blur amount in pixels
 
+	// Add iOS detection
+	let isIOS = false;
+	let pendingSeekTime: number | null = null;
+
 	function updatePlayingState() {
 		isPlaying = !audioElement.paused;
+
+		// Handle pending seek on iOS when playback starts
+		if (isIOS && pendingSeekTime !== null && isPlaying) {
+			// Small delay to ensure iOS is ready to accept the seek
+			setTimeout(() => {
+				if (audioElement && pendingSeekTime !== null) {
+					audioElement.currentTime = pendingSeekTime;
+					currentTime = pendingSeekTime;
+					pendingSeekTime = null;
+				}
+			}, 50);
+		}
 	}
 
 	function setupCanvas() {
@@ -120,11 +136,7 @@
 		}
 		lastUpdateTime = now;
 
-		// Only update currentTime from audio element if we're not actively seeking
-		// This prevents the progress bar from jumping during seek operations
-		if (!isSeekingProgress) {
-			currentTime = audioElement.currentTime;
-		}
+		currentTime = audioElement.currentTime;
 
 		// Save progress to localStorage (debounced)
 		if (browser) {
@@ -155,14 +167,6 @@
 	}
 
 	function startSeek(event: MouseEvent | TouchEvent) {
-		// Pause audio during seeking for more consistent behavior on iOS
-		const wasPlaying = !audioElement.paused;
-		if (wasPlaying && browser) {
-			// Store the playing state to resume after seeking
-			audioElement.dataset.wasPlaying = 'true';
-			audioElement.pause();
-		}
-
 		isSeekingProgress = true;
 		seek(event);
 
@@ -184,23 +188,6 @@
 	}
 
 	function endSeek() {
-		if (isSeekingProgress) {
-			// Ensure the audio time is synchronized with our UI position
-			if (audioElement && !isNaN(audioElement.duration)) {
-				audioElement.currentTime = currentTime;
-
-				// Resume playback if it was playing before seeking started
-				if (audioElement.dataset.wasPlaying === 'true') {
-					// Use a small timeout to ensure the seek completes before playback resumes
-					// This is especially important for iOS
-					setTimeout(() => {
-						playAudio().catch((err) => console.error('Error resuming after seek:', err));
-						delete audioElement.dataset.wasPlaying;
-					}, 50);
-				}
-			}
-		}
-
 		isSeekingProgress = false;
 	}
 
@@ -218,17 +205,28 @@
 
 		// Calculate position as percentage of width
 		const clickPosition = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+		const newTime = clickPosition * audioElement.duration;
 
-		// Update our UI time immediately
-		currentTime = clickPosition * duration;
+		// iOS-specific handling
+		if (isIOS) {
+			if (audioElement.paused) {
+				// Store the desired seek time for when playback starts
+				pendingSeekTime = newTime;
 
-		// On iOS, we'll update the actual audio element time in endSeek
-		// This helps prevent the audio from becoming detached from the UI
-		if (!navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
-			// For non-iOS devices, update immediately
-			if (audioElement && !isNaN(audioElement.duration)) {
-				audioElement.currentTime = currentTime;
+				// Update UI immediately for visual feedback
+				currentTime = newTime;
+
+				// Start playback to enable seeking
+				startPlayback();
+			} else {
+				// If already playing, we can seek directly
+				audioElement.currentTime = newTime;
+				currentTime = newTime;
 			}
+		} else {
+			// Non-iOS behavior remains unchanged
+			audioElement.currentTime = newTime;
+			currentTime = newTime;
 		}
 	}
 
@@ -326,6 +324,14 @@
 	}
 
 	onMount(() => {
+		// Detect iOS
+		if (browser) {
+			const userAgent = window.navigator.userAgent.toLowerCase();
+			isIOS =
+				/iphone|ipad|ipod/.test(userAgent) ||
+				(navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+		}
+
 		if (audioElement && canvasElement) {
 			setupCanvas();
 			audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
