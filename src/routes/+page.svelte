@@ -363,6 +363,7 @@
 	<script
 		type="text/javascript"
 		src="https://unpkg.com/butterchurn@2.6.7/lib/butterchurn.min.js"
+		crossorigin="anonymous"
 		defer
 	></script>
 </svelte:head>
