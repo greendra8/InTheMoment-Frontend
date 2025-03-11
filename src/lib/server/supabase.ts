@@ -143,7 +143,8 @@ export async function getPlaylistLessons(playlistId: string, userId: string | nu
         lesson_title,
         visible,
         audio_sessions (
-          id
+          id,
+          generation_status
         )
       `)
       .eq('playlist_id', playlistId)
@@ -166,7 +167,8 @@ export async function getPlaylistLessons(playlistId: string, userId: string | nu
     // Process lessons to include meditation info if userId was provided
     const processedLessons = data.map(lesson => ({
       ...lesson,
-      meditationId: lesson.audio_sessions?.[0]?.id || null
+      meditationId: lesson.audio_sessions?.[0]?.id || null,
+      hasGenerated: lesson.audio_sessions?.some(session => session.generation_status === 'Completed') || false
     }));
 
     return processedLessons;
@@ -174,6 +176,23 @@ export async function getPlaylistLessons(playlistId: string, userId: string | nu
     console.error('Error fetching playlist lessons:', err);
     throw err;
   }
+}
+
+// Helper function to get user progress for a playlist
+export async function getUserProgress(userId: string, playlistId: string) {
+  const { data, error } = await supabaseAdmin
+    .from('user_progress')
+    .select('completed_lessons')
+    .eq('user_id', userId)
+    .eq('playlist_id', playlistId)
+    .single();
+
+  if (error && error.code !== 'PGRST116') {
+    console.error('Error fetching user progress:', error);
+    throw error;
+  }
+
+  return data?.completed_lessons || [];
 }
 
 // Add this new function to generate a signed URL

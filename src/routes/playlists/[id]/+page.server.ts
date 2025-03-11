@@ -1,7 +1,6 @@
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import { getPlaylist, getPlaylistLessons } from '$lib/server/supabase';
-import { supabaseAdmin } from '$lib/server/supabase';
+import { getPlaylist, getPlaylistLessons, getUserProgress } from '$lib/server/supabase';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
   try {
@@ -21,29 +20,32 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
     // Only fetch visible lessons
     const lessons = await getPlaylistLessons(playlistId, userId, false);
+    const completedLessons = await getUserProgress(userId, playlistId);
 
-    // Fetch user progress
-    const { data: userProgress, error: progressError } = await supabaseAdmin
-      .from('user_progress')
-      .select('last_created_lesson_number')
-      .eq('user_id', userId)
-      .eq('playlist_id', playlistId)
-      .single();
+    // Find the first lesson that hasn't been generated yet
+    const nextLessonToGenerate = lessons.find(lesson => !lesson.hasGenerated)?.lesson_number || null;
 
-    if (progressError && progressError.code !== 'PGRST116') {
-      throw progressError;
-    }
+    // Calculate total visible lessons for progress
+    const totalVisibleLessons = lessons.filter(lesson => lesson.visible).length;
 
-    const lastCreatedLessonNumber = userProgress?.last_created_lesson_number || 0;
+    // Calculate completed visible lessons
+    const completedVisibleLessons = lessons
+      .filter(lesson => lesson.visible && completedLessons.includes(lesson.lesson_number))
+      .length;
 
     return {
       playlist,
       lessons,
-      lastCreatedLessonNumber
+      completedLessons,
+      nextLessonToGenerate,
+      progress: {
+        completed: completedVisibleLessons,
+        total: totalVisibleLessons
+      }
     };
   } catch (err) {
     console.error('Error fetching playlist and lessons:', err);
-    if (err.status === 404) {
+    if (err instanceof Error && 'status' in err && err.status === 404) {
       throw error(404, 'Playlist not found');
     }
     throw error(500, 'Error fetching playlist and lessons');

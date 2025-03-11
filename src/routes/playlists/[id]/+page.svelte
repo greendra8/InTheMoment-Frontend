@@ -5,8 +5,6 @@
 
 	export let data: PageData;
 
-	$: nextLessonNumber = data.lastCreatedLessonNumber + 1;
-
 	// Animation for glow effects
 	let pulseValue = 0;
 
@@ -62,14 +60,11 @@
 			<div class="progress-bar-container">
 				<div
 					class="progress-bar"
-					style="width: {Math.min(
-						100,
-						(data.lastCreatedLessonNumber / data.lessons.length) * 100
-					)}%"
+					style="width: {Math.min(100, (data.progress.completed / data.progress.total) * 100)}%"
 				></div>
 			</div>
 			<p class="progress-text">
-				{data.lastCreatedLessonNumber} of {data.lessons.length} lessons completed
+				{data.progress.completed} of {data.progress.total} lessons completed
 			</p>
 		</div>
 	</div>
@@ -82,15 +77,18 @@
 
 		<div class="lessons-list">
 			{#each data.lessons as lesson, i (lesson.id)}
-				{@const isAccessible = lesson.lesson_number <= nextLessonNumber}
-				{@const href = isAccessible
+				{@const isCompleted = data.completedLessons.includes(lesson.lesson_number)}
+				{@const isNextToGenerate = lesson.lesson_number === data.nextLessonToGenerate}
+				{@const href = isCompleted
 					? lesson.meditationId
 						? `/session/${lesson.meditationId}`
-						: `/new?playlist=${data.playlist.id}`
-					: null}
+						: null
+					: isNextToGenerate
+						? `/new?playlist=${data.playlist.id}`
+						: null}
 				<div
 					class="lesson-card lesson-color-{i % 4}"
-					class:disabled={!isAccessible}
+					class:disabled={!href}
 					on:click={() => handleNavigation(href)}
 					on:keydown={(e) => e.key === 'Enter' && handleNavigation(href)}
 					tabindex="0"
@@ -103,12 +101,12 @@
 						<h3>{lesson.lesson_title}</h3>
 					</div>
 					<div class="lesson-status">
-						{#if lesson.lesson_number === nextLessonNumber}
+						{#if isNextToGenerate}
 							<div class="lesson-action">
 								<i class="fas fa-plus"></i>
 								<span>Create</span>
 							</div>
-						{:else if lesson.lesson_number < nextLessonNumber}
+						{:else if isCompleted}
 							<div class="lesson-completed">
 								{#if lesson.meditationId}
 									<i class="fas fa-headphones"></i>
