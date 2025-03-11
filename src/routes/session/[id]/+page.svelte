@@ -975,11 +975,6 @@
 		z-index: 2;
 	}
 
-	/* Native app specific positioning */
-	:global(.native-app) .feedback-controls-wrapper {
-		bottom: 7rem; /* More space at bottom for native app navigation */
-	}
-
 	/* =======================
    Utility Classes
    ======================= */
