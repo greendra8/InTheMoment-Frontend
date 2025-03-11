@@ -85,10 +85,96 @@ export async function isUserProfileComplete(userId: string) {
     throw error
   }
 
-
   return data?.complete || false
 }
 
+// Helper function to get playlists with visibility handling
+export async function getPlaylists(includeHidden: boolean = false) {
+  try {
+    let query = supabaseAdmin
+      .from('lesson_playlists')
+      .select('id, playlist_name, playlist_order, playlist_description, visible')
+      .order('playlist_order');
+
+    if (!includeHidden) {
+      query = query.eq('visible', true);
+    }
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+    return data;
+  } catch (err) {
+    console.error('Error fetching playlists:', err);
+    throw err;
+  }
+}
+
+// Helper function to get a single playlist with visibility handling
+export async function getPlaylist(playlistId: string, includeHidden: boolean = false) {
+  try {
+    let query = supabaseAdmin
+      .from('lesson_playlists')
+      .select('id, playlist_name, playlist_description, visible')
+      .eq('id', playlistId);
+
+    if (!includeHidden) {
+      query = query.eq('visible', true);
+    }
+
+    const { data, error } = await query.single();
+
+    if (error) throw error;
+    return data;
+  } catch (err) {
+    console.error('Error fetching playlist:', err);
+    throw err;
+  }
+}
+
+// Helper function to get lessons for a playlist with visibility handling
+export async function getPlaylistLessons(playlistId: string, userId: string | null = null, includeHidden: boolean = false) {
+  try {
+    let query = supabaseAdmin
+      .from('lesson_content')
+      .select(`
+        id, 
+        lesson_number, 
+        lesson_title,
+        visible,
+        audio_sessions (
+          id
+        )
+      `)
+      .eq('playlist_id', playlistId)
+      .order('lesson_number');
+
+    if (!includeHidden) {
+      query = query.eq('visible', true);
+    }
+
+    if (userId) {
+      query = query
+        .eq('audio_sessions.user_id', userId)
+        .eq('audio_sessions.generation_status', 'Completed');
+    }
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+
+    // Process lessons to include meditation info if userId was provided
+    const processedLessons = data.map(lesson => ({
+      ...lesson,
+      meditationId: lesson.audio_sessions?.[0]?.id || null
+    }));
+
+    return processedLessons;
+  } catch (err) {
+    console.error('Error fetching playlist lessons:', err);
+    throw err;
+  }
+}
 
 // Add this new function to generate a signed URL
 async function getSignedUrl(filePath: string) {
@@ -105,15 +191,13 @@ async function getSignedUrl(filePath: string) {
   return data.signedUrl;
 }
 
-// Add these new functions to the existing file
-
 export async function getFeedback(sessionId: string, profileId: string) {
   const { data, error } = await supabaseAdmin
     .from('audio_feedback')
     .select('feedback')
     .eq('session_id', sessionId)
     .eq('profile_id', profileId)
-    .maybeSingle(); // Use maybeSingle() instead of single()
+    .maybeSingle();
 
   if (error && error.code !== 'PGRST116') {
     console.error('Error fetching feedback:', error);
