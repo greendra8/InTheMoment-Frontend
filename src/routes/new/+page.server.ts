@@ -1,7 +1,7 @@
 import { error, redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import { generateMeditation } from '$lib/pythonApi';
-import { supabaseAdmin } from '$lib/server/supabase';
+import { supabaseAdmin, getPlaylists, getPlaylist } from '$lib/server/supabase';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	const { session } = locals;
@@ -14,12 +14,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	const playlistId = url.searchParams.get('playlist');
 
 	try {
-		const { data: playlists, error: playlistsError } = await supabaseAdmin
-			.from('lesson_playlists')
-			.select('id, playlist_name')
-			.order('playlist_order');
-
-		if (playlistsError) throw playlistsError;
+		// Only fetch visible playlists for the dropdown
+		const playlists = await getPlaylists(false);
 
 		let selectedPlaylist = null;
 		let initialTab = 'custom';
@@ -27,14 +23,15 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		if (playlistId) {
 			initialTab = 'lesson';
 			if (playlistId !== '') {
-				const { data: playlist, error: playlistError } = await supabaseAdmin
-					.from('lesson_playlists')
-					.select('id, playlist_name')
-					.eq('id', playlistId)
-					.single();
-
-				if (!playlistError && playlist) {
-					selectedPlaylist = playlist;
+				// Only fetch visible playlist for selection
+				try {
+					const playlist = await getPlaylist(playlistId, false);
+					if (playlist) {
+						selectedPlaylist = playlist;
+					}
+				} catch (err) {
+					console.error('Error fetching selected playlist:', err);
+					// If playlist is not found or not visible, we'll leave selectedPlaylist as null
 				}
 			}
 		}
@@ -81,6 +78,17 @@ export const actions: Actions = {
 		});
 
 		try {
+			// Verify the playlist is visible if one is specified
+			if (playlist_id) {
+				const playlist = await getPlaylist(playlist_id.toString(), false);
+				if (!playlist) {
+					return {
+						type: 'error',
+						message: 'Selected playlist is not available.'
+					};
+				}
+			}
+
 			console.log('Server: Calling generateMeditation');
 			const result = await generateMeditation(
 				session.access_token,
@@ -93,7 +101,6 @@ export const actions: Actions = {
 
 			console.log('Server: Result from generateMeditation:', JSON.stringify(result, null, 2));
 
-			// Return a simplified, consistent response format
 			return {
 				type: 'success',
 				data: {

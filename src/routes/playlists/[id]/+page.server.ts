@@ -1,5 +1,6 @@
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
+import { getPlaylist, getPlaylistLessons } from '$lib/server/supabase';
 import { supabaseAdmin } from '$lib/server/supabase';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
@@ -11,30 +12,15 @@ export const load: PageServerLoad = async ({ params, locals }) => {
       throw error(401, 'Unauthorized');
     }
 
-    const { data: playlist, error: playlistError } = await supabaseAdmin
-      .from('lesson_playlists')
-      .select('id, playlist_name, playlist_description')
-      .eq('id', playlistId)
-      .single();
+    // Only fetch visible playlists
+    const playlist = await getPlaylist(playlistId, false);
 
-    if (playlistError) throw playlistError;
+    if (!playlist) {
+      throw error(404, 'Playlist not found');
+    }
 
-    const { data: lessons, error: lessonsError } = await supabaseAdmin
-      .from('lesson_content')
-      .select(`
-        id, 
-        lesson_number, 
-        lesson_title,
-        audio_sessions (
-          id
-        )
-      `)
-      .eq('playlist_id', playlistId)
-      .eq('audio_sessions.user_id', userId)
-      .eq('audio_sessions.generation_status', 'Completed')
-      .order('lesson_number');
-
-    if (lessonsError) throw lessonsError;
+    // Only fetch visible lessons
+    const lessons = await getPlaylistLessons(playlistId, userId, false);
 
     // Fetch user progress
     const { data: userProgress, error: progressError } = await supabaseAdmin
@@ -50,19 +36,16 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
     const lastCreatedLessonNumber = userProgress?.last_created_lesson_number || 0;
 
-    // Process lessons to include meditation info
-    const processedLessons = lessons.map(lesson => ({
-      ...lesson,
-      meditationId: lesson.audio_sessions[0]?.id || null
-    }));
-
     return {
       playlist,
-      lessons: processedLessons,
+      lessons,
       lastCreatedLessonNumber
     };
   } catch (err) {
     console.error('Error fetching playlist and lessons:', err);
+    if (err.status === 404) {
+      throw error(404, 'Playlist not found');
+    }
     throw error(500, 'Error fetching playlist and lessons');
   }
 };

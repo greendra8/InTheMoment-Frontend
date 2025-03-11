@@ -1,6 +1,6 @@
 import { error, redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import { supabaseAdmin, getUserMeditations, getUserProfile } from '$lib/server/supabase';
+import { getUserMeditations, getUserProfile, getPlaylists } from '$lib/server/supabase';
 
 export const load: PageServerLoad = async ({ locals }) => {
     const { session } = locals;
@@ -17,13 +17,8 @@ export const load: PageServerLoad = async ({ locals }) => {
         // Fetch recent meditations (limit to 5 for recency)
         const { data: meditations, totalCount } = await getUserMeditations(session.user.id, 1, 5);
 
-        // Fetch all playlists
-        const { data: playlists, error: playlistsError } = await supabaseAdmin
-            .from('lesson_playlists')
-            .select('id, playlist_name, playlist_description')
-            .order('playlist_order');
-
-        if (playlistsError) throw playlistsError;
+        // Fetch visible playlists only
+        const playlists = await getPlaylists(false);
 
         // Fetch user profile for stats using the helper function
         const profile = await getUserProfile(session.user.id);
