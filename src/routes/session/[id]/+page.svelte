@@ -974,7 +974,14 @@
 		align-items: flex-end;
 		z-index: 2;
 	}
+	/* Native app specific positioning */
+	:global(.native-app) .controls-wrapper {
+		bottom: 6rem; /* More space at bottom for native app navigation */
+	}
 
+	:global(.native-app) .feedback-controls-wrapper {
+		bottom: 8rem; /* More space at bottom for native app navigation */
+	}
 	/* =======================
    Utility Classes
    ======================= */
