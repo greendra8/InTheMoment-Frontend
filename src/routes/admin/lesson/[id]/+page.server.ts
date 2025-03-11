@@ -1,4 +1,4 @@
-import { error, redirect } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import { supabaseAdmin } from '$lib/server/supabase';
 
@@ -8,22 +8,14 @@ export const load: PageServerLoad = async ({ params }) => {
   try {
     const { data: lesson, error: lessonError } = await supabaseAdmin
       .from('lesson_content')
-      .select('*, lesson_playlists!inner(id, playlist_name)')
+      .select('*, lesson_playlists!inner(playlist_name)')
       .eq('id', id)
       .single();
 
     if (lessonError) throw lessonError;
 
-    if (!lesson) {
-      throw error(404, 'Lesson not found');
-    }
-
     return {
-      lesson: {
-        ...lesson,
-        playlist_id: lesson.lesson_playlists.id,
-        playlist_name: lesson.lesson_playlists.playlist_name
-      }
+      lesson
     };
   } catch (err) {
     console.error('Error fetching lesson:', err);
@@ -35,31 +27,57 @@ export const actions: Actions = {
   updateLesson: async ({ request, params }) => {
     const { id } = params;
     const formData = await request.formData();
+
     const lessonTitle = formData.get('lesson_title') as string;
     const lessonNumber = parseInt(formData.get('lesson_number') as string);
     const lessonContent = formData.get('lesson_content') as string;
-    const lessonTechniques = formData.get('lesson_techniques') as string;
+    const lessonTechniques = formData.get('lesson_techniques') as string || null;
+    const lessonVisible = formData.has('lessonVisible');
+
+    console.log('Lesson visibility:', lessonVisible);
+
+    if (!lessonTitle || isNaN(lessonNumber) || !lessonContent) {
+      return {
+        type: 'error',
+        error: 'Title, number, and content are required'
+      };
+    }
 
     try {
       const { data, error: updateError } = await supabaseAdmin
         .from('lesson_content')
-        .update({ lesson_number: lessonNumber, lesson_title: lessonTitle, lesson_content: lessonContent, lesson_techniques: lessonTechniques })
+        .update({
+          lesson_title: lessonTitle,
+          lesson_number: lessonNumber,
+          lesson_content: lessonContent,
+          lesson_techniques: lessonTechniques,
+          visible: lessonVisible
+        })
         .eq('id', id)
-        .select('*, lesson_playlists!inner(playlist_name)')
+        .select('*')
         .single();
 
       if (updateError) throw updateError;
 
+      // Fetch the updated lesson with the playlist name
+      const { data: updatedLesson, error: fetchError } = await supabaseAdmin
+        .from('lesson_content')
+        .select('*, lesson_playlists!inner(playlist_name)')
+        .eq('id', id)
+        .single();
+
+      if (fetchError) throw fetchError;
+
       return {
-        success: true,
-        lesson: {
-          ...data,
-          playlist_name: data.lesson_playlists.playlist_name
-        }
+        type: 'success',
+        data: { lesson: updatedLesson }
       };
     } catch (err) {
       console.error('Error updating lesson:', err);
-      return { success: false, error: 'Failed to update lesson' };
+      return {
+        type: 'error',
+        error: 'Failed to update lesson'
+      };
     }
   },
 
@@ -67,24 +85,22 @@ export const actions: Actions = {
     const { id } = params;
 
     try {
-      const { data: lesson, error: fetchError } = await supabaseAdmin
-        .from('lesson_content')
-        .select('playlist_id')
-        .eq('id', id)
-        .single();
-
-      if (fetchError) throw fetchError;
-
       const { error: deleteError } = await supabaseAdmin
         .from('lesson_content')
         .delete()
         .eq('id', id);
 
       if (deleteError) throw deleteError;
+
+      return {
+        type: 'success'
+      };
     } catch (err) {
-      if (err instanceof Response) throw err;
       console.error('Error deleting lesson:', err);
-      return { success: false, error: 'Failed to delete lesson' };
+      return {
+        type: 'error',
+        error: 'Failed to delete lesson'
+      };
     }
   }
 };

@@ -6,7 +6,7 @@ export const load: PageServerLoad = async () => {
   try {
     const { data: playlists, error: playlistsError } = await supabaseAdmin
       .from('lesson_playlists')
-      .select('id, playlist_name, playlist_order')
+      .select('id, playlist_name, playlist_order, visible')
       .order('playlist_order');
 
     if (playlistsError) throw playlistsError;
@@ -74,6 +74,34 @@ export const actions: Actions = {
     } catch (err) {
       console.error('Error deleting playlist:', err);
       return { success: false, error: 'Failed to delete playlist' };
+    }
+  },
+
+  updatePlaylistOrder: async ({ request }) => {
+    const formData = await request.formData();
+    const playlistOrderJson = formData.get('playlistOrder') as string;
+
+    if (!playlistOrderJson) {
+      return { success: false, error: 'Playlist order data is required' };
+    }
+
+    try {
+      const playlistOrder = JSON.parse(playlistOrderJson);
+
+      // Use a transaction to update all playlist orders
+      for (const item of playlistOrder) {
+        const { error: updateError } = await supabaseAdmin
+          .from('lesson_playlists')
+          .update({ playlist_order: item.order })
+          .eq('id', item.id);
+
+        if (updateError) throw updateError;
+      }
+
+      return { success: true };
+    } catch (err) {
+      console.error('Error updating playlist order:', err);
+      return { success: false, error: 'Failed to update playlist order' };
     }
   }
 };
