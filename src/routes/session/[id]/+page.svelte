@@ -11,7 +11,7 @@
 	import { theme as themeStore } from '$lib/stores/theme';
 
 	export let data: PageData;
-	const { meditation, userId, feedback } = data;
+	const { meditation, userId, feedback, fullscreenPreference } = data;
 
 	const audioUrl = meditation.signedAudioUrl;
 	const isHypnosis = meditation.content_type === 'hypnosis';
@@ -37,8 +37,11 @@
 		currentTheme = value;
 	});
 
-	// Fullscreen mode state
-	let isFullscreen = false;
+	// Fullscreen mode state - initialize from server data to prevent FOUC
+	let isFullscreen = fullscreenPreference;
+
+	// Cookie name for fullscreen preference
+	const FULLSCREEN_COOKIE_NAME = 'meditation_fullscreen_preference';
 
 	function setRealViewportHeight() {
 		realViewportHeight = window.innerHeight;
@@ -174,8 +177,39 @@
 		isMenuOpen = !isMenuOpen;
 	}
 
+	// Save fullscreen preference to cookie only
+	function saveFullscreenPreference(value: boolean) {
+		if (browser) {
+			try {
+				// Save to cookie with 1 year expiration
+				document.cookie = `${FULLSCREEN_COOKIE_NAME}=${value}; path=/; max-age=31536000; SameSite=Lax`;
+			} catch (error) {
+				console.error('Error saving fullscreen preference:', error);
+			}
+		}
+	}
+
+	// Get fullscreen preference from cookie
+	function getFullscreenPreferenceFromCookie(): boolean {
+		if (browser) {
+			try {
+				const cookieValue = document.cookie
+					.split('; ')
+					.find((row) => row.startsWith(`${FULLSCREEN_COOKIE_NAME}=`))
+					?.split('=')[1];
+
+				return cookieValue === 'true';
+			} catch (error) {
+				console.error('Error reading fullscreen preference from cookie:', error);
+				return false;
+			}
+		}
+		return false;
+	}
+
 	function toggleFullscreen() {
 		isFullscreen = !isFullscreen;
+		saveFullscreenPreference(isFullscreen);
 	}
 
 	function handleOutsideClick(event: MouseEvent) {
@@ -193,6 +227,11 @@
 
 		if (browser) {
 			window.addEventListener('resize', handleResize);
+
+			// Only check cookie if we didn't get the preference from SSR
+			if (fullscreenPreference === undefined) {
+				isFullscreen = getFullscreenPreferenceFromCookie();
+			}
 		}
 		setRealViewportHeight();
 		window.addEventListener('resize', setRealViewportHeight);
@@ -391,7 +430,6 @@
 		justify-content: space-between;
 		overflow: hidden;
 		position: relative;
-		background-color: var(--background-main);
 		height: var(--real-viewport-height, 100vh);
 	}
 

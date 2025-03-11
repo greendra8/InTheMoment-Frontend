@@ -3,7 +3,7 @@ import type { PageServerLoad } from './$types';
 import { getMeditation, getFeedback } from '$lib/server/supabase';
 
 
-export const load: PageServerLoad = async ({ params, locals }) => {
+export const load: PageServerLoad = async ({ params, locals, cookies }) => {
   const { session } = locals;
 
   if (!session) {
@@ -13,6 +13,9 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
   const userId = session.user.id;
   const meditationId = params.id;
+
+  // Get fullscreen preference from cookies
+  const fullscreenPreference = cookies.get('meditation_fullscreen_preference') === 'true';
 
   if (!meditationId || meditationId.includes('.')) {
     console.log(`Invalid meditation ID: ${meditationId}`);
@@ -33,7 +36,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     return {
       meditation,
       userId,
-      feedback: feedback || null
+      feedback: feedback || null,
+      fullscreenPreference
     };
   } catch (err) {
     console.error('Error in load function:', err);
