@@ -685,11 +685,6 @@
 		z-index: 1;
 	}
 
-	/* Native app specific positioning */
-	:global(.native-app) .controls-wrapper {
-		bottom: 6rem; /* More space at bottom for native app navigation */
-	}
-
 	.custom-audio-controls {
 		width: 100%;
 	}
