@@ -14,6 +14,7 @@
 	const { meditation, userId, feedback } = data;
 
 	const audioUrl = meditation.signedAudioUrl;
+	const isHypnosis = meditation.content_type === 'hypnosis';
 
 	let isCompletedThisSession = false;
 	let showFeedbackForm = meditation.listened || !!feedback || isCompletedThisSession;
@@ -249,14 +250,14 @@
 <div
 	class="meditation-page {currentTheme}-theme {isFullscreen ? 'fullscreen' : ''} {isFeedbackVisible
 		? 'feedback-open'
-		: ''}"
+		: ''} {isHypnosis ? 'hypnosis-session' : ''}"
 	style="height: {realViewportHeight}px;"
 >
 	{#if browser}
 		{#if currentTheme === 'dark'}
-			<div class="bg-dark-clouds"></div>
+			<div class="bg-dark-clouds {isHypnosis ? 'hypnosis-bg' : ''}"></div>
 		{:else}
-			<div class="bg-cosmic"></div>
+			<div class="bg-cosmic {isHypnosis ? 'hypnosis-bg' : ''}"></div>
 		{/if}
 	{/if}
 	<div class="navigation-controls {isFeedbackVisible ? 'blurred' : ''}">
@@ -431,7 +432,6 @@
 		bottom: 0;
 		opacity: 0.8;
 		filter: blur(60px);
-		animation: cloudMove 45s infinite alternate ease-in-out;
 	}
 
 	/* Theme-specific colors for first layer */
@@ -462,7 +462,6 @@
 		bottom: 0;
 		opacity: 0.7;
 		filter: blur(80px);
-		animation: cloudMove 60s infinite alternate-reverse ease-in-out;
 	}
 
 	/* Theme-specific colors for second layer */
@@ -489,13 +488,123 @@
 		right: 0;
 		bottom: 0;
 		filter: blur(50px);
-		animation: swirlEffect 30s infinite linear;
 	}
 
 	/* Show the image when loaded */
 	.bg-image.loaded {
 		opacity: 1;
 	}
+
+	/* Hypnosis-specific background styles */
+	.hypnosis-session .bg-dark-clouds,
+	.hypnosis-session .bg-cosmic {
+		transition: background 1s ease;
+	}
+
+	.hypnosis-session .bg-dark-clouds {
+		background: linear-gradient(to bottom, var(--background-main), rgba(40, 10, 60, 1));
+	}
+
+	.hypnosis-session .bg-cosmic {
+		background: linear-gradient(to bottom, var(--background-main), rgba(30, 5, 50, 1));
+	}
+
+	/* Hypnosis-specific first cloud layer */
+	.hypnosis-bg::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		opacity: 0.7;
+		filter: blur(70px);
+	}
+
+	.dark-theme .hypnosis-bg::before {
+		background: radial-gradient(circle at 20% 30%, rgba(138, 43, 226, 0.15) 0%, transparent 70%),
+			radial-gradient(circle at 80% 70%, rgba(147, 112, 219, 0.15) 0%, transparent 70%);
+	}
+
+	.hypnosis-bg::before {
+		background: radial-gradient(circle at 20% 30%, rgba(138, 43, 226, 0.15) 0%, transparent 70%),
+			radial-gradient(circle at 80% 70%, rgba(147, 112, 219, 0.15) 0%, transparent 70%);
+	}
+
+	/* Hypnosis-specific second cloud layer */
+	.hypnosis-bg::after {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		opacity: 0.6;
+		filter: blur(90px);
+	}
+
+	.dark-theme .hypnosis-bg::after {
+		background: radial-gradient(circle at 70% 20%, rgba(186, 85, 211, 0.15) 0%, transparent 70%),
+			radial-gradient(circle at 30% 80%, rgba(153, 50, 204, 0.15) 0%, transparent 70%);
+	}
+
+	.hypnosis-bg::after {
+		background: radial-gradient(circle at 70% 20%, rgba(186, 85, 211, 0.15) 0%, transparent 70%),
+			radial-gradient(circle at 30% 80%, rgba(153, 50, 204, 0.15) 0%, transparent 70%);
+	}
+
+	/* Hypnosis spiral animation */
+	/* .hypnosis-session::before {
+		content: '';
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: 100%;
+		height: 100%;
+		transform: translate(-50%, -50%);
+		background: radial-gradient(circle at center, transparent 30%, rgba(138, 43, 226, 0.03) 70%);
+		opacity: 0;
+		z-index: 0;
+		animation: hypnosisSpiral 15s infinite alternate ease-in-out;
+		pointer-events: none;
+	} */
+
+	/* Hypnosis animations */
+	/* @keyframes hypnosisCloudMove {
+		0% {
+			transform: translateX(-5%) translateY(-5%) scale(1.05);
+		}
+		50% {
+			transform: translateX(2%) translateY(2%) scale(1);
+		}
+		100% {
+			transform: translateX(5%) translateY(5%) scale(1.05);
+		}
+	}
+
+	@keyframes hypnosisSpiral {
+		0% {
+			opacity: 0;
+			transform: translate(-50%, -50%) scale(0.9) rotate(0deg);
+		}
+		50% {
+			opacity: 0.5;
+			transform: translate(-50%, -50%) scale(1) rotate(180deg);
+		}
+		100% {
+			opacity: 0;
+			transform: translate(-50%, -50%) scale(0.9) rotate(360deg);
+		}
+	}
+
+	@keyframes cloudMove {
+		0% {
+			transform: translateX(-3%) translateY(-3%);
+		}
+		100% {
+			transform: translateX(3%) translateY(3%);
+		}
+	} */
 
 	.meditation-content {
 		display: flex;
@@ -504,6 +613,21 @@
 		box-sizing: border-box;
 		position: relative;
 		z-index: 1;
+	}
+
+	/* Hypnosis-specific text styling */
+	.hypnosis-session h2 {
+		text-shadow: 0 0 10px rgba(138, 43, 226, 0.3);
+		transition: text-shadow 1s ease;
+	}
+
+	.hypnosis-session .info-item {
+		color: var(--text-secondary);
+		transition: color 1s ease;
+	}
+
+	.hypnosis-session .info-item i {
+		color: rgba(186, 85, 211, 0.8);
 	}
 
 	/* =======================
@@ -928,6 +1052,7 @@
 	.session-type-badge.hypnosis {
 		background: var(--hypnosis-badge-bg);
 		color: var(--hypnosis-badge-text);
-		border: 1px solid rgba(255, 255, 255, 0.1);
+		border: 1px solid rgba(186, 85, 211, 0.2);
+		box-shadow: 0 0 10px rgba(138, 43, 226, 0.2);
 	}
 </style>
