@@ -13,6 +13,21 @@
 	let isLoading = false;
 	let error = '';
 
+	// Add filter state
+	let activeFilter: 'all' | 'meditation' | 'hypnosis' = 'all';
+	let filteredMeditations: typeof meditations = [];
+
+	// Use a reactive statement to update filteredMeditations when either meditations or activeFilter changes
+	$: {
+		if (activeFilter === 'all') {
+			filteredMeditations = [...meditations];
+		} else {
+			filteredMeditations = meditations.filter(
+				(meditation) => meditation.content_type === activeFilter
+			);
+		}
+	}
+
 	async function loadMore() {
 		isLoading = true;
 		error = '';
@@ -50,65 +65,95 @@
 	</div>
 
 	{#if meditations.length > 0}
-		<ul>
-			{#each meditations as meditation (meditation.id)}
-				<li class:processing={meditation.status === 'processing'}>
-					{#if meditation.status !== 'processing'}
-						<a href="/session/{meditation.id}" class="play-button">
-							<i class="fas fa-play"></i>
-						</a>
-						<a href="/session/{meditation.id}" class="meditation-info">
-							<div class="title-wrapper">
-								<h3 class="title-text">{meditation.title || 'Untitled Meditation'}</h3>
-								<div class="icon-wrapper">
-									{#if meditation.listened}
-										<i class="fas fa-check-circle listened-icon"></i>
-									{/if}
-									<span
-										class="content-type-badge"
-										class:hypnosis={meditation.content_type === 'hypnosis'}
-									>
-										{meditation.content_type === 'hypnosis' ? 'Hypnosis' : 'Meditation'}
-									</span>
-								</div>
-							</div>
-							<p>
-								{meditation.lesson_playlists
-									? `Playlist: ${meditation.lesson_playlists.playlist_name}`
-									: `Theme: ${meditation.theme || 'N/A'}`}
-							</p>
-							<div class="meditation-meta">
-								<span class="length"
-									><i class="far fa-clock"></i> {meditation.length || 'N/A'} min</span
-								>
-								<span class="date">{new Date(meditation.created_at).toLocaleDateString()}</span>
-							</div>
-						</a>
-					{:else}
-						<div class="processing-icon">
-							<i class="fas fa-spinner fa-spin"></i>
-						</div>
-						<div class="meditation-info">
-							<h3>Processing Meditation...</h3>
-							<p>
-								{meditation.lesson_playlists
-									? `Playlist: ${meditation.lesson_playlists.playlist_name}`
-									: `Theme: ${meditation.theme || 'N/A'}`}
-							</p>
-							<p>Length: {meditation.length || 'N/A'} min</p>
-						</div>
-					{/if}
-				</li>
-			{/each}
-		</ul>
-		{#if currentPage < totalPages}
-			<button on:click={loadMore} disabled={isLoading} class="load-more-btn">
-				{#if isLoading}
-					<i class="fas fa-spinner fa-spin"></i> Loading...
-				{:else}
-					Load More
-				{/if}
+		<div class="filter-buttons">
+			<button
+				class="filter-btn"
+				class:active={activeFilter === 'all'}
+				on:click={() => (activeFilter = 'all')}
+			>
+				All
 			</button>
+			<button
+				class="filter-btn"
+				class:active={activeFilter === 'meditation'}
+				on:click={() => (activeFilter = 'meditation')}
+			>
+				Meditations
+			</button>
+			<button
+				class="filter-btn"
+				class:active={activeFilter === 'hypnosis'}
+				on:click={() => (activeFilter = 'hypnosis')}
+			>
+				Hypnosis
+			</button>
+		</div>
+
+		{#if filteredMeditations.length === 0}
+			<div class="empty-filter-message">
+				<p>No {activeFilter === 'meditation' ? 'meditation' : 'hypnosis'} sessions found.</p>
+			</div>
+		{:else}
+			<ul>
+				{#each filteredMeditations as meditation (meditation.id)}
+					<li class:processing={meditation.status === 'processing'}>
+						{#if meditation.status !== 'processing'}
+							<a href="/session/{meditation.id}" class="play-button">
+								<i class="fas fa-play"></i>
+							</a>
+							<a href="/session/{meditation.id}" class="meditation-info">
+								<div class="title-wrapper">
+									<h3 class="title-text">{meditation.title || 'Untitled Meditation'}</h3>
+									<div class="icon-wrapper">
+										{#if meditation.listened}
+											<i class="fas fa-check-circle listened-icon"></i>
+										{/if}
+										<span
+											class="content-type-badge"
+											class:hypnosis={meditation.content_type === 'hypnosis'}
+										>
+											{meditation.content_type === 'hypnosis' ? 'Hypnosis' : 'Meditation'}
+										</span>
+									</div>
+								</div>
+								<p>
+									{meditation.lesson_playlists
+										? `Playlist: ${meditation.lesson_playlists.playlist_name}`
+										: `Theme: ${meditation.theme || 'N/A'}`}
+								</p>
+								<div class="meditation-meta">
+									<span class="length"
+										><i class="far fa-clock"></i> {meditation.length || 'N/A'} min</span
+									>
+									<span class="date">{new Date(meditation.created_at).toLocaleDateString()}</span>
+								</div>
+							</a>
+						{:else}
+							<div class="processing-icon">
+								<i class="fas fa-spinner fa-spin"></i>
+							</div>
+							<div class="meditation-info">
+								<h3>Processing Meditation...</h3>
+								<p>
+									{meditation.lesson_playlists
+										? `Playlist: ${meditation.lesson_playlists.playlist_name}`
+										: `Theme: ${meditation.theme || 'N/A'}`}
+								</p>
+								<p>Length: {meditation.length || 'N/A'} min</p>
+							</div>
+						{/if}
+					</li>
+				{/each}
+			</ul>
+			{#if currentPage < totalPages}
+				<button on:click={loadMore} disabled={isLoading} class="load-more-btn">
+					{#if isLoading}
+						<i class="fas fa-spinner fa-spin"></i> Loading...
+					{:else}
+						Load More
+					{/if}
+				</button>
+			{/if}
 		{/if}
 	{:else}
 		<div class="empty-state">
@@ -335,7 +380,7 @@
 		width: 40px;
 		height: 40px;
 		background: var(--background-button);
-		color: var(--text-light);
+		color: var(--play-btn-text);
 		border-radius: 50%;
 		display: flex;
 		align-items: center;
@@ -715,6 +760,47 @@
 		font-size: 0.9rem;
 	}
 
+	.filter-buttons {
+		display: flex;
+		gap: 0.5rem;
+		margin-bottom: 1.5rem;
+	}
+
+	.filter-btn {
+		padding: 0.5rem 1rem;
+		border-radius: 20px;
+		font-size: 0.85rem;
+		font-weight: 500;
+		background: var(--background-card);
+		color: var(--text-secondary);
+		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
+		cursor: pointer;
+		transition: all 0.2s ease;
+	}
+
+	.filter-btn:hover {
+		background: rgba(var(--interactive-gradient-1), 0.1);
+		border-color: rgba(var(--interactive-gradient-1), 0.2);
+	}
+
+	.filter-btn.active {
+		background: linear-gradient(
+			135deg,
+			rgba(var(--interactive-gradient-1), 0.2) 0%,
+			rgba(var(--interactive-gradient-2), 0.3) 100%
+		);
+		color: var(--text-primary);
+		border-color: rgba(var(--interactive-gradient-1), 0.3);
+		box-shadow: 0 2px 8px rgba(var(--interactive-gradient-1), 0.15);
+	}
+
+	.empty-filter-message {
+		text-align: center;
+		padding: 2rem 0;
+		color: var(--text-secondary);
+		font-size: 0.9rem;
+	}
+
 	@media (max-width: 480px) {
 		.meditations-list-container {
 			padding: 1.5rem 0;
@@ -784,6 +870,16 @@
 		}
 
 		.onboarding-content p {
+			font-size: 0.75rem;
+		}
+
+		.filter-buttons {
+			gap: 0.3rem;
+			margin-bottom: 1.2rem;
+		}
+
+		.filter-btn {
+			padding: 0.4rem 0.8rem;
 			font-size: 0.75rem;
 		}
 	}

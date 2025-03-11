@@ -2,10 +2,14 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import type { PageData } from './$types';
+	import { browser } from '$app/environment';
 
 	export let data: PageData;
 
-	$: ({ meditations, totalMeditations, playlists, user } = data);
+	$: ({ meditations, totalMeditations, playlists, user, inProgressMeditation } = data);
+
+	// For Continue Listening section
+	$: displayedMeditation = inProgressMeditation || (meditations.length > 0 ? meditations[0] : null);
 
 	// Calculate stats
 	$: daysInRow = calculateDaysInRow(meditations);
@@ -188,12 +192,13 @@
 	{#if meditations.length > 0}
 		<section class="content-section">
 			<div class="section-header">
-				<h2>Continue Listening</h2>
+				<h2>{inProgressMeditation ? 'Continue Listening' : 'Recent Session'}</h2>
 			</div>
 			<div
 				class="featured-session"
-				on:click={() => handleNavigation(`/session/${meditations[0].id}`)}
-				on:keydown={(e) => e.key === 'Enter' && handleNavigation(`/session/${meditations[0].id}`)}
+				on:click={() => handleNavigation(`/session/${displayedMeditation.id}`)}
+				on:keydown={(e) =>
+					e.key === 'Enter' && handleNavigation(`/session/${displayedMeditation.id}`)}
 				tabindex="0"
 				role="button"
 			>
@@ -202,18 +207,22 @@
 				</div>
 				<div class="featured-info">
 					<div class="title-row">
-						<h3>{meditations[0].title || 'Untitled Meditation'}</h3>
+						<h3>{displayedMeditation.title || 'Untitled Meditation'}</h3>
 						<span
 							class="content-type-badge"
-							class:hypnosis={meditations[0].content_type === 'hypnosis'}
+							class:hypnosis={displayedMeditation.content_type === 'hypnosis'}
 						>
-							{meditations[0].content_type === 'hypnosis' ? 'Hypnosis' : 'Meditation'}
+							{displayedMeditation.content_type === 'hypnosis' ? 'Hypnosis' : 'Meditation'}
 						</span>
 					</div>
 					<div class="featured-meta">
-						<span><i class="far fa-clock"></i> {meditations[0].length || 'N/A'} min</span>
+						<span><i class="far fa-clock"></i> {displayedMeditation.length || 'N/A'} min</span>
 						<span class="dot-separator">•</span>
-						<span>{new Date(meditations[0].created_at).toLocaleDateString()}</span>
+						<span>{new Date(displayedMeditation.created_at).toLocaleDateString()}</span>
+						{#if inProgressMeditation}
+							<span class="dot-separator">•</span>
+							<span class="in-progress-badge"><i class="fas fa-circle-play"></i> In Progress</span>
+						{/if}
 					</div>
 				</div>
 			</div>
@@ -698,6 +707,20 @@
 		font-size: 0.9rem;
 		color: var(--text-secondary);
 		margin-top: 0.4rem;
+	}
+
+	.in-progress-badge {
+		color: var(--icon-primary);
+		display: flex;
+		align-items: center;
+		gap: 0.3rem;
+		font-size: 0.85rem;
+		font-weight: 500;
+		margin-top: -2px;
+	}
+
+	.in-progress-badge i {
+		font-size: 0.8rem;
 	}
 
 	.dot-separator {
@@ -1221,6 +1244,14 @@
 
 		.session-meta {
 			font-size: 0.75rem;
+		}
+
+		.in-progress-badge {
+			font-size: 0.75rem;
+		}
+
+		.in-progress-badge i {
+			font-size: 0.7rem;
 		}
 	}
 </style>
