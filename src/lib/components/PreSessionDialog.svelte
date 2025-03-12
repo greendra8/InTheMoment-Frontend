@@ -22,6 +22,15 @@
 	let isThinking = false;
 	let audioLevel = 0;
 	let textResponse = '';
+	let silenceTimer: ReturnType<typeof setTimeout> | null = null;
+	let silenceStartTime: number | null = null;
+	let silenceThreshold = 0.05; // Threshold below which audio is considered silence
+	let silenceTimeout = 10000; // 10 seconds in milliseconds
+	let maxCharCount = 500; // Maximum character count
+	let charCount = 0;
+	let recordingStartTime: number | null = null;
+	let maxRecordingTime = 120000; // 2 minutes in milliseconds
+	let recordingTimer: ReturnType<typeof setTimeout> | null = null;
 
 	// List of possible initial questions
 	const initialQuestions = [
@@ -129,6 +138,18 @@
 				audioStream.getTracks().forEach((track) => track.stop());
 				audioStream = null;
 			}
+
+			// Clear silence detection timer
+			if (silenceTimer !== null) {
+				clearTimeout(silenceTimer);
+				silenceTimer = null;
+			}
+
+			// Clear recording timer
+			if (recordingTimer !== null) {
+				clearTimeout(recordingTimer);
+				recordingTimer = null;
+			}
 		};
 	});
 
@@ -156,6 +177,37 @@
 				sum += dataArray[i];
 			}
 			audioLevel = sum / length / 255; // Normalize to 0-1
+
+			// Silence detection
+			if (isRecording) {
+				if (audioLevel < silenceThreshold) {
+					// If silence just started, record the time
+					if (silenceStartTime === null) {
+						silenceStartTime = Date.now();
+						// Start the silence timer
+						if (silenceTimer === null) {
+							silenceTimer = setTimeout(() => {
+								console.log('Silence detected for 10 seconds, stopping recording');
+								submitRecording();
+							}, silenceTimeout);
+						}
+					} else {
+						// Check if silence has continued for the timeout period
+						const silenceDuration = Date.now() - silenceStartTime;
+						if (silenceDuration >= silenceTimeout && silenceTimer === null) {
+							console.log('Silence detected for 10 seconds, stopping recording');
+							submitRecording();
+						}
+					}
+				} else {
+					// Reset silence timer if sound is detected
+					if (silenceTimer !== null) {
+						clearTimeout(silenceTimer);
+						silenceTimer = null;
+					}
+					silenceStartTime = null;
+				}
+			}
 
 			// Log audio level for debugging only when needed
 			if (audioLevel > 0.05 && debugInfo.showDebug) {
@@ -196,6 +248,26 @@
 				cancelAnimationFrame(animationFrameId);
 				animationFrameId = null;
 			}
+
+			// Reset silence detection variables
+			if (silenceTimer !== null) {
+				clearTimeout(silenceTimer);
+				silenceTimer = null;
+			}
+			silenceStartTime = null;
+
+			// Clear any existing recording timer
+			if (recordingTimer !== null) {
+				clearTimeout(recordingTimer);
+				recordingTimer = null;
+			}
+
+			// Set recording start time and max recording timer
+			recordingStartTime = Date.now();
+			recordingTimer = setTimeout(() => {
+				console.log('Maximum recording time reached (2 minutes), stopping recording');
+				submitRecording();
+			}, maxRecordingTime);
 
 			console.log('Starting recording...');
 			audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -257,6 +329,20 @@
 			animationFrameId = null;
 		}
 
+		// Clear silence detection timer
+		if (silenceTimer !== null) {
+			clearTimeout(silenceTimer);
+			silenceTimer = null;
+		}
+		silenceStartTime = null;
+
+		// Clear recording timer
+		if (recordingTimer !== null) {
+			clearTimeout(recordingTimer);
+			recordingTimer = null;
+		}
+		recordingStartTime = null;
+
 		// Don't close audioContext here as it might be needed for playback
 		// Just disconnect any sources if needed
 
@@ -297,11 +383,15 @@
 					console.log('Whisper transcription:', response);
 				} catch (transcriptionError) {
 					console.error('Transcription error:', transcriptionError);
+					isThinking = false;
+					buttonState = 'active';
 					throw new Error('Failed to transcribe your audio. Please try again or use text input.');
 				}
 			} else {
 				response = textResponse;
 				textResponse = '';
+				// Reset character count when processing text response
+				charCount = 0;
 			}
 
 			// Add user's response to messages
@@ -386,6 +476,9 @@
 				}
 			} catch (aiError) {
 				console.error('AI recommendation error:', aiError);
+				isThinking = false;
+				buttonState = 'active';
+				// Keep the current question visible instead of clearing it
 				throw new Error('Failed to get a response. Please try again.');
 			}
 		} catch (error) {
@@ -397,9 +490,25 @@
 		}
 	}
 
+	// Calculate character count for text input and enforce limit
+	function updateCharCount() {
+		// Enforce character limit directly when typing
+		if (textResponse.length > maxCharCount) {
+			textResponse = textResponse.substring(0, maxCharCount);
+		}
+		charCount = textResponse.length;
+	}
+
 	function handleSubmitText() {
 		if (textResponse.trim()) {
+			// Double-check character limit before submitting
+			if (charCount > maxCharCount) {
+				textResponse = textResponse.substring(0, maxCharCount);
+				updateCharCount();
+			}
 			processResponse();
+			// Reset character count after submission
+			charCount = 0;
 		}
 	}
 
@@ -548,11 +657,17 @@
 						out:send={{ key: 'text-mode' }}
 					>
 						<div class="text-input">
-							<textarea
-								bind:value={textResponse}
-								placeholder="Type your response here..."
-								disabled={isProcessing}
-							></textarea>
+							<div class="textarea-container">
+								<textarea
+									bind:value={textResponse}
+									on:input={updateCharCount}
+									placeholder="Type your response here..."
+									disabled={isProcessing}
+								></textarea>
+								<div class="char-count" class:warning={charCount > maxCharCount}>
+									{charCount}/{maxCharCount} characters
+								</div>
+							</div>
 							<button
 								class="submit-btn"
 								on:click={handleSubmitText}
@@ -637,7 +752,6 @@
 		display: flex;
 		gap: 0.75rem;
 		width: 100%;
-		max-width: 400px;
 		margin-bottom: 0.5rem;
 	}
 
@@ -895,34 +1009,52 @@
 		display: flex;
 		gap: 0.75rem;
 		width: 100%;
+		align-items: stretch; /* Stretch items to fill container height */
+	}
+
+	.textarea-container {
+		position: relative;
+		flex: 1;
+		height: 120px; /* Fixed height */
 	}
 
 	textarea {
-		flex: 1;
+		width: 100%;
+		height: 100%; /* Fill container height */
 		padding: 0.75rem;
 		border-radius: 12px;
 		border: 1px solid rgba(var(--interactive-gradient-1), 0.15);
 		background: rgba(var(--background-card-rgb), 0.1);
 		color: var(--text-primary);
-		resize: vertical;
-		min-height: 120px;
+		resize: none; /* Disable resizing */
+		overflow-y: auto; /* Add scrollbar when needed */
 		font-family: 'Inter', sans-serif;
 		font-size: 0.95rem;
 		transition: all 0.3s ease;
+		padding-bottom: 2.5rem; /* Make room for char count */
+		box-sizing: border-box; /* Ensure padding is included in width/height */
 	}
 
-	textarea:hover {
-		border-color: rgba(var(--interactive-gradient-1), 0.3);
-		box-shadow: 0 4px 10px var(--ui-shadowHover);
+	.char-count {
+		position: absolute;
+		bottom: 0.5rem;
+		left: 0.75rem;
+		font-size: 0.8rem;
+		color: var(--text-secondary);
+		background: rgba(var(--background-card-rgb), 0.7);
+		padding: 0.25rem 0.5rem;
+		border-radius: 4px;
+		transition: all 0.3s ease;
+		z-index: 1;
 	}
 
-	textarea:focus {
-		outline: none;
-		border-color: rgba(var(--interactive-gradient-1), 0.4);
-		box-shadow: 0 4px 12px rgba(var(--interactive-gradient-1), 0.2);
+	.char-count.warning {
+		color: var(--ui-danger);
+		font-weight: 500;
 	}
 
 	.submit-btn {
+		height: 120px; /* Match textarea container height exactly */
 		padding: 0 1rem;
 		border-radius: 12px;
 		border: none;
@@ -931,6 +1063,10 @@
 		cursor: pointer;
 		transition: all 0.3s ease;
 		box-shadow: 0 4px 12px rgba(var(--interactive-gradient-1), 0.15);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		box-sizing: border-box; /* Ensure padding is included in height */
 	}
 
 	.submit-btn:hover:not(:disabled) {
