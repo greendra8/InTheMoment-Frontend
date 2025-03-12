@@ -625,7 +625,7 @@
 	}
 
 	.pre-session-header {
-		margin-bottom: 2rem;
+		margin-bottom: 1rem;
 		text-align: center;
 		display: flex;
 		flex-direction: column;
