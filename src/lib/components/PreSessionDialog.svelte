@@ -290,10 +290,15 @@
 
 			if (audioBlob) {
 				console.log('Transcribing audio...');
-				response = await transcribeAudio(audioBlob);
-				// Save transcription for debugging
-				debugInfo.lastTranscription = response;
-				console.log('Whisper transcription:', response);
+				try {
+					response = await transcribeAudio(audioBlob);
+					// Save transcription for debugging
+					debugInfo.lastTranscription = response;
+					console.log('Whisper transcription:', response);
+				} catch (transcriptionError) {
+					console.error('Transcription error:', transcriptionError);
+					throw new Error('Failed to transcribe your audio. Please try again or use text input.');
+				}
 			} else {
 				response = textResponse;
 				textResponse = '';
@@ -304,83 +309,88 @@
 
 			// Get AI response
 			console.log('Getting AI recommendation...');
-			const aiResponse = await getSessionRecommendation(messages);
-			console.log('AI response:', aiResponse);
-			isThinking = false;
-
-			// Try to parse as JSON to check if it's the final configuration
 			try {
-				// More efficient regex for JSON detection
-				const jsonMatch =
-					aiResponse.match(/```json\s*(\{[\s\S]*?\})\s*```/) ||
-					aiResponse.match(/(\{[\s\S]*"length"[\s\S]*"posture"[\s\S]*"eyes"[\s\S]*\})/);
+				const aiResponse = await getSessionRecommendation(messages);
+				console.log('AI response:', aiResponse);
+				isThinking = false;
 
-				if (jsonMatch) {
-					const jsonStr = jsonMatch[1] || jsonMatch[0];
-					let config;
+				// Try to parse as JSON to check if it's the final configuration
+				try {
+					// More efficient regex for JSON detection
+					const jsonMatch =
+						aiResponse.match(/```json\s*(\{[\s\S]*?\})\s*```/) ||
+						aiResponse.match(/(\{[\s\S]*"length"[\s\S]*"posture"[\s\S]*"eyes"[\s\S]*\})/);
 
-					try {
-						config = JSON.parse(jsonStr);
-					} catch (parseError) {
-						console.error('Error parsing JSON:', parseError);
-						throw new Error('Invalid JSON format');
-					}
+					if (jsonMatch) {
+						const jsonStr = jsonMatch[1] || jsonMatch[0];
+						let config;
 
-					if (config && config.length && config.posture && config.eyes) {
-						// Extract only the text part before the JSON if it exists
-						const textPart = aiResponse.split(/```json|{/)[0].trim();
+						try {
+							config = JSON.parse(jsonStr);
+						} catch (parseError) {
+							console.error('Error parsing JSON:', parseError);
+							throw new Error('Invalid JSON format');
+						}
 
-						// Add the AI's final message (without JSON) to the conversation
-						if (textPart) {
-							messages = [...messages, { role: 'assistant', content: textPart }];
-							finalMessage = textPart;
-							showFinalMessage = true;
+						if (config && config.length && config.posture && config.eyes) {
+							// Extract only the text part before the JSON if it exists
+							const textPart = aiResponse.split(/```json|{/)[0].trim();
 
-							// Wait a moment to show the final message before closing
-							setTimeout(() => {
+							// Add the AI's final message (without JSON) to the conversation
+							if (textPart) {
+								messages = [...messages, { role: 'assistant', content: textPart }];
+								finalMessage = textPart;
+								showFinalMessage = true;
+
+								// Wait a moment to show the final message before closing
+								setTimeout(() => {
+									dispatch('config', {
+										...config,
+										conversation: messages
+									});
+								}, 5000);
+							} else {
 								dispatch('config', {
 									...config,
 									conversation: messages
 								});
-							}, 5000);
-						} else {
-							dispatch('config', {
-								...config,
-								conversation: messages
-							});
+							}
+							return;
 						}
-						return;
+					}
+
+					// If we get here, it's not a final response with valid JSON
+					questionKey++; // Increment key to trigger transition
+					currentQuestion = aiResponse;
+					messages = [...messages, { role: 'assistant', content: aiResponse }];
+					buttonState = 'active';
+
+					// If in conversation mode and interface is active, start recording for the next question
+					if (mode === 'conversation' && interfaceActive) {
+						await tick();
+						startRecording();
+					}
+				} catch (error) {
+					console.error('Error processing AI response:', error);
+					// Not JSON or error parsing, so it's a follow-up question
+					questionKey++; // Increment key to trigger transition
+					currentQuestion = aiResponse;
+					messages = [...messages, { role: 'assistant', content: aiResponse }];
+					buttonState = 'active';
+
+					// If in conversation mode and interface is active, start recording for the next question
+					if (mode === 'conversation' && interfaceActive) {
+						await tick();
+						startRecording();
 					}
 				}
-
-				// If we get here, it's not a final response with valid JSON
-				questionKey++; // Increment key to trigger transition
-				currentQuestion = aiResponse;
-				messages = [...messages, { role: 'assistant', content: aiResponse }];
-				buttonState = 'active';
-
-				// If in conversation mode and interface is active, start recording for the next question
-				if (mode === 'conversation' && interfaceActive) {
-					await tick();
-					startRecording();
-				}
-			} catch (error) {
-				console.error('Error processing AI response:', error);
-				// Not JSON or error parsing, so it's a follow-up question
-				questionKey++; // Increment key to trigger transition
-				currentQuestion = aiResponse;
-				messages = [...messages, { role: 'assistant', content: aiResponse }];
-				buttonState = 'active';
-
-				// If in conversation mode and interface is active, start recording for the next question
-				if (mode === 'conversation' && interfaceActive) {
-					await tick();
-					startRecording();
-				}
+			} catch (aiError) {
+				console.error('AI recommendation error:', aiError);
+				throw new Error('Failed to get a response. Please try again.');
 			}
 		} catch (error) {
 			console.error('Error processing response:', error);
-			alert('An error occurred. Please try again.');
+			alert(error instanceof Error ? error.message : 'An error occurred. Please try again.');
 			buttonState = 'active';
 		} finally {
 			isProcessing = false;

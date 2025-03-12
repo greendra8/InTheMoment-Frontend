@@ -225,5 +225,113 @@ export async function getFeedback(sessionId: string, profileId: string) {
   return data?.feedback || null;
 }
 
+// Server-side implementation for audio transcription
+export async function serverTranscribeAudio(audioBuffer: Buffer): Promise<string> {
+  try {
+    const formData = new FormData();
+    const blob = new Blob([audioBuffer], { type: 'audio/webm' });
+    formData.append('file', blob);
+    formData.append('model', 'openai/whisper-large-v3-turbo');
+
+    const response = await fetch('https://api.deepinfra.com/v1/openai/audio/transcriptions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${import.meta.env.VITE_DEEPINFRA_API_KEY}`
+      },
+      body: formData
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Transcription API error:', errorText);
+      throw new Error(`Failed to transcribe audio: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.text;
+  } catch (error) {
+    console.error('Error in serverTranscribeAudio:', error);
+    throw error;
+  }
+}
+
+// Server-side implementation for session recommendation
+export async function serverGetSessionRecommendation(messages: Array<{ role: string, content: string }>) {
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY}`,
+        'HTTP-Referer': import.meta.env.VITE_APP_URL,
+        'X-Title': 'In The Moment'
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.0-pro-exp-02-05:free',
+        messages: [
+          {
+            role: 'system',
+            content: `You are a meditation teacher's assistant helping to configure meditation sessions. Imagine they have just entered the room and you're looking to guage their current state and needs.
+            Based on the user's responses, you should ask 2-3 relevant follow-up questions to understand their current state and needs.
+            After gathering sufficient information, provide a session configuration in JSON format with these fields:
+            - length: number (5-45 minutes, must be one of: 5, 10, 15, 20, 25, 30, 35, 40, 45)
+            - posture: "sitting" | "lying" | "walking"
+            - eyes: "open" | "closed"
+            
+            Example questions:
+            - What have you been up to today?
+            - What are you going to do after today's session?
+            - How have your emotions been lately?
+            - Have you had a chance to practice mindfulness outside of our sessions?
+            - What's been on your mind recently?
+            - Are you happy with your progress in our sessions?
+            - Any recent issues or stresses you'd like to discuss?
+            - Did you try mindfulness or meditation since last time? How was it?
+            - Which meditation techniques have been helpful or tough recently?
+            - Noticed any changes in yourself or your practice since we began?
+            - Got a specific goal for today's session?
+            - Any physical sensations or discomforts to address today?
+            - Anything else to share or requests for today's session?
+
+            Keep your response less than 250 characters.
+
+            Don't ask how long the session should be - this is up to you to decide and they can always override your choice.
+
+            
+            Your responses should be either:
+            1. A follow-up question (if you need more information)
+            2. A final response with a friendly message followed by the JSON configuration in this format:
+            
+            [Your friendly message here]
+            
+            \`\`\`json
+            {
+              "length": 15,
+              "posture": "sitting",
+              "eyes": "closed"
+            }
+            \`\`\`
+            
+            If the user seems confused, uncooperative, or unable to respond clearly, provide a default configuration with a kind message.`
+          },
+          ...messages
+        ]
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('OpenRouter API error:', errorText);
+      throw new Error(`Failed to get session recommendation: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.choices[0].message.content;
+  } catch (error) {
+    console.error('Error in serverGetSessionRecommendation:', error);
+    throw error;
+  }
+}
+
 
 
