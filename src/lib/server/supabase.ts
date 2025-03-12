@@ -228,6 +228,17 @@ export async function getFeedback(sessionId: string, profileId: string) {
 // Server-side implementation for audio transcription
 export async function serverTranscribeAudio(audioBuffer: Buffer): Promise<string> {
   try {
+    // Check audio duration using buffer size as a rough estimate
+    // WebM audio at typical quality is roughly 20-30KB per second
+    // 2 minutes = 120 seconds, so ~2.4-3.6MB
+    // We'll use a slightly higher limit (2 minutes 5 seconds) = 125 seconds = ~3.75MB
+    const MAX_AUDIO_SIZE = 3.75 * 1024 * 1024; // 3.75MB (approx 2 minutes 5 seconds)
+
+    if (audioBuffer.length > MAX_AUDIO_SIZE) {
+      console.warn(`Audio exceeds maximum allowed duration. Size: ${audioBuffer.length} bytes, Max: ${MAX_AUDIO_SIZE} bytes`);
+      throw new Error('Audio recording exceeds the maximum allowed duration of 2 minutes');
+    }
+
     const formData = new FormData();
     const blob = new Blob([audioBuffer], { type: 'audio/webm' });
     formData.append('file', blob);
@@ -258,6 +269,16 @@ export async function serverTranscribeAudio(audioBuffer: Buffer): Promise<string
 // Server-side implementation for session recommendation
 export async function serverGetSessionRecommendation(messages: Array<{ role: string, content: string }>) {
   try {
+    // Enforce character limit on the last user message if it exists
+    if (messages.length > 0) {
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage.role === 'user' && lastMessage.content.length > 500) {
+        // Truncate to 500 characters
+        lastMessage.content = lastMessage.content.substring(0, 500);
+        console.log('Truncated user message to 500 characters');
+      }
+    }
+
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
