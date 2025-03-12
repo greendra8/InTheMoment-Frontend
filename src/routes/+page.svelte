@@ -1,6 +1,7 @@
 <script>
 	import { onMount } from 'svelte';
 	import { setupAudioVisualizer } from '$lib/audioVisualizer';
+	import { browser } from '$app/environment';
 
 	// Core visualization variables
 	let canvas;
@@ -28,24 +29,26 @@
 	let orbAnalyser;
 	let orbVisualizer;
 
+	// Video background variables
+	let videoElement;
+	let videoWrapper;
+	let isVideoLoaded = false;
+
 	// Check if device is low performance
 	function checkDevicePerformance() {
+		if (!browser) return false;
+
 		// Simple heuristic - mobile devices or older browsers
 		const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
 			navigator.userAgent
 		);
-		const isOldBrowser = !window.requestAnimationFrame || !window.AudioContext;
+		const isOldBrowser = !window.requestAnimationFrame;
 
 		// More sophisticated check - available CPU cores
 		const cpuCores = navigator.hardwareConcurrency || 4;
 
 		// Only consider truly low-performance devices
-		isLowPerfDevice = isOldBrowser || (isMobile && cpuCores <= 2);
-
-		// Adjust render interval based on device performance
-		if (isLowPerfDevice) {
-			renderInterval = 1000 / 24; // Target 24fps for low-perf devices
-		}
+		return isOldBrowser || (isMobile && cpuCores <= 2);
 	}
 
 	// Optimized renderer with throttling
@@ -148,7 +151,7 @@
 
 		try {
 			// Check device performance first
-			checkDevicePerformance();
+			isLowPerfDevice = checkDevicePerformance();
 
 			// Create audio context
 			audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -179,57 +182,47 @@
 	}
 
 	function setupVisibilityObserver() {
-		// Set up Intersection Observer to detect when visualizer is in/out of view
+		if (!browser || !videoWrapper) return;
+
+		// Set up Intersection Observer to detect when video is in/out of view
 		if ('IntersectionObserver' in window) {
 			visibilityObserver = new IntersectionObserver(
 				(entries) => {
 					const [entry] = entries;
 					isVisible = entry.isIntersecting;
 
-					if (isVisible) {
-						// Resume rendering when visible
-						if (audioContext && audioContext.state === 'suspended') {
-							audioContext.resume().catch((e) => console.error('Error resuming audio context:', e));
+					if (isVisible && isTabActive && videoElement) {
+						// Only try to play if user has interacted with the page
+						if (document.documentElement.classList.contains('user-interacted')) {
+							videoElement.play().catch((e) => {
+								console.log('Video play prevented by browser, waiting for user interaction');
+							});
 						}
-						if (!rendering && visualizer) {
-							startRenderer();
-						}
-					} else {
-						// Pause rendering when not visible
-						pauseRenderer();
-						if (audioContext && audioContext.state === 'running') {
-							audioContext
-								.suspend()
-								.catch((e) => console.error('Error suspending audio context:', e));
-						}
+					} else if (videoElement) {
+						videoElement.pause();
 					}
 				},
 				{ threshold: 0.1 } // Consider visible when at least 10% is in view
 			);
 
-			if (canvas) {
-				visibilityObserver.observe(canvas);
-			}
+			visibilityObserver.observe(videoWrapper);
 		}
 	}
 
 	function handleVisibilityChange() {
+		if (!browser) return;
+
 		isTabActive = document.visibilityState === 'visible';
 
-		if (isTabActive) {
-			// Resume when tab becomes active
-			if (isVisible && !rendering && visualizer) {
-				if (audioContext && audioContext.state === 'suspended') {
-					audioContext.resume().catch((e) => console.error('Error resuming audio context:', e));
-				}
-				startRenderer();
+		if (isTabActive && isVisible && videoElement) {
+			// Only try to play if user has interacted with the page
+			if (document.documentElement.classList.contains('user-interacted')) {
+				videoElement.play().catch((e) => {
+					console.log('Video play prevented by browser, waiting for user interaction');
+				});
 			}
-		} else {
-			// Pause when tab becomes inactive
-			pauseRenderer();
-			if (audioContext && audioContext.state === 'running') {
-				audioContext.suspend().catch((e) => console.error('Error suspending audio context:', e));
-			}
+		} else if (videoElement) {
+			videoElement.pause();
 		}
 	}
 
@@ -237,8 +230,8 @@
 	function cleanup() {
 		if (resizeTimeout) clearTimeout(resizeTimeout);
 
-		if (visibilityObserver && canvas) {
-			visibilityObserver.unobserve(canvas);
+		if (visibilityObserver && videoWrapper) {
+			visibilityObserver.unobserve(videoWrapper);
 			visibilityObserver = null;
 		}
 
@@ -268,7 +261,7 @@
 
 	// Setup orb visualizer
 	function setupOrb() {
-		if (!orbCanvas || !orbAudio) return;
+		if (!browser || !orbCanvas || !orbAudio) return;
 
 		try {
 			orbAudioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -311,16 +304,41 @@
 		}
 	}
 
-	onMount(async () => {
+	// Handle user interaction to enable autoplay
+	function handleUserInteraction() {
+		if (!browser) return;
+
+		document.documentElement.classList.add('user-interacted');
+
+		if (videoElement && isVisible && isTabActive) {
+			videoElement.play().catch((e) => {
+				console.log('Video play still prevented by browser');
+			});
+		}
+
+		// Remove event listeners once user has interacted
+		document.removeEventListener('click', handleUserInteraction);
+		document.removeEventListener('keydown', handleUserInteraction);
+		document.removeEventListener('touchstart', handleUserInteraction);
+	}
+
+	onMount(() => {
+		if (!browser) return;
+
 		// Add event listeners
 		window.addEventListener('resize', resizeCanvas);
 		document.addEventListener('visibilitychange', handleVisibilityChange);
+
+		// Add event listeners for user interaction
+		document.addEventListener('click', handleUserInteraction);
+		document.addEventListener('keydown', handleUserInteraction);
+		document.addEventListener('touchstart', handleUserInteraction);
 
 		// Initialize canvas size
 		resizeCanvas();
 
 		// Start loading the preset
-		await loadPreset();
+		loadPreset();
 
 		// Initialize visualizer after scripts are loaded
 		const initTimeout = setTimeout(() => {
@@ -332,20 +350,36 @@
 			setupOrb();
 		}, 500);
 
-		return () => {
-			// Clean up on component unmount
-			clearTimeout(initTimeout);
-			window.removeEventListener('resize', resizeCanvas);
-			document.removeEventListener('visibilitychange', handleVisibilityChange);
-			cleanup();
+		// Check if low performance device
+		const isLowPerf = checkDevicePerformance();
 
-			// Clean up orb visualizer
-			if (orbAudioContext) {
-				orbAudioContext
-					.close()
-					.catch((err) => console.error('Error closing orb audio context:', err));
+		// Setup video playback
+		if (videoElement) {
+			videoElement.muted = true;
+			videoElement.loop = true;
+			videoElement.playsInline = true;
+
+			// Lower quality for low performance devices
+			if (isLowPerf) {
+				videoElement.setAttribute('data-quality', 'low');
 			}
-		};
+
+			// Start playing when loaded
+			videoElement.addEventListener('loadeddata', () => {
+				isVideoLoaded = true;
+				// We'll try to play, but this will likely be blocked until user interaction
+				if (isTabActive && isVisible) {
+					videoElement.play().catch((e) => {
+						console.log('Video autoplay prevented by browser, waiting for user interaction');
+					});
+				}
+			});
+		}
+
+		// Setup visibility observer
+		setupVisibilityObserver();
+
+		return cleanup;
 	});
 </script>
 
@@ -369,26 +403,30 @@
 </svelte:head>
 
 <section class="hero-container">
-	<div class="visualizer-wrapper">
-		<canvas bind:this={canvas} class="visualizer-canvas"></canvas>
+	<div class="video-wrapper" bind:this={videoWrapper}>
+		<video
+			bind:this={videoElement}
+			class="background-video"
+			preload="auto"
+			muted
+			autoplay
+			loop
+			playsinline
+			disablePictureInPicture
+			disableRemotePlayback
+		>
+			<source src="/video/phone-addiction.mp4" type="video/mp4" />
+		</video>
+		<div class="video-overlay"></div>
+		<div class="grain-overlay"></div>
 		<div class="hero-content">
 			<div class="hero-text">
-				<h1>Mindfulness Reimagined</h1>
-				<p class="tagline">
-					Discover personalised meditation sessions tailored to your unique mind and needs
-				</p>
+				<p class="small-title">Don't miss life</p>
+				<h1>Live in the moment</h1>
 			</div>
 			<div class="cta">
 				<a href="/register" class="button primary">Begin Your Journey</a>
 				<a href="/login" class="button secondary">Sign In</a>
-			</div>
-
-			<!-- Scroll Down Indicator -->
-			<div class="scroll-indicator">
-				<div class="scroll-arrow">
-					<i class="fas fa-chevron-down"></i>
-				</div>
-				<span class="scroll-text">Scroll Down</span>
 			</div>
 		</div>
 	</div>
@@ -600,14 +638,16 @@
 		overflow: hidden;
 		width: 100%;
 		position: relative;
+		height: 50vh;
+		min-height: 400px;
 	}
 
-	.visualizer-wrapper {
+	.video-wrapper {
 		position: relative;
 		width: 100vw;
-		height: 100vh;
-		max-height: 100vh;
-		min-height: 600px;
+		height: 50vh;
+		max-height: 600px;
+		min-height: 400px;
 		overflow: hidden;
 		left: 50%;
 		right: 50%;
@@ -615,14 +655,38 @@
 		margin-right: -50vw;
 	}
 
-	.visualizer-canvas {
+	.background-video {
 		position: absolute;
 		top: 0;
 		left: 0;
 		width: 100%;
 		height: 100%;
+		object-fit: cover;
 		z-index: 1;
-		background-color: #0a0a20; /* Cosmic theme background */
+		pointer-events: none; /* Make video non-interactable */
+		user-select: none; /* Prevent selection */
+	}
+
+	.video-overlay {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background-color: rgba(10, 10, 32, 0.7); /* Dark overlay with opacity */
+		z-index: 2;
+	}
+
+	.grain-overlay {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii43NSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgdHlwZT0iZnJhY3RhbE5vaXNlIi8+PGZlQ29sb3JNYXRyaXggdHlwZT0ic2F0dXJhdGUiIHZhbHVlcz0iMCIvPjwvZmlsdGVyPjxwYXRoIGQ9Ik0wIDBoMzAwdjMwMEgweiIgZmlsdGVyPSJ1cmwoI2EpIiBvcGFjaXR5PSIuMDUiLz48L3N2Zz4=');
+		opacity: 0.4;
+		z-index: 3;
+		pointer-events: none;
 	}
 
 	.hero-content {
@@ -635,14 +699,18 @@
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
-		z-index: 2;
+		z-index: 4;
 		padding: 2rem;
 		box-sizing: border-box;
-		background: rgba(10, 10, 32, 0.3); /* Cosmic theme with transparency */
+	}
+
+	/* Video quality adjustments for low-performance devices */
+	video[data-quality='low'] {
+		filter: blur(1px);
 	}
 
 	.hero-text {
-		text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+		text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
 		display: flex;
 		flex-direction: column;
 		align-items: center;
@@ -652,9 +720,22 @@
 		width: 100%;
 	}
 
+	.small-title {
+		font-size: clamp(1.2rem, 2.5vw, 1.6rem);
+		margin-bottom: 0.5rem;
+		color: var(--text-primary);
+		text-align: center;
+		line-height: 1.5;
+		width: 100%;
+		font-weight: 500;
+		text-transform: uppercase;
+		letter-spacing: 2px;
+		text-shadow: 0 0 15px rgba(106, 90, 205, 0.3);
+	}
+
 	.hero-content h1 {
 		color: var(--text-primary);
-		font-size: clamp(3rem, 6vw, 5rem);
+		font-size: clamp(3.5rem, 8vw, 6rem);
 		margin-bottom: 1.5rem;
 		text-align: center;
 		line-height: 1.1;
@@ -663,6 +744,7 @@
 		font-family: 'Poppins', sans-serif;
 		font-weight: 700;
 		text-shadow: 0 0 20px rgba(106, 90, 205, 0.4);
+		text-transform: capitalize;
 	}
 
 	.tagline {
@@ -1196,36 +1278,15 @@
 
 	/* Scroll Indicator */
 	.scroll-indicator {
-		position: absolute;
-		bottom: 80px;
-		left: 50%;
-		transform: translateX(-50%);
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		color: var(--text-primary);
-		opacity: 0.8;
-		transition: opacity 0.3s ease;
-		animation: bounce 2s infinite;
-	}
-
-	.scroll-indicator:hover {
-		opacity: 1;
-		animation-play-state: paused;
+		display: none; /* Hide instead of removing completely to avoid any potential references */
 	}
 
 	.scroll-arrow {
-		font-size: 24px;
-		margin-bottom: 8px;
-		text-shadow: 0 0 10px rgba(106, 90, 205, 0.5);
+		display: none;
 	}
 
 	.scroll-text {
-		font-size: 14px;
-		font-weight: 500;
-		letter-spacing: 1px;
-		text-transform: uppercase;
-		text-shadow: 0 0 10px rgba(106, 90, 205, 0.5);
+		display: none;
 	}
 
 	@keyframes bounce {
@@ -1272,14 +1333,14 @@
 	}
 
 	@media (max-width: 600px) {
-		.visualizer-wrapper {
-			min-height: 500px;
+		.video-wrapper {
+			min-height: 350px;
 		}
 
 		.hero-content {
 			padding: 1.5rem;
-			justify-content: flex-start;
-			padding-top: 35%;
+			justify-content: center;
+			padding-top: 0;
 		}
 
 		.hero-text {
@@ -1288,11 +1349,11 @@
 
 		.hero-content h1 {
 			margin-bottom: 1rem;
-			font-size: clamp(2.5rem, 10vw, 3.5rem);
+			font-size: clamp(3rem, 10vw, 4.5rem);
 		}
 
-		.tagline {
-			font-size: clamp(1rem, 4vw, 1.2rem);
+		.small-title {
+			font-size: clamp(1rem, 3vw, 1.3rem);
 		}
 
 		.cta {
@@ -1349,16 +1410,15 @@
 		}
 
 		.scroll-indicator {
-			bottom: 30px;
+			display: none;
 		}
 
 		.scroll-arrow {
-			font-size: 20px;
-			margin-bottom: 5px;
+			display: none;
 		}
 
 		.scroll-text {
-			font-size: 12px;
+			display: none;
 		}
 	}
 
