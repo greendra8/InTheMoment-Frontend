@@ -5,6 +5,7 @@
 	import { text, background, ui, icon } from '$lib/theme';
 	import { meditationGeneration } from '$lib/stores/meditationGeneration';
 	import { showError, showLoading, notifications, showSuccess } from '$lib/stores/notifications';
+	import PreSessionDialog from '$lib/components/PreSessionDialog.svelte';
 
 	// Define the CustomActionData type for form submission results
 	type CustomActionData = {
@@ -67,6 +68,40 @@
 		}
 	}
 
+	// Add new state for pre-session check-in
+	let showPreSession = true;
+	let autoConfig: {
+		length: number;
+		posture: string;
+		eyes: string;
+		conversation: Array<{ role: string; content: string }>;
+	} | null = null;
+
+	// Handle pre-session configuration
+	function handlePreSessionConfig(
+		event: CustomEvent<{
+			length: number;
+			posture: string;
+			eyes: string;
+			conversation: Array<{ role: string; content: string }>;
+		}>
+	) {
+		autoConfig = event.detail;
+		showPreSession = false;
+
+		// Update form values with AI recommendations
+		duration = autoConfig.length;
+		selectedPosture = autoConfig.posture;
+		selectedEyes = autoConfig.eyes;
+
+		console.log('Pre-session check-in complete with config:', autoConfig);
+	}
+
+	// Handle skip pre-session
+	function handlePreSessionSkip() {
+		showPreSession = false;
+	}
+
 	function getUserLocalTime() {
 		const time = new Intl.DateTimeFormat('en-US', {
 			hour: '2-digit',
@@ -116,6 +151,19 @@
 			params.prompt = hypnosisPrompt.trim();
 		} else if (sessionType === 'meditation' && selectedPlaylist) {
 			params.playlist_id = selectedPlaylist;
+		}
+
+		// Add conversation from pre-session check-in if available
+		if (autoConfig && autoConfig.conversation && autoConfig.conversation.length > 0) {
+			// Create a summary of the conversation for the prompt
+			const conversationSummary = autoConfig.conversation
+				.map((msg) => `${msg.role}: ${msg.content}`)
+				.join('\n\n');
+
+			// Add to prompt instead of creating a separate parameter
+			params.prompt = params.prompt
+				? `${params.prompt}\n\nPre-session check-in:\n${conversationSummary}`
+				: `Pre-session check-in:\n${conversationSummary}`;
 		}
 
 		return params;
@@ -268,221 +316,225 @@
 <div class="session-container">
 	<h1>New Session</h1>
 
-	<div class="session-card">
-		<!-- Session Type Selection -->
-		<div class="session-type-selector">
-			<button
-				class:active={sessionType === 'meditation'}
-				on:click={() => (sessionType = 'meditation')}
-				class="meditation-btn"
-			>
-				Meditation
-			</button>
-			<button
-				class:active={sessionType === 'hypnosis'}
-				on:click={() => (sessionType = 'hypnosis')}
-				class="hypnosis-btn"
-			>
-				Hypnosis
-			</button>
-		</div>
-
-		<!-- Form for session generation -->
-		<form
-			bind:this={formElement}
-			method="POST"
-			action="?/generateMeditation"
-			on:submit={handleFormSubmit}
-			class="session-form"
-		>
-			<!-- Hidden inputs for form data -->
-			<input type="hidden" name="userLocalTime" value={getUserLocalTime()} />
-			<input type="hidden" name="length" value={duration} />
-			<input type="hidden" name="parameters" value={JSON.stringify(createParametersJSON())} />
-			<input type="hidden" name="content_type" value={sessionType} />
-			{#if sessionType === 'meditation' && selectedPlaylist}
-				<input type="hidden" name="playlist_id" value={selectedPlaylist} />
-			{/if}
-
-			<!-- Session options based on type -->
-			<div class="session-options">
-				{#if sessionType === 'meditation'}
-					<!-- Playlist selection for meditation -->
-					<div class="option-group playlist-group">
-						<label for="playlist-select">Playlist (Optional)</label>
-						<div class="playlist-selector">
-							<select id="playlist-select" bind:value={selectedPlaylist}>
-								<option value="">No playlist - Custom meditation</option>
-								{#each data.playlists as playlist}
-									<option value={playlist.id}>{playlist.playlist_name}</option>
-								{/each}
-							</select>
-							<div class="select-icon">
-								<i class="fas fa-chevron-down"></i>
-							</div>
-						</div>
-					</div>
-				{:else}
-					<!-- Hypnosis prompt -->
-					<div class="option-group prompt-group">
-						<label for="hypnosis-prompt">What would you like to focus on?</label>
-						<div class="prompt-input">
-							<textarea
-								id="hypnosis-prompt"
-								placeholder="Describe what you'd like to achieve with this hypnosis session..."
-								bind:value={hypnosisPrompt}
-								rows="3"
-							></textarea>
-							<div class="prompt-info">
-								<i class="fas fa-info-circle"></i>
-								<span>Be as detailed as possible for a tailored experience.</span>
-							</div>
-						</div>
-					</div>
-				{/if}
-
-				<!-- Common option: Duration -->
-				<div class="option-group duration-group">
-					<div class="duration-header">
-						<label for="duration">Duration</label>
-						<div class="duration-badge">{duration} min</div>
-					</div>
-					<div class="slider-container">
-						<div class="slider-track">
-							<div class="slider-progress" style="width: {((duration - 5) / 40) * 100}%"></div>
-						</div>
-						<input
-							type="range"
-							id="duration"
-							name="duration"
-							min="5"
-							max="45"
-							step="5"
-							bind:value={duration}
-						/>
-					</div>
-				</div>
-
-				{#if sessionType === 'meditation'}
-					<!-- Meditation-specific options -->
-					<div class="option-group posture-group">
-						<div class="option-header">
-							<label>Posture</label>
-							<div class="cycle-selector">
-								<button
-									type="button"
-									class="cycle-btn prev"
-									on:click={() => {
-										const currentIndex = postureOptions.findIndex(
-											(p) => p.value === selectedPosture
-										);
-										const prevIndex =
-											(currentIndex - 1 + postureOptions.length) % postureOptions.length;
-										selectedPosture = postureOptions[prevIndex].value;
-									}}
-								>
-									<i class="fas fa-chevron-left"></i>
-								</button>
-								<div class="cycle-display">
-									<i class="fas {postureOptions.find((p) => p.value === selectedPosture)?.icon}"
-									></i>
-									<span>{postureOptions.find((p) => p.value === selectedPosture)?.display}</span>
-								</div>
-								<button
-									type="button"
-									class="cycle-btn next"
-									on:click={() => {
-										const currentIndex = postureOptions.findIndex(
-											(p) => p.value === selectedPosture
-										);
-										const nextIndex = (currentIndex + 1) % postureOptions.length;
-										selectedPosture = postureOptions[nextIndex].value;
-									}}
-								>
-									<i class="fas fa-chevron-right"></i>
-								</button>
-							</div>
-						</div>
-					</div>
-
-					<div class="option-group eyes-group" class:disabled={isWalking}>
-						<div class="option-header">
-							<label>
-								Eyes
-								{#if isWalking}
-									<span class="option-note">(Auto-set to open when walking)</span>
-								{/if}
-							</label>
-							<div class="cycle-selector">
-								<button
-									type="button"
-									class="cycle-btn prev"
-									on:click={() => {
-										if (!isWalking) {
-											const currentIndex = eyesOptions.findIndex((e) => e.value === selectedEyes);
-											const prevIndex =
-												(currentIndex - 1 + eyesOptions.length) % eyesOptions.length;
-											selectedEyes = eyesOptions[prevIndex].value;
-										}
-									}}
-									disabled={isWalking}
-								>
-									<i class="fas fa-chevron-left"></i>
-								</button>
-								<div class="cycle-display">
-									<i class="fas {eyesOptions.find((e) => e.value === selectedEyes)?.icon}"></i>
-									<span>{eyesOptions.find((e) => e.value === selectedEyes)?.display}</span>
-								</div>
-								<button
-									type="button"
-									class="cycle-btn next"
-									on:click={() => {
-										if (!isWalking) {
-											const currentIndex = eyesOptions.findIndex((e) => e.value === selectedEyes);
-											const nextIndex = (currentIndex + 1) % eyesOptions.length;
-											selectedEyes = eyesOptions[nextIndex].value;
-										}
-									}}
-									disabled={isWalking}
-								>
-									<i class="fas fa-chevron-right"></i>
-								</button>
-							</div>
-						</div>
-					</div>
-				{:else}
-					<!-- Hypnosis settings info -->
-					<div class="option-group settings-group">
-						<label>Session Settings</label>
-						<div class="settings-details">
-							<div class="setting-item">
-								<i class="fas fa-bed"></i>
-								<span>Posture: Lying down</span>
-							</div>
-							<div class="setting-item">
-								<i class="fas fa-eye-slash"></i>
-								<span>Eyes: Closed</span>
-							</div>
-						</div>
-					</div>
-				{/if}
+	{#if showPreSession}
+		<PreSessionDialog on:config={handlePreSessionConfig} on:skip={handlePreSessionSkip} />
+	{:else}
+		<div class="session-card">
+			<!-- Session Type Selection -->
+			<div class="session-type-selector">
+				<button
+					class:active={sessionType === 'meditation'}
+					on:click={() => (sessionType = 'meditation')}
+					class="meditation-btn"
+				>
+					Meditation
+				</button>
+				<button
+					class:active={sessionType === 'hypnosis'}
+					on:click={() => (sessionType = 'hypnosis')}
+					class="hypnosis-btn"
+				>
+					Hypnosis
+				</button>
 			</div>
 
-			<!-- Submit button -->
-			<button type="submit" class="generate-btn" disabled={buttonDisabled}>
-				<i class="fas {buttonIcon}"></i>
-				<span>{buttonText}</span>
-			</button>
+			<!-- Form for session generation -->
+			<form
+				bind:this={formElement}
+				method="POST"
+				action="?/generateMeditation"
+				on:submit={handleFormSubmit}
+				class="session-form"
+			>
+				<!-- Hidden inputs for form data -->
+				<input type="hidden" name="userLocalTime" value={getUserLocalTime()} />
+				<input type="hidden" name="length" value={duration} />
+				<input type="hidden" name="parameters" value={JSON.stringify(createParametersJSON())} />
+				<input type="hidden" name="content_type" value={sessionType} />
+				{#if sessionType === 'meditation' && selectedPlaylist}
+					<input type="hidden" name="playlist_id" value={selectedPlaylist} />
+				{/if}
 
-			<!-- Error message display -->
-			{#if formResult && formResult.type === 'error'}
-				<div class="error-message">
-					<i class="fas fa-exclamation-circle"></i>
-					<p>{formResult.message || 'An error occurred'}</p>
+				<!-- Session options based on type -->
+				<div class="session-options">
+					{#if sessionType === 'meditation'}
+						<!-- Playlist selection for meditation -->
+						<div class="option-group playlist-group">
+							<label for="playlist-select">Playlist (Optional)</label>
+							<div class="playlist-selector">
+								<select id="playlist-select" bind:value={selectedPlaylist}>
+									<option value="">No playlist - Custom meditation</option>
+									{#each data.playlists as playlist}
+										<option value={playlist.id}>{playlist.playlist_name}</option>
+									{/each}
+								</select>
+								<div class="select-icon">
+									<i class="fas fa-chevron-down"></i>
+								</div>
+							</div>
+						</div>
+					{:else}
+						<!-- Hypnosis prompt -->
+						<div class="option-group prompt-group">
+							<label for="hypnosis-prompt">What would you like to focus on?</label>
+							<div class="prompt-input">
+								<textarea
+									id="hypnosis-prompt"
+									placeholder="Describe what you'd like to achieve with this hypnosis session..."
+									bind:value={hypnosisPrompt}
+									rows="3"
+								></textarea>
+								<div class="prompt-info">
+									<i class="fas fa-info-circle"></i>
+									<span>Be as detailed as possible for a tailored experience.</span>
+								</div>
+							</div>
+						</div>
+					{/if}
+
+					<!-- Common option: Duration -->
+					<div class="option-group duration-group">
+						<div class="duration-header">
+							<label for="duration">Duration</label>
+							<div class="duration-badge">{duration} min</div>
+						</div>
+						<div class="slider-container">
+							<div class="slider-track">
+								<div class="slider-progress" style="width: {((duration - 5) / 40) * 100}%"></div>
+							</div>
+							<input
+								type="range"
+								id="duration"
+								name="duration"
+								min="5"
+								max="45"
+								step="5"
+								bind:value={duration}
+							/>
+						</div>
+					</div>
+
+					{#if sessionType === 'meditation'}
+						<!-- Meditation-specific options -->
+						<div class="option-group posture-group">
+							<div class="option-header">
+								<label>Posture</label>
+								<div class="cycle-selector">
+									<button
+										type="button"
+										class="cycle-btn prev"
+										on:click={() => {
+											const currentIndex = postureOptions.findIndex(
+												(p) => p.value === selectedPosture
+											);
+											const prevIndex =
+												(currentIndex - 1 + postureOptions.length) % postureOptions.length;
+											selectedPosture = postureOptions[prevIndex].value;
+										}}
+									>
+										<i class="fas fa-chevron-left"></i>
+									</button>
+									<div class="cycle-display">
+										<i class="fas {postureOptions.find((p) => p.value === selectedPosture)?.icon}"
+										></i>
+										<span>{postureOptions.find((p) => p.value === selectedPosture)?.display}</span>
+									</div>
+									<button
+										type="button"
+										class="cycle-btn next"
+										on:click={() => {
+											const currentIndex = postureOptions.findIndex(
+												(p) => p.value === selectedPosture
+											);
+											const nextIndex = (currentIndex + 1) % postureOptions.length;
+											selectedPosture = postureOptions[nextIndex].value;
+										}}
+									>
+										<i class="fas fa-chevron-right"></i>
+									</button>
+								</div>
+							</div>
+						</div>
+
+						<div class="option-group eyes-group" class:disabled={isWalking}>
+							<div class="option-header">
+								<label>
+									Eyes
+									{#if isWalking}
+										<span class="option-note">(Auto-set to open when walking)</span>
+									{/if}
+								</label>
+								<div class="cycle-selector">
+									<button
+										type="button"
+										class="cycle-btn prev"
+										on:click={() => {
+											if (!isWalking) {
+												const currentIndex = eyesOptions.findIndex((e) => e.value === selectedEyes);
+												const prevIndex =
+													(currentIndex - 1 + eyesOptions.length) % eyesOptions.length;
+												selectedEyes = eyesOptions[prevIndex].value;
+											}
+										}}
+										disabled={isWalking}
+									>
+										<i class="fas fa-chevron-left"></i>
+									</button>
+									<div class="cycle-display">
+										<i class="fas {eyesOptions.find((e) => e.value === selectedEyes)?.icon}"></i>
+										<span>{eyesOptions.find((e) => e.value === selectedEyes)?.display}</span>
+									</div>
+									<button
+										type="button"
+										class="cycle-btn next"
+										on:click={() => {
+											if (!isWalking) {
+												const currentIndex = eyesOptions.findIndex((e) => e.value === selectedEyes);
+												const nextIndex = (currentIndex + 1) % eyesOptions.length;
+												selectedEyes = eyesOptions[nextIndex].value;
+											}
+										}}
+										disabled={isWalking}
+									>
+										<i class="fas fa-chevron-right"></i>
+									</button>
+								</div>
+							</div>
+						</div>
+					{:else}
+						<!-- Hypnosis settings info -->
+						<div class="option-group settings-group">
+							<label>Session Settings</label>
+							<div class="settings-details">
+								<div class="setting-item">
+									<i class="fas fa-bed"></i>
+									<span>Posture: Lying down</span>
+								</div>
+								<div class="setting-item">
+									<i class="fas fa-eye-slash"></i>
+									<span>Eyes: Closed</span>
+								</div>
+							</div>
+						</div>
+					{/if}
 				</div>
-			{/if}
-		</form>
-	</div>
+
+				<!-- Submit button -->
+				<button type="submit" class="generate-btn" disabled={buttonDisabled}>
+					<i class="fas {buttonIcon}"></i>
+					<span>{buttonText}</span>
+				</button>
+
+				<!-- Error message display -->
+				{#if formResult && formResult.type === 'error'}
+					<div class="error-message">
+						<i class="fas fa-exclamation-circle"></i>
+						<p>{formResult.message || 'An error occurred'}</p>
+					</div>
+				{/if}
+			</form>
+		</div>
+	{/if}
 </div>
 
 <style>
