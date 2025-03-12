@@ -411,7 +411,6 @@
 
 <div class="pre-session-dialog">
 	<div class="pre-session-header">
-		<h2>Session Check-in</h2>
 		<!-- Mode toggle -->
 		<div class="mode-toggle">
 			<button
@@ -615,8 +614,8 @@
 		padding: 1.5rem;
 		background: linear-gradient(
 			135deg,
-			rgba(var(--background-gradient-1), 0.1) 0%,
-			rgba(var(--background-gradient-2), 0.1) 100%
+			rgba(var(--background-card-rgb), 0.9) 0%,
+			rgba(var(--background-card-rgb), 0.7) 100%
 		);
 		border-radius: 16px;
 		backdrop-filter: blur(5px);
@@ -634,36 +633,33 @@
 		gap: 1rem;
 	}
 
-	.pre-session-header h2 {
-		font-family: 'Space Grotesk', sans-serif;
-		font-size: 1.75rem;
-		font-weight: 600;
-		color: var(--text-primary);
-		margin: 0;
-		letter-spacing: -0.5px;
-		text-shadow: 0 0 20px rgba(var(--icon-primary-rgb), 0.1);
-	}
-
 	.mode-toggle {
 		display: flex;
-		justify-content: center;
 		gap: 0.75rem;
+		width: 100%;
+		max-width: 400px;
+		margin-bottom: 0.5rem;
+	}
+
+	.mode-toggle i {
+		margin-right: 0.5rem;
 	}
 
 	.mode-toggle button {
-		padding: 0.6rem 1.2rem;
-		border-radius: 12px;
-		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
-		background: rgba(var(--background-card-rgb), 0.5);
-		color: var(--text-secondary);
-		cursor: pointer;
-		transition: all 0.3s ease;
+		flex: 1;
 		display: flex;
 		align-items: center;
-		gap: 0.5rem;
-		font-family: 'Inter', sans-serif;
-		font-weight: 500;
+		justify-content: center;
+		padding: 0.75rem;
+		background: rgba(var(--background-card-rgb), 0.5);
+		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
+		border-radius: 8px;
+		cursor: pointer;
+		transition: all 0.3s ease;
 		font-size: 0.95rem;
+		font-weight: 500;
+		color: var(--text-secondary);
+		font-family: 'Inter', sans-serif;
 	}
 
 	.mode-toggle button:hover {
@@ -681,7 +677,6 @@
 
 	/* Question container with improved typography */
 	.question-container {
-		margin-bottom: 2.5rem;
 		min-height: 120px;
 		display: flex;
 		align-items: center;
@@ -771,8 +766,8 @@
 	}
 
 	.record-button {
-		width: 60px;
-		height: 60px;
+		width: 80px;
+		height: 80px;
 		border-radius: 50%;
 		border: none;
 		background: var(--btn-bg);
@@ -1129,12 +1124,6 @@
 		.question {
 			font-size: 1rem;
 			padding: 1rem;
-		}
-
-		.record-button {
-			width: 60px;
-			height: 60px;
-			min-width: auto;
 		}
 
 		.input-interface-container {

@@ -1,11 +1,13 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 	import { subscribeMeditationStatus } from '$lib/api';
-	import { onDestroy } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import { text, background, ui, icon } from '$lib/theme';
 	import { meditationGeneration } from '$lib/stores/meditationGeneration';
 	import { showError, showLoading, notifications, showSuccess } from '$lib/stores/notifications';
 	import PreSessionDialog from '$lib/components/PreSessionDialog.svelte';
+	import { browser } from '$app/environment';
 
 	// Define the CustomActionData type for form submission results
 	type CustomActionData = {
@@ -77,6 +79,32 @@
 		conversation: Array<{ role: string; content: string }>;
 	} | null = null;
 
+	// Update showPreSession based on URL parameters
+	$: if (browser) {
+		showPreSession = !$page.url.searchParams.has('configure');
+	}
+
+	// Check URL parameters on mount to determine if we should show pre-session
+	onMount(() => {
+		if (browser) {
+			// Listen for popstate events (browser back/forward buttons)
+			window.addEventListener('popstate', handlePopState);
+		}
+
+		return () => {
+			if (browser) {
+				window.removeEventListener('popstate', handlePopState);
+			}
+		};
+	});
+
+	// Handle browser navigation events
+	function handlePopState() {
+		if (browser) {
+			showPreSession = !$page.url.searchParams.has('configure');
+		}
+	}
+
 	// Handle pre-session configuration
 	function handlePreSessionConfig(
 		event: CustomEvent<{
@@ -87,7 +115,9 @@
 		}>
 	) {
 		autoConfig = event.detail;
-		showPreSession = false;
+
+		// Update URL to reflect the state change
+		goto('?configure=true', { keepFocus: true, replaceState: false });
 
 		// Update form values with AI recommendations
 		duration = autoConfig.length;
@@ -99,7 +129,8 @@
 
 	// Handle skip pre-session
 	function handlePreSessionSkip() {
-		showPreSession = false;
+		// Update URL to reflect the state change
+		goto('?configure=true', { keepFocus: true, replaceState: false });
 	}
 
 	function getUserLocalTime() {
@@ -314,11 +345,11 @@
 </svelte:head>
 
 <div class="session-container">
-	<h1>New Session</h1>
-
 	{#if showPreSession}
+		<h1>Session Check-in</h1>
 		<PreSessionDialog on:config={handlePreSessionConfig} on:skip={handlePreSessionSkip} />
 	{:else}
+		<h1>New Session</h1>
 		<div class="session-card">
 			<!-- Session Type Selection -->
 			<div class="session-type-selector">
@@ -526,7 +557,7 @@
 				</button>
 
 				<!-- Error message display -->
-				{#if formResult && formResult.type === 'error'}
+				{#if formResult && 'type' in formResult && formResult.type === 'error'}
 					<div class="error-message">
 						<i class="fas fa-exclamation-circle"></i>
 						<p>{formResult.message || 'An error occurred'}</p>
@@ -544,6 +575,36 @@
 		max-width: 800px;
 		padding-top: 1.5rem;
 		margin: 0 auto;
+	}
+
+	.page-header {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		margin-bottom: 1.5rem;
+		position: relative;
+	}
+
+	.back-btn {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		background: none;
+		border: none;
+		color: var(--text-secondary);
+		font-size: 0.9rem;
+		font-family: 'Inter', sans-serif;
+		padding: 0.5rem;
+		cursor: pointer;
+		transition: all 0.3s ease;
+		align-self: flex-start;
+		border-radius: 8px;
+	}
+
+	.back-btn:hover {
+		color: var(--text-primary);
+		background: rgba(var(--interactive-gradient-1), 0.05);
+		transform: translateX(-2px);
 	}
 
 	h1 {
