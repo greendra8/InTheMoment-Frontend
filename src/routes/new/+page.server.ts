@@ -3,6 +3,26 @@ import type { PageServerLoad, Actions } from './$types';
 import { generateMeditation } from '$lib/pythonApi';
 import { supabaseAdmin, getPlaylists, getPlaylist, getUserMeditations } from '$lib/server/supabase';
 
+// List of possible initial questions for the pre-session dialog
+const initialQuestions = [
+	'How have you felt since the last time you meditated?',
+	'What brings you to meditation today?',
+	'What have you been up to today?',
+	'What are you going to do after this session?',
+	'Whats on your mind as you prepare this session?',
+	'How has your day been going so far?',
+	"What are you hoping to experience in today's session?",
+	"What would you like to focus on in today's practice?",
+	"Is there anything specific you'd like to let go of today?",
+	"Is there a specific goal or challenge you'd like to work on today?"
+];
+
+// Function to get a random question from the list
+function getRandomQuestion(): string {
+	const randomIndex = Math.floor(Math.random() * initialQuestions.length);
+	return initialQuestions[randomIndex];
+}
+
 export const load: PageServerLoad = async ({ locals, url }) => {
 	const { session } = locals;
 
@@ -39,13 +59,18 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			}
 		}
 
+		// Generate a random question on the server
+		const initialQuestion = getRandomQuestion();
+		console.log('Server: Generated initial question:', initialQuestion);
+
 		return {
 			session,
 			playlists,
 			selectedPlaylist,
 			initialTab,
 			meditations,
-			totalMeditations
+			totalMeditations,
+			initialQuestion // Add the initial question to the returned data
 		};
 	} catch (err) {
 		console.error('Error fetching data:', err);

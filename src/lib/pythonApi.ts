@@ -46,6 +46,7 @@ export async function generateMeditation(
     type: 'success',
     data: {
       meditation_id: result.meditation_id,
+      content_type: content_type,
       // Add any other properties you expect from the Python API
     }
   };

@@ -12,12 +12,16 @@
 			posture: string;
 			eyes: string;
 			conversation: Array<{ role: string; content: string }>;
+			sessionType?: 'meditation' | 'hypnosis';
+			hypnosisPrompt?: string;
 		};
 		skip: void;
 	}>();
 
 	// Add prop for first-time users
 	export let isFirstSession = false;
+	// Add prop for initial question from server
+	export let initialQuestion = '';
 
 	// Add state to track if welcome screen is shown
 	let showWelcomeScreen = isFirstSession;
@@ -34,33 +38,21 @@
 	let recordingTimer: ReturnType<typeof setTimeout> | null = null;
 	let maxCharCount = 500; // Maximum character count
 	let charCount = 0;
-
-	// List of possible initial questions
-	const initialQuestions = [
-		'How have you felt since the last time you meditated?',
-		'What brings you to meditation today?',
-		'What have you been up to today?',
-		'What are you going to do after this session?',
-		'Whats on your mind as you prepare this session?',
-		'How has your day been going so far?',
-		"What are you hoping to experience in today's session?",
-		"What would you like to focus on in today's practice?",
-		"Is there anything specific you'd like to let go of today?"
-	];
-
 	// Function to proceed from welcome screen to check-in
 	function proceedToCheckIn() {
 		showWelcomeScreen = false;
 	}
 
-	// Get a random question from the list
-	function getRandomQuestion(): string {
-		const randomIndex = Math.floor(Math.random() * initialQuestions.length);
-		return initialQuestions[randomIndex];
+	// Ensure initialQuestion is provided
+	if (!initialQuestion) {
+		console.error('PreSessionDialog: initialQuestion prop is required but was not provided');
 	}
 
-	let currentQuestion = getRandomQuestion();
-	let messages: Array<{ role: string; content: string }> = [];
+	// Use the server-provided question
+	let currentQuestion = initialQuestion;
+	let messages: Array<{ role: string; content: string }> = [
+		{ role: 'assistant', content: currentQuestion }
+	];
 	let showFinalMessage = false;
 	let finalMessage = '';
 	let interfaceActive = false;
@@ -127,9 +119,6 @@
 	}
 
 	onMount(() => {
-		// Add initial question to conversation
-		messages = [{ role: 'assistant', content: currentQuestion }];
-
 		// Ensure proper cleanup of all resources when component is destroyed
 		return () => {
 			stopRecording();
@@ -384,12 +373,13 @@
 							config = JSON.parse(jsonStr);
 						} catch (parseError) {
 							console.error('Error parsing JSON:', parseError);
-							showError("We couldn't prepare your meditation session. Let's try again.");
+							showError("We couldn't prepare your session. Let's try again.");
 							buttonState = 'active';
 							isProcessing = false;
 							return;
 						}
 
+						// Check for required fields in the config
 						if (config && config.length && config.posture && config.eyes) {
 							// Extract only the text part before the JSON if it exists
 							const textPart = aiResponse.split(/```json|{/)[0].trim();
@@ -402,16 +392,32 @@
 
 								// Wait a moment to show the final message before closing
 								setTimeout(() => {
-									dispatch('config', {
+									// Create the final config object with sessionType and hypnosisPrompt if available
+									const finalConfig = {
 										...config,
-										conversation: messages
-									});
+										conversation: messages,
+										// Default to meditation if sessionType is not specified
+										sessionType: config.sessionType || 'meditation'
+									};
+
+									// Log the final configuration
+									console.log('Final session configuration:', finalConfig);
+
+									dispatch('config', finalConfig);
 								}, 5000);
 							} else {
-								dispatch('config', {
+								// Create the final config object with sessionType and hypnosisPrompt if available
+								const finalConfig = {
 									...config,
-									conversation: messages
-								});
+									conversation: messages,
+									// Default to meditation if sessionType is not specified
+									sessionType: config.sessionType || 'meditation'
+								};
+
+								// Log the final configuration
+								console.log('Final session configuration:', finalConfig);
+
+								dispatch('config', finalConfig);
 							}
 							return;
 						}
@@ -493,12 +499,12 @@
 				<h2>Your First Check-in</h2>
 				<div class="welcome-text">
 					<p>
-						Before each meditation session, we'll check in with you to see how you've been getting
-						on.
+						Before each session, we'll check in with you to see how you've been getting on and what
+						you'd like to focus on today.
 					</p>
 					<p>
-						This helps us personalize your meditation experience to match your current state of mind
-						and intentions.
+						This helps us personalize your experience and recommend either a meditation or hypnosis
+						session that matches your current state of mind and intentions.
 					</p>
 				</div>
 				<button class="proceed-btn" on:click={proceedToCheckIn}>

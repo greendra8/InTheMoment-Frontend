@@ -44,6 +44,29 @@
 	let formResult: CustomActionData | null = null;
 	let formElement: HTMLFormElement;
 
+	// Default values for reset functionality
+	const defaultValues = {
+		sessionType: 'meditation' as 'meditation' | 'hypnosis',
+		selectedPlaylist: data.selectedPlaylist ? data.selectedPlaylist.id : '',
+		selectedPosture: postureOptions[0].value,
+		selectedEyes: eyesOptions[1].value,
+		hypnosisPrompt: '',
+		duration: 15
+	};
+
+	// Function to reset form to default values
+	function resetForm() {
+		sessionType = defaultValues.sessionType;
+		selectedPlaylist = defaultValues.selectedPlaylist;
+		selectedPosture = defaultValues.selectedPosture;
+		selectedEyes = defaultValues.selectedEyes;
+		hypnosisPrompt = defaultValues.hypnosisPrompt;
+		duration = defaultValues.duration;
+
+		// Reset autoConfig to null to clear any pre-session dialog settings
+		autoConfig = null;
+	}
+
 	// Compute button disabled state based on global generation state and form state
 	$: buttonDisabled =
 		$meditationGeneration.isGenerating || (sessionType === 'hypnosis' && !hypnosisPrompt.trim());
@@ -77,6 +100,8 @@
 		posture: string;
 		eyes: string;
 		conversation: Array<{ role: string; content: string }>;
+		sessionType?: 'meditation' | 'hypnosis';
+		hypnosisPrompt?: string;
 	} | null = null;
 
 	// Determine if this is the user's first session
@@ -115,6 +140,8 @@
 			posture: string;
 			eyes: string;
 			conversation: Array<{ role: string; content: string }>;
+			sessionType?: 'meditation' | 'hypnosis';
+			hypnosisPrompt?: string;
 		}>
 	) {
 		autoConfig = event.detail;
@@ -126,6 +153,16 @@
 		duration = autoConfig.length;
 		selectedPosture = autoConfig.posture;
 		selectedEyes = autoConfig.eyes;
+
+		// Set session type if provided
+		if (autoConfig.sessionType) {
+			sessionType = autoConfig.sessionType;
+		}
+
+		// Set hypnosis prompt if provided
+		if (sessionType === 'hypnosis' && autoConfig.hypnosisPrompt) {
+			hypnosisPrompt = autoConfig.hypnosisPrompt;
+		}
 
 		console.log('Pre-session check-in complete with config:', autoConfig);
 	}
@@ -198,6 +235,12 @@
 			params.prompt = params.prompt
 				? `${params.prompt}\n\nPre-session check-in:\n${conversationSummary}`
 				: `Pre-session check-in:\n${conversationSummary}`;
+		}
+
+		// If we have a hypnosis prompt from autoConfig and the current session type is hypnosis,
+		// use that prompt instead of any existing one
+		if (sessionType === 'hypnosis' && autoConfig && autoConfig.hypnosisPrompt) {
+			params.prompt = autoConfig.hypnosisPrompt;
 		}
 
 		return params;
@@ -334,6 +377,9 @@
 		}
 	}
 
+	// Get the initialQuestion from the server data
+	$: initialQuestion = $page.data.initialQuestion || '';
+
 	onDestroy(() => {
 		// No need to unsubscribe as the global state handles the subscription
 	});
@@ -354,6 +400,7 @@
 			on:config={handlePreSessionConfig}
 			on:skip={handlePreSessionSkip}
 			{isFirstSession}
+			{initialQuestion}
 		/>
 	{:else}
 		<h1>New Session</h1>
@@ -557,11 +604,19 @@
 					{/if}
 				</div>
 
-				<!-- Submit button -->
-				<button type="submit" class="generate-btn" disabled={buttonDisabled}>
-					<i class="fas {buttonIcon}"></i>
-					<span>{buttonText}</span>
-				</button>
+				<!-- Reset link directly above submit button -->
+				<div class="reset-container">
+					<button type="button" class="reset-link" on:click={resetForm}>
+						<i class="fas fa-undo-alt"></i>
+						<span>Reset to defaults</span>
+					</button>
+
+					<!-- Submit button -->
+					<button type="submit" class="generate-btn" disabled={buttonDisabled}>
+						<i class="fas {buttonIcon}"></i>
+						<span>{buttonText}</span>
+					</button>
+				</div>
 
 				<!-- Error message display -->
 				{#if formResult && 'type' in formResult && formResult.type === 'error'}
@@ -590,28 +645,6 @@
 		gap: 0.75rem;
 		margin-bottom: 1.5rem;
 		position: relative;
-	}
-
-	.back-btn {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		background: none;
-		border: none;
-		color: var(--text-secondary);
-		font-size: 0.9rem;
-		font-family: 'Inter', sans-serif;
-		padding: 0.5rem;
-		cursor: pointer;
-		transition: all 0.3s ease;
-		align-self: flex-start;
-		border-radius: 8px;
-	}
-
-	.back-btn:hover {
-		color: var(--text-primary);
-		background: rgba(var(--interactive-gradient-1), 0.05);
-		transform: translateX(-2px);
 	}
 
 	h1 {
@@ -1096,11 +1129,58 @@
 		font-family: 'Inter', sans-serif;
 	}
 
+	/* Reset Container and Link */
+	.reset-container {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		margin-top: 0.5rem;
+	}
+
+	.reset-link {
+		align-self: flex-end;
+		background: none;
+		border: none;
+		padding: 0.25rem 0.5rem;
+		font-size: 0.8rem;
+		color: var(--text-secondary);
+		cursor: pointer;
+		transition: all 0.2s ease;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.4rem;
+		font-family: 'Inter', sans-serif;
+		margin-bottom: -0.25rem;
+		line-height: 1;
+	}
+
+	.reset-link:hover {
+		color: var(--text-primary);
+	}
+
+	.reset-link i {
+		font-size: 0.75rem;
+		transition: transform 0.3s ease;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		height: 0.8rem;
+	}
+
+	.reset-link span {
+		display: inline-block;
+		line-height: 1;
+	}
+
+	.reset-link:hover i {
+		transform: rotate(-45deg);
+	}
+
 	/* Generate Button */
 	.generate-btn {
 		width: 100%;
 		padding: 0.9rem;
-		margin-top: 0.5rem;
 		font-size: 1rem;
 		background: var(--btn-bg);
 		color: var(--btn-text);
@@ -1221,9 +1301,15 @@
 			min-width: 45%;
 		}
 
-		.generate-btn {
+		.form-actions {
+			flex-direction: column;
+		}
+
+		.generate-btn,
+		.reset-link {
 			padding: 0.75rem;
 			font-size: 0.95rem;
+			width: 100%;
 		}
 	}
 </style>
