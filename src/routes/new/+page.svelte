@@ -154,6 +154,19 @@
 		showPreSession = !data.configureMode;
 	}
 
+	// Helper function to safely parse cookie data
+	function safelyParseCookieData(cookieData: string | null): any | null {
+		if (!cookieData) return null;
+
+		try {
+			return JSON.parse(cookieData);
+		} catch (e) {
+			console.error('Error parsing cookie data:', e);
+			deleteCookie(PRE_SESSION_COOKIE_NAME);
+			return null;
+		}
+	}
+
 	// Check URL parameters on mount to determine if we should show pre-session
 	onMount(() => {
 		if (browser) {
@@ -168,16 +181,10 @@
 					applyAutoConfig();
 				} else {
 					// Fall back to client-side cookie
-					const savedData = getCookie(PRE_SESSION_COOKIE_NAME);
-					if (savedData) {
-						try {
-							const parsedData = JSON.parse(savedData);
-							autoConfig = parsedData;
-							applyAutoConfig();
-						} catch (e) {
-							console.error('Error parsing pre-session data from cookie:', e);
-							deleteCookie(PRE_SESSION_COOKIE_NAME);
-						}
+					const parsedData = safelyParseCookieData(getCookie(PRE_SESSION_COOKIE_NAME));
+					if (parsedData) {
+						autoConfig = parsedData;
+						applyAutoConfig();
 					}
 				}
 			}
@@ -260,32 +267,10 @@
 
 		// If there's previous check-in data in the cookie, load it now
 		if (hasPreviousCheckIn) {
-			const savedData = getCookie(PRE_SESSION_COOKIE_NAME);
-			if (savedData) {
-				try {
-					const parsedData = JSON.parse(savedData);
-					autoConfig = parsedData;
-
-					// Apply the saved configuration
-					if (autoConfig) {
-						duration = autoConfig.length;
-						selectedPosture = autoConfig.posture;
-						selectedEyes = autoConfig.eyes;
-
-						if (autoConfig.sessionType) {
-							sessionType = autoConfig.sessionType;
-						}
-
-						if (sessionType === 'hypnosis' && autoConfig.hypnosisPrompt) {
-							hypnosisPrompt = autoConfig.hypnosisPrompt;
-						}
-
-						console.log('Loaded pre-session data from cookie after skip:', autoConfig);
-					}
-				} catch (e) {
-					console.error('Error parsing pre-session data from cookie after skip:', e);
-					deleteCookie(PRE_SESSION_COOKIE_NAME);
-				}
+			const parsedData = safelyParseCookieData(getCookie(PRE_SESSION_COOKIE_NAME));
+			if (parsedData) {
+				autoConfig = parsedData;
+				applyAutoConfig();
 			}
 		}
 	}
@@ -367,6 +352,11 @@
 		console.log('Client: handleFormSubmit called');
 		event.preventDefault();
 
+		// Prevent multiple submissions
+		if ($meditationGeneration.isGenerating) {
+			return;
+		}
+
 		const formData = new FormData(formElement);
 		formData.set('userLocalTime', getUserLocalTime());
 		formData.set('length', duration.toString());
@@ -393,6 +383,10 @@
 			});
 
 			console.log('Client: Response status:', response.status);
+
+			if (!response.ok) {
+				throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+			}
 
 			const result: CustomActionData = await response.json();
 			console.log('Client: Result:', JSON.stringify(result, null, 2));

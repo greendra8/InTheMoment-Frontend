@@ -154,6 +154,9 @@ export const actions: Actions = {
 
 			console.log('Server: Result from generateMeditation:', JSON.stringify(result, null, 2));
 
+			// Clear the pre-session cookie after successful generation
+			cookies.delete(PRE_SESSION_COOKIE_NAME, { path: '/' });
+
 			return {
 				type: 'success',
 				data: {
