@@ -237,11 +237,7 @@
 	async function activateInterface() {
 		interfaceActive = true;
 		buttonState = 'active';
-
-		// Start recording immediately for the first question
-		if (messages.length === 0) {
-			startRecording();
-		}
+		startRecording(); // Always start recording when interface is activated
 	}
 
 	async function startRecording() {
