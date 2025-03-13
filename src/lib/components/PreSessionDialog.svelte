@@ -4,6 +4,7 @@
 	import { transcribeAudio, getSessionRecommendation } from '$lib/api';
 	import { fade, crossfade } from 'svelte/transition';
 	import { quintOut, cubicInOut } from 'svelte/easing';
+	import { showError, showInfo } from '$lib/stores/notifications';
 
 	const dispatch = createEventDispatcher<{
 		config: {
@@ -28,15 +29,11 @@
 	let isThinking = false;
 	let audioLevel = 0;
 	let textResponse = '';
-	let silenceTimer: ReturnType<typeof setTimeout> | null = null;
-	let silenceStartTime: number | null = null;
-	let silenceThreshold = 0.05; // Threshold below which audio is considered silence
-	let silenceTimeout = 10000; // 10 seconds in milliseconds
-	let maxCharCount = 500; // Maximum character count
-	let charCount = 0;
 	let recordingStartTime: number | null = null;
 	let maxRecordingTime = 120000; // 2 minutes in milliseconds
 	let recordingTimer: ReturnType<typeof setTimeout> | null = null;
+	let maxCharCount = 500; // Maximum character count
+	let charCount = 0;
 
 	// List of possible initial questions
 	const initialQuestions = [
@@ -44,11 +41,9 @@
 		'What brings you to meditation today?',
 		'What have you been up to today?',
 		'What are you going to do after this session?',
-		'Whats on your mind as you prepare to meditate?',
+		'Whats on your mind as you prepare this session?',
 		'How has your day been going so far?',
 		"What are you hoping to experience in today's session?",
-		'How is your body feeling right now?',
-		'What emotions are present for you in this moment?',
 		"What would you like to focus on in today's practice?",
 		"Is there anything specific you'd like to let go of today?"
 	];
@@ -153,12 +148,6 @@
 				audioStream = null;
 			}
 
-			// Clear silence detection timer
-			if (silenceTimer !== null) {
-				clearTimeout(silenceTimer);
-				silenceTimer = null;
-			}
-
 			// Clear recording timer
 			if (recordingTimer !== null) {
 				clearTimeout(recordingTimer);
@@ -191,37 +180,6 @@
 				sum += dataArray[i];
 			}
 			audioLevel = sum / length / 255; // Normalize to 0-1
-
-			// Silence detection
-			if (isRecording) {
-				if (audioLevel < silenceThreshold) {
-					// If silence just started, record the time
-					if (silenceStartTime === null) {
-						silenceStartTime = Date.now();
-						// Start the silence timer
-						if (silenceTimer === null) {
-							silenceTimer = setTimeout(() => {
-								console.log('Silence detected for 10 seconds, stopping recording');
-								submitRecording();
-							}, silenceTimeout);
-						}
-					} else {
-						// Check if silence has continued for the timeout period
-						const silenceDuration = Date.now() - silenceStartTime;
-						if (silenceDuration >= silenceTimeout && silenceTimer === null) {
-							console.log('Silence detected for 10 seconds, stopping recording');
-							submitRecording();
-						}
-					}
-				} else {
-					// Reset silence timer if sound is detected
-					if (silenceTimer !== null) {
-						clearTimeout(silenceTimer);
-						silenceTimer = null;
-					}
-					silenceStartTime = null;
-				}
-			}
 
 			// Log audio level for debugging only when needed
 			if (audioLevel > 0.05 && debugInfo.showDebug) {
@@ -258,13 +216,6 @@
 				cancelAnimationFrame(animationFrameId);
 				animationFrameId = null;
 			}
-
-			// Reset silence detection variables
-			if (silenceTimer !== null) {
-				clearTimeout(silenceTimer);
-				silenceTimer = null;
-			}
-			silenceStartTime = null;
 
 			// Clear any existing recording timer
 			if (recordingTimer !== null) {
@@ -311,7 +262,7 @@
 			console.log('Recording started');
 		} catch (error) {
 			console.error('Error accessing microphone:', error);
-			alert('Could not access microphone. Please check permissions or try typing your response.');
+			showError("We couldn't access your microphone. You can try using text input instead.");
 			mode = 'text';
 		}
 	}
@@ -338,13 +289,6 @@
 			cancelAnimationFrame(animationFrameId);
 			animationFrameId = null;
 		}
-
-		// Clear silence detection timer
-		if (silenceTimer !== null) {
-			clearTimeout(silenceTimer);
-			silenceTimer = null;
-		}
-		silenceStartTime = null;
 
 		// Clear recording timer
 		if (recordingTimer !== null) {
@@ -395,7 +339,9 @@
 					console.error('Transcription error:', transcriptionError);
 					isThinking = false;
 					buttonState = 'active';
-					throw new Error('Failed to transcribe your audio. Please try again or use text input.');
+					showError("We couldn't process your audio. Please try again or use text input.");
+					isProcessing = false;
+					return;
 				}
 			} else {
 				response = textResponse;
@@ -418,7 +364,8 @@
 			// Get AI response
 			console.log('Getting AI recommendation...');
 			try {
-				const aiResponse = await getSessionRecommendation(messages, localTime);
+				// Fix the API call to match the expected parameters
+				const aiResponse = await getSessionRecommendation(messages);
 				console.log('AI response:', aiResponse);
 				isThinking = false;
 
@@ -437,7 +384,10 @@
 							config = JSON.parse(jsonStr);
 						} catch (parseError) {
 							console.error('Error parsing JSON:', parseError);
-							throw new Error('Invalid JSON format');
+							showError("We couldn't prepare your meditation session. Let's try again.");
+							buttonState = 'active';
+							isProcessing = false;
+							return;
 						}
 
 						if (config && config.length && config.posture && config.eyes) {
@@ -496,12 +446,11 @@
 				console.error('AI recommendation error:', aiError);
 				isThinking = false;
 				buttonState = 'active';
-				// Keep the current question visible instead of clearing it
-				throw new Error('Failed to get a response. Please try again.');
+				showError("We couldn't get a response. Let's try again.");
 			}
 		} catch (error) {
 			console.error('Error processing response:', error);
-			alert(error instanceof Error ? error.message : 'An error occurred. Please try again.');
+			showError("Something went wrong. Let's try again.");
 			buttonState = 'active';
 		} finally {
 			isProcessing = false;
@@ -513,6 +462,7 @@
 		// Enforce character limit directly when typing
 		if (textResponse.length > maxCharCount) {
 			textResponse = textResponse.substring(0, maxCharCount);
+			// Remove character limit notification
 		}
 		charCount = textResponse.length;
 	}

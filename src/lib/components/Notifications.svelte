@@ -80,6 +80,7 @@
 		max-width: 90vw;
 		pointer-events: auto;
 		position: relative;
+		padding-right: 2rem;
 	}
 
 	.notification.success {
@@ -146,7 +147,7 @@
 		color: inherit;
 		opacity: 0.6;
 		cursor: pointer;
-		padding: 0.25rem;
+		padding: 0;
 		margin-left: 0.75rem;
 		display: flex;
 		align-items: center;
@@ -159,6 +160,15 @@
 	.dismiss:hover {
 		opacity: 1;
 		background: rgba(0, 0, 0, 0.1);
+	}
+
+	.dismiss i {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 100%;
+		height: 100%;
+		font-size: 0.8rem;
 	}
 
 	@media (max-width: 480px) {
