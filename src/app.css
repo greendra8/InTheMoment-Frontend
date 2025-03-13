@@ -140,6 +140,7 @@ textarea {
 
 /* Add bottom padding to prevent content from being hidden by navigation bars */
 main {
+  min-height: 100vh;
   padding-bottom: 80px;
   /* Default space for mobile nav */
   max-width: 100%;

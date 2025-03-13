@@ -267,7 +267,7 @@ export async function serverTranscribeAudio(audioBuffer: Buffer): Promise<string
 }
 
 // Server-side implementation for session recommendation
-export async function serverGetSessionRecommendation(messages: Array<{ role: string, content: string }>) {
+export async function serverGetSessionRecommendation(messages: Array<{ role: string, content: string }>, localTime: string) {
   try {
     // Enforce character limit on the last user message if it exists
     if (messages.length > 0) {
@@ -285,24 +285,25 @@ export async function serverGetSessionRecommendation(messages: Array<{ role: str
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY}`,
         'HTTP-Referer': import.meta.env.VITE_APP_URL,
-        'X-Title': 'In The Moment'
+        'X-Title': 'InTheMoment.app'
       },
       body: JSON.stringify({
         model: 'google/gemini-2.0-pro-exp-02-05:free',
         messages: [
           {
             role: 'system',
-            content: `You are a meditation teacher's assistant helping to configure meditation sessions. Imagine they have just entered the room and you're looking to guage their current state and needs.
-            Based on the user's responses, you should ask 2-3 relevant follow-up questions to understand their current state and needs.
+            content: `You are a meditation teacher's assistant helping to configure meditation sessions. Imagine they have just entered the room at ${localTime} and you're looking to guage their current state and needs.
+            Based on the user's responses, you should ask 3-4 relevant follow-up questions to understand their current state and needs.
             After gathering sufficient information, provide a session configuration in JSON format with these fields:
             - length: number (5-45 minutes, must be one of: 5, 10, 15, 20, 25, 30, 35, 40, 45)
             - posture: "sitting" | "lying" | "walking"
             - eyes: "open" | "closed"
             
+            Ask questions that will help the teacher tailor the session to the user's needs, whilst remaining charming.
+
             Example questions:
             - What have you been up to today?
             - What are you going to do after today's session?
-            - How have your emotions been lately?
             - Have you had a chance to practice mindfulness outside of our sessions?
             - What's been on your mind recently?
             - Are you happy with your progress in our sessions?
@@ -310,8 +311,6 @@ export async function serverGetSessionRecommendation(messages: Array<{ role: str
             - Did you try mindfulness or meditation since last time? How was it?
             - Which meditation techniques have been helpful or tough recently?
             - Noticed any changes in yourself or your practice since we began?
-            - Got a specific goal for today's session?
-            - Any physical sensations or discomforts to address today?
             - Anything else to share or requests for today's session?
 
             Keep your response less than 250 characters.

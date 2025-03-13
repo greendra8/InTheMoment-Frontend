@@ -1,7 +1,7 @@
 import { error, redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import { generateMeditation } from '$lib/pythonApi';
-import { supabaseAdmin, getPlaylists, getPlaylist } from '$lib/server/supabase';
+import { supabaseAdmin, getPlaylists, getPlaylist, getUserMeditations } from '$lib/server/supabase';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	const { session } = locals;
@@ -16,6 +16,9 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	try {
 		// Only fetch visible playlists for the dropdown
 		const playlists = await getPlaylists(false);
+
+		// Fetch user's meditations to determine if this is their first session
+		const { data: meditations, totalCount: totalMeditations } = await getUserMeditations(session.user.id);
 
 		let selectedPlaylist = null;
 		let initialTab = 'custom';
@@ -40,7 +43,9 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			session,
 			playlists,
 			selectedPlaylist,
-			initialTab
+			initialTab,
+			meditations,
+			totalMeditations
 		};
 	} catch (err) {
 		console.error('Error fetching data:', err);

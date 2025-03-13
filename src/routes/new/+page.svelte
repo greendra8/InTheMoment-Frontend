@@ -79,6 +79,9 @@
 		conversation: Array<{ role: string; content: string }>;
 	} | null = null;
 
+	// Determine if this is the user's first session
+	$: isFirstSession = data.meditations && data.meditations.length === 0;
+
 	// Update showPreSession based on URL parameters
 	$: if (browser) {
 		showPreSession = !$page.url.searchParams.has('configure');
@@ -347,7 +350,11 @@
 <div class="session-container">
 	{#if showPreSession}
 		<h1>Session Check-in</h1>
-		<PreSessionDialog on:config={handlePreSessionConfig} on:skip={handlePreSessionSkip} />
+		<PreSessionDialog
+			on:config={handlePreSessionConfig}
+			on:skip={handlePreSessionSkip}
+			{isFirstSession}
+		/>
 	{:else}
 		<h1>New Session</h1>
 		<div class="session-card">

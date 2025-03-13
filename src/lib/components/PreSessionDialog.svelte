@@ -15,6 +15,12 @@
 		skip: void;
 	}>();
 
+	// Add prop for first-time users
+	export let isFirstSession = false;
+
+	// Add state to track if welcome screen is shown
+	let showWelcomeScreen = isFirstSession;
+
 	// UI state
 	let mode: 'conversation' | 'text' = 'conversation';
 	let isRecording = false;
@@ -46,6 +52,11 @@
 		"What would you like to focus on in today's practice?",
 		"Is there anything specific you'd like to let go of today?"
 	];
+
+	// Function to proceed from welcome screen to check-in
+	function proceedToCheckIn() {
+		showWelcomeScreen = false;
+	}
 
 	// Get a random question from the list
 	function getRandomQuestion(): string {
@@ -121,6 +132,9 @@
 	}
 
 	onMount(() => {
+		// Add initial question to conversation
+		messages = [{ role: 'assistant', content: currentQuestion }];
+
 		// Ensure proper cleanup of all resources when component is destroyed
 		return () => {
 			stopRecording();
@@ -397,10 +411,18 @@
 			// Add user's response to messages
 			messages = [...messages, { role: 'user', content: response }];
 
+			// Get current local time in 12-hour format
+			const now = new Date();
+			const localTime = now.toLocaleTimeString('en-US', {
+				hour: 'numeric',
+				minute: '2-digit',
+				hour12: true
+			});
+
 			// Get AI response
 			console.log('Getting AI recommendation...');
 			try {
-				const aiResponse = await getSessionRecommendation(messages);
+				const aiResponse = await getSessionRecommendation(messages, localTime);
 				console.log('AI response:', aiResponse);
 				isThinking = false;
 
@@ -519,182 +541,206 @@
 </script>
 
 <div class="pre-session-dialog">
-	<div class="pre-session-header">
-		<!-- Mode toggle -->
-		<div class="mode-toggle">
-			<button
-				class:active={mode === 'conversation'}
-				on:click={() => mode === 'text' && toggleMode()}
-			>
-				<i class="fas fa-microphone"></i> Voice
-			</button>
-			<button
-				class:active={mode === 'text'}
-				on:click={() => mode === 'conversation' && toggleMode()}
-			>
-				<i class="fas fa-keyboard"></i> Text
-			</button>
-		</div>
-	</div>
-
-	{#if showFinalMessage}
-		<div
-			class="final-message"
-			in:receive={{ key: 'final-message' }}
-			out:send={{ key: 'final-message' }}
-		>
-			<p>{finalMessage}</p>
-			<div class="spinner">
-				<i class="fas fa-circle-notch fa-spin"></i>
-				<span>Configuring your session...</span>
+	{#if showWelcomeScreen}
+		<div class="welcome-screen" in:receive={{ key: 'welcome' }} out:send={{ key: 'welcome' }}>
+			<div class="welcome-content">
+				<h2>Your First Check-in</h2>
+				<div class="welcome-text">
+					<p>
+						Before each meditation session, we'll check in with you to see how you've been getting
+						on.
+					</p>
+					<p>
+						This helps us personalize your meditation experience to match your current state of mind
+						and intentions.
+					</p>
+				</div>
+				<button class="proceed-btn" on:click={proceedToCheckIn}>
+					<i class="fas fa-arrow-right"></i>
+					Start Check-in
+				</button>
 			</div>
 		</div>
 	{:else}
-		<!-- Question display with improved typography and transitions -->
-		<div class="question-container">
-			<div class="question-wrapper">
-				{#if isThinking}
-					<div
-						class="thinking-indicator"
-						in:receive={{ key: 'thinking' }}
-						out:send={{ key: 'thinking' }}
+		<div class="check-in-container" in:receive={{ key: 'check-in' }} out:send={{ key: 'check-in' }}>
+			<div class="pre-session-header">
+				<!-- Mode toggle -->
+				<div class="mode-toggle">
+					<button
+						class:active={mode === 'conversation'}
+						on:click={() => mode === 'text' && toggleMode()}
 					>
-						<i class="fas fa-circle-notch fa-spin"></i>
-						<span>Thinking...</span>
-					</div>
-				{:else}
-					<div
-						class="question-content"
-						in:receive={{ key: `question-${questionKey}` }}
-						out:send={{ key: `question-${questionKey - 1}` }}
+						<i class="fas fa-microphone"></i> Voice
+					</button>
+					<button
+						class:active={mode === 'text'}
+						on:click={() => mode === 'conversation' && toggleMode()}
 					>
-						<p class="question">{currentQuestion}</p>
-					</div>
-				{/if}
+						<i class="fas fa-keyboard"></i> Text
+					</button>
+				</div>
 			</div>
-		</div>
 
-		<!-- Input interface container with fixed height and absolute positioning for transitions -->
-		<div class="input-interface-container">
-			<div class="interface-wrapper">
-				{#if mode === 'conversation'}
-					<!-- Voice conversation interface with improved recording button -->
-					<div
-						class="conversation-interface"
-						in:receive={{ key: 'conversation-mode' }}
-						out:send={{ key: 'conversation-mode' }}
-					>
-						<div class="record-button-container">
-							<button
-								class="record-button"
-								class:recording={isRecording}
-								class:waiting={waitingForQuestion}
-								style="transform: scale({isRecording ? 1 + audioLevel * 0.5 : 1})"
-								on:click={!interfaceActive
-									? activateInterface
-									: isRecording
-										? submitRecording
-										: startRecording}
-								on:mouseenter={() => isRecording && (showTickIcon = true)}
-								on:mouseleave={() => isRecording && (showTickIcon = false)}
-								disabled={isProcessing && !isRecording}
-							>
-								<div class="button-content">
-									<!-- Only apply transitions when the button state changes -->
-									{#if buttonState === 'initial'}
-										<!-- Initial state - no transitions -->
-										<div class="icon-container">
-											<i class="fas fa-microphone"></i>
-										</div>
-									{:else if buttonState === 'recording'}
-										<!-- Recording state -->
-										<div
-											class="icon-container"
-											in:receiveIcon={{ key: 'recording' }}
-											out:sendIcon={{ key: 'active' }}
-										>
-											<i
-												class="fas fa-microphone"
-												style="opacity: {showTickIcon ? 0 : 1}; transition: opacity 150ms ease;"
-											></i>
-											<i
-												class="fas fa-check"
-												style="opacity: {showTickIcon ? 1 : 0}; transition: opacity 150ms ease;"
-											></i>
-										</div>
-									{:else if buttonState === 'waiting'}
-										<!-- Waiting state -->
-										<div
-											class="loading-dots"
-											in:receiveIcon={{ key: 'waiting' }}
-											out:sendIcon={{ key: 'recording' }}
-										>
-											<span></span>
-											<span></span>
-											<span></span>
-										</div>
-									{:else}
-										<!-- Active state (not recording or waiting) -->
-										<div
-											class="icon-container"
-											in:receiveIcon={{ key: 'active' }}
-											out:sendIcon={{ key: 'waiting' }}
-										>
-											<i class="fas fa-microphone"></i>
-										</div>
-									{/if}
-								</div>
-							</button>
-						</div>
+			{#if showFinalMessage}
+				<div
+					class="final-message"
+					in:receive={{ key: 'final-message' }}
+					out:send={{ key: 'final-message' }}
+				>
+					<p>{finalMessage}</p>
+					<div class="spinner">
+						<i class="fas fa-circle-notch fa-spin"></i>
+						<span>Configuring your session...</span>
 					</div>
-				{/if}
+				</div>
+			{:else}
+				<!-- Question display with improved typography and transitions -->
+				<div class="question-container">
+					<div class="question-wrapper">
+						{#if isThinking}
+							<div
+								class="thinking-indicator"
+								in:receive={{ key: 'thinking' }}
+								out:send={{ key: 'thinking' }}
+							>
+								<i class="fas fa-circle-notch fa-spin"></i>
+								<span>Thinking...</span>
+							</div>
+						{:else}
+							<div
+								class="question-content"
+								in:receive={{ key: `question-${questionKey}` }}
+								out:send={{ key: `question-${questionKey - 1}` }}
+							>
+								<p class="question">{currentQuestion}</p>
+							</div>
+						{/if}
+					</div>
+				</div>
 
-				{#if mode === 'text'}
-					<!-- Text input interface -->
-					<div
-						class="text-interface"
-						in:receive={{ key: 'text-mode' }}
-						out:send={{ key: 'text-mode' }}
-					>
-						<div class="text-input">
-							<div class="textarea-container">
-								<textarea
-									bind:value={textResponse}
-									on:input={updateCharCount}
-									placeholder="Type your response here..."
-									disabled={isProcessing}
-								></textarea>
-								<div class="char-count" class:warning={charCount > maxCharCount}>
-									{charCount}/{maxCharCount} characters
+				<!-- Input interface container with fixed height and absolute positioning for transitions -->
+				<div class="input-interface-container">
+					<div class="interface-wrapper">
+						{#if mode === 'conversation'}
+							<!-- Voice conversation interface with improved recording button -->
+							<div
+								class="conversation-interface"
+								in:receive={{ key: 'conversation-mode' }}
+								out:send={{ key: 'conversation-mode' }}
+							>
+								<div class="record-button-container">
+									<button
+										class="record-button"
+										class:recording={isRecording}
+										class:waiting={waitingForQuestion}
+										style="transform: scale({isRecording ? 1 + audioLevel * 0.5 : 1})"
+										on:click={!interfaceActive
+											? activateInterface
+											: isRecording
+												? submitRecording
+												: startRecording}
+										on:mouseenter={() => isRecording && (showTickIcon = true)}
+										on:mouseleave={() => isRecording && (showTickIcon = false)}
+										disabled={isProcessing && !isRecording}
+									>
+										<div class="button-content">
+											<!-- Only apply transitions when the button state changes -->
+											{#if buttonState === 'initial'}
+												<!-- Initial state - no transitions -->
+												<div class="icon-container">
+													<i class="fas fa-microphone"></i>
+												</div>
+											{:else if buttonState === 'recording'}
+												<!-- Recording state -->
+												<div
+													class="icon-container"
+													in:receiveIcon={{ key: 'recording' }}
+													out:sendIcon={{ key: 'active' }}
+												>
+													<i
+														class="fas fa-microphone"
+														style="opacity: {showTickIcon ? 0 : 1}; transition: opacity 150ms ease;"
+													></i>
+													<i
+														class="fas fa-check"
+														style="opacity: {showTickIcon ? 1 : 0}; transition: opacity 150ms ease;"
+													></i>
+												</div>
+											{:else if buttonState === 'waiting'}
+												<!-- Waiting state -->
+												<div
+													class="loading-dots"
+													in:receiveIcon={{ key: 'waiting' }}
+													out:sendIcon={{ key: 'recording' }}
+												>
+													<span></span>
+													<span></span>
+													<span></span>
+												</div>
+											{:else}
+												<!-- Active state (not recording or waiting) -->
+												<div
+													class="icon-container"
+													in:receiveIcon={{ key: 'active' }}
+													out:sendIcon={{ key: 'waiting' }}
+												>
+													<i class="fas fa-microphone"></i>
+												</div>
+											{/if}
+										</div>
+									</button>
 								</div>
 							</div>
-							<button
-								class="submit-btn"
-								on:click={handleSubmitText}
-								disabled={!textResponse.trim() || isProcessing}
+						{/if}
+
+						{#if mode === 'text'}
+							<!-- Text input interface -->
+							<div
+								class="text-interface"
+								in:receive={{ key: 'text-mode' }}
+								out:send={{ key: 'text-mode' }}
 							>
-								<i class="fas fa-paper-plane"></i>
-							</button>
-						</div>
+								<div class="text-input">
+									<div class="textarea-container">
+										<textarea
+											bind:value={textResponse}
+											on:input={updateCharCount}
+											placeholder="Type your response here..."
+											disabled={isProcessing}
+										></textarea>
+										<div class="char-count" class:warning={charCount > maxCharCount}>
+											{charCount}/{maxCharCount} characters
+										</div>
+									</div>
+									<button
+										class="submit-btn"
+										on:click={handleSubmitText}
+										disabled={!textResponse.trim() || isProcessing}
+									>
+										<i class="fas fa-paper-plane"></i>
+									</button>
+								</div>
+							</div>
+						{/if}
 					</div>
+				</div>
+			{/if}
+
+			<div class="pre-session-footer">
+				<button class="skip-btn" on:click={handleSkip} disabled={isProcessing}>
+					<i class="fas fa-arrow-right"></i>
+					Skip to manual configuration
+				</button>
+
+				<!-- Debug toggle button -->
+				{#if import.meta.env.DEV}
+					<button class="debug-btn" on:click={toggleDebug} title="Toggle debug info">
+						<i class="fas fa-bug"></i>
+					</button>
 				{/if}
 			</div>
 		</div>
 	{/if}
-
-	<div class="pre-session-footer">
-		<button class="skip-btn" on:click={handleSkip} disabled={isProcessing}>
-			<i class="fas fa-arrow-right"></i>
-			Skip to manual configuration
-		</button>
-
-		<!-- Debug toggle button -->
-		{#if import.meta.env.DEV}
-			<button class="debug-btn" on:click={toggleDebug} title="Toggle debug info">
-				<i class="fas fa-bug"></i>
-			</button>
-		{/if}
-	</div>
 
 	<!-- Debug panel -->
 	{#if debugInfo.showDebug}
@@ -737,8 +783,127 @@
 		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
 		box-shadow: 0 8px 20px var(--ui-shadow);
 		position: relative;
+		min-height: 400px; /* Add minimum height to prevent layout shift */
+		display: flex;
+		flex-direction: column;
+		margin-bottom: 200px; /* Add margin to accommodate debug panel */
 	}
 
+	/* Welcome screen styles */
+	.welcome-screen,
+	.check-in-container {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		padding: 1.5rem;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.welcome-screen {
+		text-align: center;
+	}
+
+	.welcome-content {
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+	}
+
+	.welcome-text {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		margin: -2rem 0 1.5rem;
+	}
+
+	.check-in-container {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.welcome-screen h2 {
+		font-family: 'Space Grotesk', sans-serif;
+		font-size: 2rem;
+		font-weight: 600;
+		color: var(--text-primary);
+		margin-bottom: 0.5rem;
+		letter-spacing: -0.5px;
+	}
+
+	.welcome-screen p {
+		font-family: 'Inter', sans-serif;
+		font-size: 1.1rem;
+		line-height: 1.6;
+		color: var(--text-secondary);
+		margin-bottom: 1rem;
+		max-width: 600px;
+	}
+
+	.proceed-btn {
+		margin-top: auto;
+		padding: 0.9rem 1.5rem;
+		background: var(--btn-bg);
+		color: var(--btn-text);
+		border: 1px solid rgba(var(--interactive-gradient-1), 0.2);
+		border-radius: 8px;
+		cursor: pointer;
+		transition: all 0.3s ease;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.75rem;
+		font-family: 'Inter', sans-serif;
+		font-size: 1rem;
+		font-weight: 500;
+		box-shadow: 0 4px 12px rgba(var(--interactive-gradient-1), 0.15);
+		position: relative;
+		overflow: hidden;
+		align-self: center;
+	}
+
+	.proceed-btn::after {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: -100%;
+		width: 50%;
+		height: 100%;
+		background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+		transform: skewX(-25deg);
+		transition: all 0.75s ease;
+	}
+
+	.proceed-btn:hover {
+		background: var(--btn-bg-hover);
+		transform: translateY(-2px);
+		box-shadow: 0 6px 15px rgba(var(--interactive-gradient-1), 0.25);
+		border-color: rgba(var(--interactive-gradient-1), 0.3);
+	}
+
+	.proceed-btn:hover::after {
+		left: 100%;
+	}
+
+	.proceed-btn:active {
+		transform: translateY(-1px);
+		box-shadow: 0 4px 10px rgba(var(--interactive-gradient-1), 0.15);
+	}
+
+	.proceed-btn i {
+		font-size: 1rem;
+		transition: transform 0.3s ease;
+	}
+
+	.proceed-btn:hover i {
+		transform: translateX(3px);
+	}
+
+	/* Existing styles */
 	.pre-session-header {
 		margin-bottom: 1rem;
 		text-align: center;
@@ -822,9 +987,9 @@
 		font-size: 1rem;
 		position: absolute;
 		padding: 1rem;
-		background: rgba(var(--interactive-gradient-1), 0.05);
+		/* background: rgba(var(--interactive-gradient-1), 0.05);
 		border-radius: 12px;
-		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
+		border: 1px solid rgba(var(--interactive-gradient-1), 0.1); */
 	}
 
 	.thinking-indicator i {
@@ -851,7 +1016,7 @@
 	.input-interface-container {
 		position: relative;
 		height: 150px;
-		margin-bottom: 2rem;
+		margin-top: 1rem;
 	}
 
 	.interface-wrapper {
@@ -1178,6 +1343,10 @@
 	}
 
 	.debug-panel {
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: -450px; /* Position below the main content */
 		margin-top: 1.5rem;
 		padding: 1.5rem;
 		background: rgba(var(--background-card-rgb), 0.5);
@@ -1186,6 +1355,7 @@
 		color: var(--text-primary);
 		font-size: 0.85rem;
 		font-family: 'Inter', sans-serif;
+		z-index: 1;
 	}
 
 	.debug-panel h3 {
@@ -1248,35 +1418,9 @@
 
 	/* Mobile optimizations */
 	@media (max-width: 600px) {
-		.pre-session-dialog {
-			padding: 1rem;
-			margin-bottom: 1rem;
-		}
-
-		.pre-session-header h2 {
-			font-size: 1.5rem;
-		}
-
 		.question {
 			font-size: 1rem;
 			padding: 1rem;
-		}
-
-		.input-interface-container {
-			height: 130px;
-		}
-
-		.final-message p {
-			font-size: 0.95rem;
-		}
-
-		.skip-btn {
-			font-size: 0.8rem;
-			padding: 0.5rem 1rem;
-		}
-
-		textarea {
-			min-height: 100px;
 		}
 	}
 </style>
