@@ -354,7 +354,7 @@
 			console.log('Getting AI recommendation...');
 			try {
 				// Fix the API call to match the expected parameters
-				const aiResponse = await getSessionRecommendation(messages);
+				const aiResponse = await getSessionRecommendation(messages, localTime);
 				console.log('AI response:', aiResponse);
 				isThinking = false;
 

@@ -8,14 +8,14 @@ export const POST: RequestHandler = async ({ request }) => {
         // This would typically use locals.session, but we're keeping it simple for now
 
         // Get the messages from the request
-        const { messages } = await request.json();
+        const { messages, localTime } = await request.json();
 
         if (!messages || !Array.isArray(messages)) {
             return json({ error: 'Invalid messages format' }, { status: 400 });
         }
 
         // Get the session recommendation
-        const recommendation = await serverGetSessionRecommendation(messages);
+        const recommendation = await serverGetSessionRecommendation(messages, localTime);
 
         return json({ content: recommendation });
     } catch (error) {

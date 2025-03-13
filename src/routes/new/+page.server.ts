@@ -61,7 +61,6 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
 		// Generate a random question on the server
 		const initialQuestion = getRandomQuestion();
-		console.log('Server: Generated initial question:', initialQuestion);
 
 		return {
 			session,

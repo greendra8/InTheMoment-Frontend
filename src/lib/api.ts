@@ -241,13 +241,13 @@ export async function transcribeAudio(audioBlob: Blob): Promise<string> {
   return data.text;
 }
 
-export async function getSessionRecommendation(messages: Array<{ role: string, content: string }>) {
+export async function getSessionRecommendation(messages: Array<{ role: string, content: string }>, localTime: string) {
   const response = await fetch('/api/session-recommendation', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ messages })
+    body: JSON.stringify({ messages, localTime })
   });
 
   if (!response.ok) {

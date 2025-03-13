@@ -242,7 +242,8 @@ export async function serverTranscribeAudio(audioBuffer: Buffer): Promise<string
     const formData = new FormData();
     const blob = new Blob([audioBuffer], { type: 'audio/webm' });
     formData.append('file', blob);
-    formData.append('model', 'openai/whisper-large-v3-turbo');
+    formData.append('model', 'openai/whisper-large-v3');
+    formData.append('language', 'en');
 
     const response = await fetch('https://api.deepinfra.com/v1/openai/audio/transcriptions', {
       method: 'POST',
@@ -329,7 +330,7 @@ export async function serverGetSessionRecommendation(messages: Array<{ role: str
             1. A follow-up question (if you need more information)
             2. A final response with a friendly message followed by the JSON configuration in this format:
             
-            [Your friendly message here e.g. Great! Here's a session that I think will be perfect for you!]
+            [Your final friendly message here e.g. Great! Here's a session that I think will be perfect for you!]
             
             \`\`\`json
             {
