@@ -22,6 +22,8 @@
 	export let isFirstSession = false;
 	// Add prop for initial question from server
 	export let initialQuestion = '';
+	// Add prop to check if previous check-in data exists
+	export let hasPreviousCheckIn = false;
 
 	// Add state to track if welcome screen is shown
 	let showWelcomeScreen = isFirstSession;
@@ -681,7 +683,11 @@
 			<div class="pre-session-footer">
 				<button class="skip-btn" on:click={handleSkip} disabled={isProcessing}>
 					<i class="fas fa-arrow-right"></i>
-					Skip to manual configuration
+					{#if hasPreviousCheckIn}
+						Continue with previous check-in
+					{:else}
+						Skip to manual configuration
+					{/if}
 				</button>
 
 				<!-- Debug toggle button -->

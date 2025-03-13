@@ -3,6 +3,9 @@ import type { PageServerLoad, Actions } from './$types';
 import { generateMeditation } from '$lib/pythonApi';
 import { supabaseAdmin, getPlaylists, getPlaylist, getUserMeditations } from '$lib/server/supabase';
 
+// Cookie name for pre-session data
+const PRE_SESSION_COOKIE_NAME = 'pre_session_data';
+
 // List of possible initial questions for the pre-session dialog
 const initialQuestions = [
 	'How have you felt since the last time you meditated?',
@@ -23,7 +26,7 @@ function getRandomQuestion(): string {
 	return initialQuestions[randomIndex];
 }
 
-export const load: PageServerLoad = async ({ locals, url }) => {
+export const load: PageServerLoad = async ({ locals, url, cookies }) => {
 	const { session } = locals;
 
 	if (!session) {
@@ -32,6 +35,24 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	}
 
 	const playlistId = url.searchParams.get('playlist');
+	const configureMode = url.searchParams.has('configure');
+
+	// Check if we should load pre-session data from cookies
+	let preSessionData = null;
+	let hasPreviousCheckIn = false;
+	const preSessionCookie = cookies.get(PRE_SESSION_COOKIE_NAME);
+
+	if (preSessionCookie) {
+		try {
+			preSessionData = JSON.parse(preSessionCookie);
+			hasPreviousCheckIn = true;
+			console.log('Server: Loaded pre-session data from cookie:', preSessionData);
+		} catch (err) {
+			console.error('Server: Error parsing pre-session cookie data:', err);
+			// If there's an error parsing, delete the cookie
+			cookies.delete(PRE_SESSION_COOKIE_NAME, { path: '/' });
+		}
+	}
 
 	try {
 		// Only fetch visible playlists for the dropdown
@@ -69,7 +90,10 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			initialTab,
 			meditations,
 			totalMeditations,
-			initialQuestion // Add the initial question to the returned data
+			initialQuestion, // Add the initial question to the returned data
+			preSessionData, // Add the pre-session data from cookies if available
+			hasPreviousCheckIn, // Add flag indicating if previous check-in data exists
+			configureMode // Add flag indicating if we're in configure mode
 		};
 	} catch (err) {
 		console.error('Error fetching data:', err);
@@ -78,7 +102,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 };
 
 export const actions: Actions = {
-	generateMeditation: async ({ request, locals }) => {
+	generateMeditation: async ({ request, locals, cookies }) => {
 		const { session } = locals;
 
 		if (!session) {

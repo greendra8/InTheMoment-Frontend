@@ -9,6 +9,35 @@
 	import PreSessionDialog from '$lib/components/PreSessionDialog.svelte';
 	import { browser } from '$app/environment';
 
+	// Cookie constants
+	const PRE_SESSION_COOKIE_NAME = 'pre_session_data';
+	const COOKIE_EXPIRY_HOURS = 2;
+
+	// Function to set a cookie with expiration time
+	function setCookie(name: string, value: string, hours: number = COOKIE_EXPIRY_HOURS) {
+		if (!browser) return;
+
+		const expires = new Date();
+		expires.setTime(expires.getTime() + hours * 60 * 60 * 1000);
+		document.cookie = `${name}=${encodeURIComponent(value)};expires=${expires.toUTCString()};path=/;SameSite=Strict`;
+	}
+
+	// Function to get a cookie value
+	function getCookie(name: string): string | null {
+		if (!browser) return null;
+
+		const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+		if (match) return decodeURIComponent(match[2]);
+		return null;
+	}
+
+	// Function to delete a cookie
+	function deleteCookie(name: string) {
+		if (!browser) return;
+
+		document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;SameSite=Strict`;
+	}
+
 	// Define the CustomActionData type for form submission results
 	type CustomActionData = {
 		type: 'success' | 'error';
@@ -65,6 +94,9 @@
 
 		// Reset autoConfig to null to clear any pre-session dialog settings
 		autoConfig = null;
+
+		// Delete the pre-session cookie when resetting
+		deleteCookie(PRE_SESSION_COOKIE_NAME);
 	}
 
 	// Compute button disabled state based on global generation state and form state
@@ -107,9 +139,19 @@
 	// Determine if this is the user's first session
 	$: isFirstSession = data.meditations && data.meditations.length === 0;
 
-	// Update showPreSession based on URL parameters
+	// Use server-provided hasPreviousCheckIn if available, otherwise check client-side
+	$: hasPreviousCheckIn =
+		data.hasPreviousCheckIn !== undefined
+			? data.hasPreviousCheckIn
+			: browser
+				? !!getCookie(PRE_SESSION_COOKIE_NAME)
+				: false;
+
+	// Update showPreSession based on URL parameters or server data
 	$: if (browser) {
-		showPreSession = !$page.url.searchParams.has('configure');
+		showPreSession = !$page.url.searchParams.has('configure') && !data.configureMode;
+	} else {
+		showPreSession = !data.configureMode;
 	}
 
 	// Check URL parameters on mount to determine if we should show pre-session
@@ -117,6 +159,28 @@
 		if (browser) {
 			// Listen for popstate events (browser back/forward buttons)
 			window.addEventListener('popstate', handlePopState);
+
+			// Try to load pre-session data from cookie or server data
+			if (!showPreSession) {
+				// First try to use server-provided data
+				if (data.preSessionData) {
+					autoConfig = data.preSessionData;
+					applyAutoConfig();
+				} else {
+					// Fall back to client-side cookie
+					const savedData = getCookie(PRE_SESSION_COOKIE_NAME);
+					if (savedData) {
+						try {
+							const parsedData = JSON.parse(savedData);
+							autoConfig = parsedData;
+							applyAutoConfig();
+						} catch (e) {
+							console.error('Error parsing pre-session data from cookie:', e);
+							deleteCookie(PRE_SESSION_COOKIE_NAME);
+						}
+					}
+				}
+			}
 		}
 
 		return () => {
@@ -125,6 +189,25 @@
 			}
 		};
 	});
+
+	// Helper function to apply autoConfig settings to form fields
+	function applyAutoConfig() {
+		if (!autoConfig) return;
+
+		duration = autoConfig.length;
+		selectedPosture = autoConfig.posture;
+		selectedEyes = autoConfig.eyes;
+
+		if (autoConfig.sessionType) {
+			sessionType = autoConfig.sessionType;
+		}
+
+		if (sessionType === 'hypnosis' && autoConfig.hypnosisPrompt) {
+			hypnosisPrompt = autoConfig.hypnosisPrompt;
+		}
+
+		console.log('Applied auto-config to form fields:', autoConfig);
+	}
 
 	// Handle browser navigation events
 	function handlePopState() {
@@ -164,6 +247,9 @@
 			hypnosisPrompt = autoConfig.hypnosisPrompt;
 		}
 
+		// Save the pre-session data to a cookie
+		setCookie(PRE_SESSION_COOKIE_NAME, JSON.stringify(autoConfig));
+
 		console.log('Pre-session check-in complete with config:', autoConfig);
 	}
 
@@ -171,6 +257,37 @@
 	function handlePreSessionSkip() {
 		// Update URL to reflect the state change
 		goto('?configure=true', { keepFocus: true, replaceState: false });
+
+		// If there's previous check-in data in the cookie, load it now
+		if (hasPreviousCheckIn) {
+			const savedData = getCookie(PRE_SESSION_COOKIE_NAME);
+			if (savedData) {
+				try {
+					const parsedData = JSON.parse(savedData);
+					autoConfig = parsedData;
+
+					// Apply the saved configuration
+					if (autoConfig) {
+						duration = autoConfig.length;
+						selectedPosture = autoConfig.posture;
+						selectedEyes = autoConfig.eyes;
+
+						if (autoConfig.sessionType) {
+							sessionType = autoConfig.sessionType;
+						}
+
+						if (sessionType === 'hypnosis' && autoConfig.hypnosisPrompt) {
+							hypnosisPrompt = autoConfig.hypnosisPrompt;
+						}
+
+						console.log('Loaded pre-session data from cookie after skip:', autoConfig);
+					}
+				} catch (e) {
+					console.error('Error parsing pre-session data from cookie after skip:', e);
+					deleteCookie(PRE_SESSION_COOKIE_NAME);
+				}
+			}
+		}
 	}
 
 	function getUserLocalTime() {
@@ -331,6 +448,9 @@
 						dismissible: false
 					});
 
+					// Clear the pre-session cookie after successful generation
+					deleteCookie(PRE_SESSION_COOKIE_NAME);
+
 					// Subscribe to status updates
 					const unsubscribe = subscribeMeditationStatus(meditationId, (status) => {
 						meditationGeneration.updateStatus(status);
@@ -401,6 +521,7 @@
 			on:skip={handlePreSessionSkip}
 			{isFirstSession}
 			{initialQuestion}
+			{hasPreviousCheckIn}
 		/>
 	{:else}
 		<h1>New Session</h1>
