@@ -46,7 +46,6 @@ export const load: PageServerLoad = async ({ locals, url, cookies }) => {
 		try {
 			preSessionData = JSON.parse(preSessionCookie);
 			hasPreviousCheckIn = true;
-			console.log('Server: Loaded pre-session data from cookie:', preSessionData);
 		} catch (err) {
 			console.error('Server: Error parsing pre-session cookie data:', err);
 			// If there's an error parsing, delete the cookie

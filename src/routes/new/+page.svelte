@@ -62,35 +62,78 @@
 		{ value: 'open', display: 'Open', icon: 'fa-eye' },
 		{ value: 'closed', display: 'Closed', icon: 'fa-eye-slash' }
 	];
-	let selectedPosture = postureOptions[0].value;
-	let selectedEyes = eyesOptions[1].value;
+
+	// Separate settings for meditation and hypnosis
+	let meditationSettings = {
+		posture: postureOptions[0].value,
+		eyes: eyesOptions[1].value,
+		duration: 15,
+		playlist: data.selectedPlaylist ? data.selectedPlaylist.id : ''
+	};
+
+	let hypnosisSettings = {
+		posture: 'lying',
+		eyes: 'closed',
+		duration: 15,
+		prompt: ''
+	};
+
+	// Active settings based on session type
+	$: selectedPosture =
+		sessionType === 'meditation' ? meditationSettings.posture : hypnosisSettings.posture;
+	$: selectedEyes = sessionType === 'meditation' ? meditationSettings.eyes : hypnosisSettings.eyes;
+	$: duration =
+		sessionType === 'meditation' ? meditationSettings.duration : hypnosisSettings.duration;
+	$: selectedPlaylist = meditationSettings.playlist;
+	$: hypnosisPrompt = hypnosisSettings.prompt;
+
+	// Update the appropriate settings object when values change
+	$: if (sessionType === 'meditation') {
+		meditationSettings.posture = selectedPosture;
+		meditationSettings.eyes = selectedEyes;
+		meditationSettings.duration = duration;
+		meditationSettings.playlist = selectedPlaylist;
+	} else {
+		hypnosisSettings.duration = duration;
+		hypnosisSettings.prompt = hypnosisPrompt;
+	}
 
 	// Hypnosis specific options
-	let hypnosisPrompt = '';
+	// let hypnosisPrompt = ''; // Moved to settings object
 
 	// Common options
-	let duration = 15;
+	// let duration = 15; // Moved to settings objects
 	let formResult: CustomActionData | null = null;
 	let formElement: HTMLFormElement;
 
 	// Default values for reset functionality
 	const defaultValues = {
 		sessionType: 'meditation' as 'meditation' | 'hypnosis',
-		selectedPlaylist: data.selectedPlaylist ? data.selectedPlaylist.id : '',
-		selectedPosture: postureOptions[0].value,
-		selectedEyes: eyesOptions[1].value,
-		hypnosisPrompt: '',
-		duration: 15
+		meditation: {
+			playlist: data.selectedPlaylist ? data.selectedPlaylist.id : '',
+			posture: postureOptions[0].value,
+			eyes: eyesOptions[1].value,
+			duration: 15
+		},
+		hypnosis: {
+			posture: 'lying',
+			eyes: 'closed',
+			duration: 15,
+			prompt: ''
+		}
 	};
 
 	// Function to reset form to default values
 	function resetForm() {
-		sessionType = defaultValues.sessionType;
-		selectedPlaylist = defaultValues.selectedPlaylist;
-		selectedPosture = defaultValues.selectedPosture;
-		selectedEyes = defaultValues.selectedEyes;
-		hypnosisPrompt = defaultValues.hypnosisPrompt;
-		duration = defaultValues.duration;
+		// Store the current session type to maintain the same tab
+		const currentSessionType = sessionType;
+
+		// Reset both meditation and hypnosis settings
+		meditationSettings = { ...defaultValues.meditation };
+		hypnosisSettings = { ...defaultValues.hypnosis };
+
+		// Keep the user in the same tab they were in
+		sessionType = currentSessionType;
 
 		// Reset autoConfig to null to clear any pre-session dialog settings
 		autoConfig = null;
@@ -109,19 +152,18 @@
 		: `Generate ${sessionType === 'meditation' ? 'Meditation' : 'Hypnosis'}`;
 	$: buttonIcon = $meditationGeneration.isGenerating ? 'fa-spinner fa-spin' : 'fa-paper-plane';
 
-	// Auto-set posture and eyes for hypnosis
-	$: {
-		if (sessionType === 'hypnosis') {
-			selectedPosture = 'lying';
-			selectedEyes = 'closed';
-		}
+	// Auto-set posture and eyes for hypnosis when switching session types
+	$: if (sessionType === 'hypnosis') {
+		// No need to manually set these values as they're now controlled by the hypnosisSettings object
+		// The reactive declarations above will handle setting selectedPosture and selectedEyes
 	}
 
 	// Handle walking posture (eyes must be open)
 	$: isWalking = selectedPosture === postureOptions[2].value;
 	$: {
-		if (isWalking) {
-			selectedEyes = eyesOptions[0].value; // Set to "Open" when walking
+		if (isWalking && sessionType === 'meditation') {
+			meditationSettings.eyes = eyesOptions[0].value; // Set to "Open" when walking
+			selectedEyes = meditationSettings.eyes;
 		}
 	}
 
@@ -201,16 +243,24 @@
 	function applyAutoConfig() {
 		if (!autoConfig) return;
 
-		duration = autoConfig.length;
-		selectedPosture = autoConfig.posture;
-		selectedEyes = autoConfig.eyes;
-
 		if (autoConfig.sessionType) {
 			sessionType = autoConfig.sessionType;
 		}
 
-		if (sessionType === 'hypnosis' && autoConfig.hypnosisPrompt) {
-			hypnosisPrompt = autoConfig.hypnosisPrompt;
+		// Apply settings to the appropriate settings object based on session type
+		if (sessionType === 'meditation') {
+			meditationSettings.duration = autoConfig.length;
+			meditationSettings.posture = autoConfig.posture;
+			meditationSettings.eyes = autoConfig.eyes;
+		} else {
+			hypnosisSettings.duration = autoConfig.length;
+			hypnosisSettings.posture = autoConfig.posture;
+			hypnosisSettings.eyes = autoConfig.eyes;
+
+			// Set hypnosis prompt if provided
+			if (autoConfig.hypnosisPrompt) {
+				hypnosisSettings.prompt = autoConfig.hypnosisPrompt;
+			}
 		}
 
 		console.log('Applied auto-config to form fields:', autoConfig);
@@ -240,18 +290,24 @@
 		goto('?configure=true', { keepFocus: true, replaceState: false });
 
 		// Update form values with AI recommendations
-		duration = autoConfig.length;
-		selectedPosture = autoConfig.posture;
-		selectedEyes = autoConfig.eyes;
-
-		// Set session type if provided
 		if (autoConfig.sessionType) {
 			sessionType = autoConfig.sessionType;
 		}
 
-		// Set hypnosis prompt if provided
-		if (sessionType === 'hypnosis' && autoConfig.hypnosisPrompt) {
-			hypnosisPrompt = autoConfig.hypnosisPrompt;
+		// Update the appropriate settings object based on session type
+		if (sessionType === 'meditation') {
+			meditationSettings.duration = autoConfig.length;
+			meditationSettings.posture = autoConfig.posture;
+			meditationSettings.eyes = autoConfig.eyes;
+		} else {
+			hypnosisSettings.duration = autoConfig.length;
+			hypnosisSettings.posture = autoConfig.posture;
+			hypnosisSettings.eyes = autoConfig.eyes;
+
+			// Set hypnosis prompt if provided
+			if (autoConfig.hypnosisPrompt) {
+				hypnosisSettings.prompt = autoConfig.hypnosisPrompt;
+			}
 		}
 
 		// Save the pre-session data to a cookie
@@ -286,7 +342,7 @@
 		return time;
 	}
 
-	function getStatusMessage(status: string): string {
+	function getStatusMessage(status: string, generatingSessionType: string): string {
 		switch (status) {
 			case 'Queued':
 			case '':
@@ -294,21 +350,21 @@
 			case 'Fetching':
 				return 'Fetching session details...';
 			case 'Scripting':
-				return `Writing your ${sessionType} script...`;
+				return `Writing your ${generatingSessionType} script...`;
 			case 'Reviewing':
-				return `Reviewing your ${sessionType} script...`;
+				return `Reviewing your ${generatingSessionType} script...`;
 			case 'Audio Generation':
-				return `Recording your ${sessionType}...`;
+				return `Recording your ${generatingSessionType}...`;
 			case 'Processing':
-				return `Processing your ${sessionType}...`;
+				return `Processing your ${generatingSessionType}...`;
 			case 'Uploading':
-				return `Uploading your ${sessionType}...`;
+				return `Uploading your ${generatingSessionType}...`;
 			case 'Saving':
-				return `Saving your ${sessionType}...`;
+				return `Saving your ${generatingSessionType}...`;
 			case 'Completed':
-				return `Your ${sessionType} is ready!`;
+				return `Your ${generatingSessionType} is ready!`;
 			case 'Failed':
-				return `${sessionType} generation failed. Please try again.`;
+				return `${generatingSessionType} generation failed. Please try again.`;
 			default:
 				return 'Starting your generation...';
 		}
@@ -356,6 +412,9 @@
 		if ($meditationGeneration.isGenerating) {
 			return;
 		}
+
+		// Store the current session type for notifications
+		const generatingSessionType = sessionType;
 
 		const formData = new FormData(formElement);
 		formData.set('userLocalTime', getUserLocalTime());
@@ -437,7 +496,8 @@
 
 				if (meditationId) {
 					console.log('Client: Valid meditation ID:', meditationId);
-					meditationGeneration.startGeneration(meditationId);
+					// Store the session type in the meditation generation store
+					meditationGeneration.startGeneration(meditationId, generatingSessionType);
 					const loadingNotificationId = showLoading('Starting your session generation...', {
 						dismissible: false
 					});
@@ -452,7 +512,7 @@
 						// Update the loading notification with the current status
 						if (status === 'Completed') {
 							notifications.clear();
-							showSuccess(`Your ${sessionType} is ready!`, {
+							showSuccess(`Your ${generatingSessionType} is ready!`, {
 								action: {
 									label: 'View',
 									onClick: () => {
@@ -468,13 +528,13 @@
 							if (unsubscribe) unsubscribe();
 						} else if (status === 'Failed') {
 							notifications.clear();
-							showError(`${sessionType} generation failed. Please try again.`);
+							showError(`${generatingSessionType} generation failed. Please try again.`);
 							meditationGeneration.failGeneration();
 							if (unsubscribe) unsubscribe();
 						} else {
 							// Update the existing notification
 							notifications.update(loadingNotificationId, {
-								message: getStatusMessage(status)
+								message: getStatusMessage(status, generatingSessionType)
 							});
 						}
 					});
