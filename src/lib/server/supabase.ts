@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '../database.types';
+import { getSessionRecommendationPrompt } from '../ai/prompts';
 
 const PUBLIC_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const PRIVATE_SUPABASE_SERVICE_ROLE_KEY = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
@@ -254,7 +255,7 @@ export async function serverTranscribeAudio(audioBuffer: Buffer): Promise<string
     const formData = new FormData();
     const blob = new Blob([audioBuffer], { type: 'audio/webm' });
     formData.append('file', blob);
-    formData.append('model', 'openai/whisper-large-v3-turbo');
+    formData.append('model', 'openai/whisper-large-v3');
     formData.append('language', 'en');
 
     const response = await fetch('https://api.deepinfra.com/v1/openai/audio/transcriptions', {
@@ -292,68 +293,8 @@ export async function serverGetSessionRecommendation(messages: Array<{ role: str
       }
     }
 
-    // Prepare the system prompt
-    const systemPrompt = `You are a mindfulness teacher's assistant helping to configure meditation and hypnosis sessions. Imagine they have just entered the room at ${localTime} and you're looking to gauge their current state and needs.
-    Based on the user's responses, you should ask 3-4 relevant follow-up questions to understand their current state and needs.
-    
-    After gathering sufficient information, decide whether a MEDITATION or HYPNOSIS session would be more beneficial based on their needs:
-    
-    - Choose MEDITATION for general mindfulness, stress reduction, present moment awareness, or relaxation.
-    - Choose HYPNOSIS for specific goals, behavior change, overcoming specific challenges, or deep mental reprogramming.
-    
-    Then provide a session configuration in JSON format with these fields:
-    - sessionType: "meditation" | "hypnosis"
-    - length: number (5-45 minutes, must be one of: 5, 10, 15, 20, 25, 30, 35, 40, 45)
-    - posture: "sitting" | "lying" | "walking"
-    - eyes: "closed" | "open"
-    - hypnosisPrompt: string (only required if sessionType is "hypnosis", should be a clear description of what the hypnosis session should focus on)
-    
-    Show interest in the user's responses, and ask follow-up questions that will help the teacher tailor the session to the user's needs, whilst remaining charming. Do not explicitly ask questions needed for the JSON configuration.
-
-    Example questions:
-    - What have you been up to today?
-    - What are you going to do after today's session?
-    - Have you had a chance to practice mindfulness outside of our sessions?
-    - What's been on your mind recently?
-    - Are you happy with your progress in our sessions?
-    - Any recent issues or stresses you'd like to discuss?
-    - Did you try mindfulness or meditation since last time? How was it?
-    - Which meditation techniques have been helpful or tough recently?
-    - Noticed any changes in yourself or your practice since we began?
-    - Anything else to share or requests for today's session?
-
-    Keep your response less than 250 characters.
-
-    Don't ask how long the session should be - this is up to you to decide and they can always override your choice.
-    
-    Your responses should be either:
-    1. A follow-up question (if you need more information)
-    2. A final response with a friendly message followed by the JSON configuration in this format:
-    
-    [Your final friendly message here! e.g. "Great! Here's a session that I think will be perfect for you!"]
-    
-    \`\`\`json
-    {
-      "sessionType": "meditation",
-      "length": 15,
-      "posture": "sitting",
-      "eyes": "closed"
-    }
-    \`\`\`
-    
-    OR for hypnosis:
-    
-    \`\`\`json
-    {
-      "sessionType": "hypnosis",
-      "length": 20,
-      "posture": "lying",
-      "eyes": "closed",
-      "hypnosisPrompt": "Overcome anxiety and build confidence in social situations"
-    }
-    \`\`\`
-    
-    If the user seems confused, uncooperative, or unable to respond clearly, this might be because they are using a speech to text transcription service that might not be 100% accurate. If you have repeated issues, provide a default meditation configuration with a kind message.`;
+    // Get the system prompt from our prompts file
+    const systemPrompt = getSessionRecommendationPrompt(localTime);
 
     // Convert messages to Gemini format
     const contents = [
