@@ -272,13 +272,6 @@
 		body {
 			overflow: hidden;
 		}
-		main {
-			padding: 0 !important;
-		}
-		.content-container {
-			padding-top: 0 !important;
-			padding-bottom: 0 !important;
-		}
 	</style>
 	<link
 		href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
