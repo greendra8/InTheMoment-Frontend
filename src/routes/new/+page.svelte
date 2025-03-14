@@ -1434,7 +1434,6 @@
 		.reset-link {
 			padding: 0.75rem;
 			font-size: 0.95rem;
-			width: 100%;
 		}
 	}
 
