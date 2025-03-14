@@ -389,7 +389,7 @@
 							// Add the AI's final message (without JSON) to the conversation
 							if (textPart) {
 								messages = [...messages, { role: 'assistant', content: textPart }];
-								finalMessage = textPart;
+								finalMessage = textPart.replace(/:/g, '!');
 								showFinalMessage = true;
 
 								// Wait a moment to show the final message before closing
