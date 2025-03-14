@@ -2,14 +2,12 @@
 <script lang="ts">
 	import { onNavigate, goto } from '$app/navigation';
 	import '../app.css';
-	import { invalidate } from '$app/navigation';
 	import { onMount, onDestroy } from 'svelte';
 	import { page } from '$app/stores';
 	import { appContext } from '$lib/stores/appContext';
 	import { supabase } from '$lib/supabaseClient';
 	import { session as sessionStore, type ExtendedSession } from '$lib/stores/session';
 	import { get } from 'svelte/store';
-	import { text, background, ui, icon } from '$lib/theme';
 	import { theme, isLandingOrAuthPage, setTheme } from '$lib/stores/theme';
 	import Notifications from '$lib/components/Notifications.svelte';
 
@@ -147,7 +145,6 @@
 
 	$: hideNav = $page.url.pathname === '/' || $page.url.pathname.includes('/profile-setup');
 	$: hideNavMobile = $page.url.pathname.includes('/session/');
-	$: navItemCount = navItems ? navItems.length : 5;
 
 	// Determine if we're on mobile or desktop for different nav rendering
 	// Set initial value based on window width if available
@@ -507,6 +504,8 @@
 		color: inherit;
 	}
 
+	/* Global view transition */
+
 	@keyframes fade-in {
 		from {
 			opacity: 0;
@@ -520,19 +519,11 @@
 	}
 
 	:root::view-transition-old(root) {
-		animation: 500ms cubic-bezier(0.4, 0, 1, 1) both fade-out;
+		animation: 200ms cubic-bezier(0.4, 0, 1, 1) both fade-out;
 	}
 
 	:root::view-transition-new(root) {
-		animation: 500ms cubic-bezier(0, 0, 0.2, 1) both fade-in;
-	}
-
-	@media (prefers-reduced-motion) {
-		::view-transition-group(*),
-		::view-transition-old(*),
-		::view-transition-new(*) {
-			animation: none !important;
-		}
+		animation: 200ms cubic-bezier(0, 0, 0.2, 1) both fade-in;
 	}
 
 	/* Define CSS variables for transparent and faded variants */

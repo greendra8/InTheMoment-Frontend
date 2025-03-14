@@ -149,40 +149,10 @@
 }
 
 /* Apply transitions to common elements to make theme switching smoother */
-body,
-button,
-input,
-textarea,
-.card,
-.stats-strip,
-.playlist-item,
-.session-item,
-.hero-section,
-.stats-section,
-.playlists-section,
-.sessions-section,
-.empty-state,
-.divider,
-i,
-a,
-nav,
-.nav-item,
-.icon-container,
-.nav-label,
-.theme-option,
-.mobile-nav,
-.desktop-nav {
+* {
         transition: background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease;
 }
 
-/* Apply transitions to background images */
-html,
-body,
-main,
-.global-container,
-.content-container {
-        transition: background 0.5s ease, background-color 0.5s ease, color 0.5s ease;
-}
 
 /* Light theme */
 /* Light theme overrides: Using solid colors for buttons, sliders, and interactive elements to avoid gradient appearance */
