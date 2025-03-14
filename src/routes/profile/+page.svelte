@@ -593,9 +593,5 @@
 		select {
 			font-size: 16px;
 		}
-
-		.voice-preview-options {
-			grid-template-columns: 1fr;
-		}
 	}
 </style>
