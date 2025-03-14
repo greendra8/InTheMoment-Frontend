@@ -1,46 +1,91 @@
 <script lang="ts">
-	import { getUserMeditations } from '$lib/api';
 	import type { PageData } from './$types';
+	import { goto } from '$app/navigation';
 	import { text, background, ui, icon } from '$lib/theme';
 
 	export let data: PageData;
 
-	let meditations = data.meditations || [];
-	let currentPage = data.currentPage;
-	let totalPages = data.totalPages;
-	let limit = data.limit;
-	let totalCount = data.totalCount;
-	let isLoading = false;
-	let error = '';
+	// Track all loaded meditations
+	let allMeditations: any[] = [];
 
-	// Add filter state
-	let activeFilter: 'all' | 'meditation' | 'hypnosis' = 'all';
-	let filteredMeditations: typeof meditations = [];
+	// Track the last filter applied to detect changes
+	let lastAppliedFilter = data.activeFilter || 'all';
 
-	// Use a reactive statement to update filteredMeditations when either meditations or activeFilter changes
-	$: {
-		if (activeFilter === 'all') {
-			filteredMeditations = [...meditations];
-		} else {
-			filteredMeditations = meditations.filter(
-				(meditation) => meditation.content_type === activeFilter
+	// Use reactive statements to update local variables when data changes
+	$: currentPage = data.currentPage;
+	$: totalPages = data.totalPages;
+	$: limit = data.limit;
+	$: totalCount = data.totalCount;
+	$: activeFilter = data.activeFilter || 'all';
+
+	// Reset allMeditations when the filter changes
+	$: if (activeFilter !== lastAppliedFilter) {
+		allMeditations = [...data.meditations];
+		lastAppliedFilter = activeFilter;
+	} else {
+		// Only update allMeditations when data.meditations changes and filter hasn't changed
+		if (data.currentPage === 1) {
+			// On page 1, always replace all meditations
+			allMeditations = [...data.meditations];
+		} else if (data.meditations && data.meditations.length > 0) {
+			// On subsequent pages, append new meditations
+			const newMeditations = data.meditations.filter(
+				(newMed) => !allMeditations.some((existingMed) => existingMed.id === newMed.id)
 			);
+			if (newMeditations.length > 0) {
+				allMeditations = [...allMeditations, ...newMeditations];
+			}
 		}
 	}
 
+	let isLoading = false;
+	let error = '';
+
 	async function loadMore() {
+		if (isLoading || currentPage >= totalPages) return;
+
 		isLoading = true;
 		error = '';
+
 		try {
-			const newMeditations = await getUserMeditations(data.session.user.id, currentPage + 1, limit);
-			console.log('newMeditations', newMeditations);
-			if (newMeditations.length) {
-				meditations = [...meditations, ...newMeditations];
-				currentPage += 1;
-			}
+			const newPage = currentPage + 1;
+			const url = new URL(window.location.href);
+			url.searchParams.set('page', newPage.toString());
+
+			// Navigate to the new URL to load more with the same filter
+			await goto(url.toString(), {
+				replaceState: true,
+				noScroll: true,
+				keepfocus: true
+			});
 		} catch (err) {
 			console.error('Error loading more meditations:', err);
 			error = 'Failed to load more meditations. Please try again.';
+		} finally {
+			isLoading = false;
+		}
+	}
+
+	async function applyFilter(filter: 'all' | 'meditation' | 'hypnosis') {
+		if (filter === activeFilter) return;
+
+		isLoading = true;
+		try {
+			const url = new URL(window.location.href);
+
+			// Reset to page 1 when changing filters
+			url.searchParams.set('page', '1');
+
+			if (filter === 'all') {
+				url.searchParams.delete('contentType');
+			} else {
+				url.searchParams.set('contentType', filter);
+			}
+
+			await goto(url.toString());
+		} catch (err) {
+			console.error('Error applying filter:', err);
+			error = 'Failed to apply filter. Please try again.';
 		} finally {
 			isLoading = false;
 		}
@@ -59,43 +104,43 @@
 	<h1>Your Library</h1>
 	<div class="section-header">
 		<h2>Most Recent</h2>
-		{#if meditations.length > 0}
-			<span class="meditation-count">{totalCount} meditation{totalCount !== 1 ? 's' : ''}</span>
+		{#if allMeditations.length > 0}
+			<span class="meditation-count">{totalCount} session{totalCount !== 1 ? 's' : ''}</span>
 		{/if}
 	</div>
 
-	{#if meditations.length > 0}
+	{#if totalCount > 0}
 		<div class="filter-buttons">
 			<button
 				class="filter-btn"
 				class:active={activeFilter === 'all'}
-				on:click={() => (activeFilter = 'all')}
+				on:click={() => applyFilter('all')}
 			>
 				All
 			</button>
 			<button
 				class="filter-btn"
 				class:active={activeFilter === 'meditation'}
-				on:click={() => (activeFilter = 'meditation')}
+				on:click={() => applyFilter('meditation')}
 			>
 				Meditations
 			</button>
 			<button
 				class="filter-btn"
 				class:active={activeFilter === 'hypnosis'}
-				on:click={() => (activeFilter = 'hypnosis')}
+				on:click={() => applyFilter('hypnosis')}
 			>
 				Hypnosis
 			</button>
 		</div>
 
-		{#if filteredMeditations.length === 0}
+		{#if allMeditations.length === 0}
 			<div class="empty-filter-message">
 				<p>No {activeFilter === 'meditation' ? 'meditation' : 'hypnosis'} sessions found.</p>
 			</div>
 		{:else}
 			<ul>
-				{#each filteredMeditations as meditation (meditation.id)}
+				{#each allMeditations as meditation (meditation.id)}
 					<li class:processing={meditation.status === 'processing'}>
 						{#if meditation.status !== 'processing'}
 							<a href="/session/{meditation.id}" class="play-button">

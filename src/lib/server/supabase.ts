@@ -22,15 +22,27 @@ export async function getUserProfile(userId: string) {
 }
 
 // Helper function to get user's meditations
-export async function getUserMeditations(userId: string, page: number = 1, limit: number = 10) {
+export async function getUserMeditations(
+  userId: string,
+  page: number = 1,
+  limit: number = 10,
+  contentType?: 'meditation' | 'hypnosis'
+) {
   const start = (page - 1) * limit
   const end = start + limit - 1
 
-  const { data, error, count } = await supabaseAdmin
+  let query = supabaseAdmin
     .from('audio_sessions')
     .select('*, lesson_playlists(playlist_name)', { count: 'exact' })
     .eq('user_id', userId)
     .eq('generation_status', 'Completed')
+
+  // Apply content type filter if specified
+  if (contentType) {
+    query = query.eq('content_type', contentType)
+  }
+
+  const { data, error, count } = await query
     .range(start, end)
     .order('created_at', { ascending: false })
 

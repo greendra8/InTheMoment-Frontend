@@ -2,32 +2,42 @@ import { error, redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { getUserMeditations } from '$lib/server/supabase';
 
+export const load: PageServerLoad = async ({ locals, url, depends }) => {
+	// This makes the function re-run when this dependency is invalidated
+	depends('library:meditations');
 
-export const load: PageServerLoad = async ({ locals, url }) => {
 	const { session } = locals;
 
 	if (!session) {
-		console.log('No session found, redirecting to login'); // Add this log
+		console.log('No session found, redirecting to login');
 		throw redirect(303, '/login');
 	}
 
 	if (!session.user || !session.user.id) {
-		console.error('Session user or user ID is undefined:', session); // Add this log
+		console.error('Session user or user ID is undefined:', session);
 		throw error(500, 'Invalid session data');
 	}
 
 	const page = parseInt(url.searchParams.get('page') || '1');
 	const limit = parseInt(url.searchParams.get('limit') || '10');
+	const contentType = url.searchParams.get('contentType') as 'meditation' | 'hypnosis' | null;
 
 	try {
-		const { data: meditations, totalCount } = await getUserMeditations(session.user.id, page, limit);
+		const { data: meditations, totalCount } = await getUserMeditations(
+			session.user.id,
+			page,
+			limit,
+			contentType || undefined
+		);
+
 		return {
 			meditations,
-			totalCount,
-			totalPages: Math.ceil(totalCount / limit),
+			totalCount: totalCount || 0,
+			totalPages: Math.ceil((totalCount || 0) / limit),
 			limit,
 			currentPage: page,
-			session // Pass session to page.svelte via prop
+			activeFilter: contentType || 'all',
+			session
 		};
 	} catch (err) {
 		console.error('Failed to load meditations:', err);
