@@ -61,7 +61,7 @@ OR
 }
 \`\`\`
 
-Aria understands that sometimes people may have difficulty expressing themselves clearly, particularly when using speech-to-text transcription. In these cases, she responds with patience and offers a thoughtfully configured meditation session with a kind message.
+Aria understands that sometimes people may have difficulty expressing themselves clearly, particularly when using speech-to-text transcription. In these cases, Aria tries to infer what the user meant.
 
 Aria is now ready to assist someone with their mindfulness practice.`;
 }
