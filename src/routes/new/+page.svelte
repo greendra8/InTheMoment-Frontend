@@ -376,23 +376,28 @@
 			eyes: selectedEyes
 		};
 
+		// Set prompt field for hypnosis
 		if (sessionType === 'hypnosis' && hypnosisPrompt) {
 			params.prompt = hypnosisPrompt.trim();
-		} else if (sessionType === 'meditation' && selectedPlaylist) {
+		} else {
+			// Empty prompt for meditation
+			params.prompt = '';
+		}
+
+		// Add playlist_id for meditation if selected
+		if (sessionType === 'meditation' && selectedPlaylist) {
 			params.playlist_id = selectedPlaylist;
 		}
 
-		// Add conversation from pre-session check-in if available
+		// Add conversation from pre-session check-in as a string
 		if (autoConfig && autoConfig.conversation && autoConfig.conversation.length > 0) {
-			// Create a summary of the conversation for the prompt
-			const conversationSummary = autoConfig.conversation
+			// Convert conversation array to a formatted string
+			const conversationString = autoConfig.conversation
 				.map((msg) => `${msg.role}: ${msg.content}`)
-				.join('\n\n');
-
-			// Add to prompt instead of creating a separate parameter
-			params.prompt = params.prompt
-				? `${params.prompt}\n\nPre-session check-in:\n${conversationSummary}`
-				: `Pre-session check-in:\n${conversationSummary}`;
+				.join('\n');
+			params.conversation = conversationString;
+		} else {
+			params.conversation = '';
 		}
 
 		// If we have a hypnosis prompt from autoConfig and the current session type is hypnosis,
