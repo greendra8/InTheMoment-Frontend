@@ -16,7 +16,7 @@
 		"@sveltejs/adapter-static": "^3.0.4",
 		"@sveltejs/adapter-vercel": "^5.4.3",
 		"@sveltejs/kit": "^2.0.0",
-		"@sveltejs/vite-plugin-svelte": "^3.0.0",
+		"@sveltejs/vite-plugin-svelte": "^4.0.0",
 		"@types/eslint": "^9.6.0",
 		"@typescript-eslint/eslint-plugin": "^8.3.0",
 		"@typescript-eslint/parser": "^8.3.0",
@@ -26,7 +26,7 @@
 		"globals": "^15.0.0",
 		"prettier": "^3.3.3",
 		"prettier-plugin-svelte": "^3.2.6",
-		"svelte": "^5.0.0",
+		"svelte": "^4.2.19",
 		"svelte-check": "^3.6.0",
 		"svelte-dnd-action": "^0.9.60",
 		"typescript": "^5.0.0",
@@ -38,7 +38,6 @@
 		"@supabase/ssr": "^0.5.1",
 		"@supabase/supabase-js": "^2.45.3",
 		"axios": "^1.7.6",
-		"keen-slider": "^6.8.6",
-		"zimmerframe": "^2.0.0"
+		"keen-slider": "^6.8.6"
 	}
 }
