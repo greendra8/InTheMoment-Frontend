@@ -14,7 +14,18 @@ export const POST: RequestHandler = async ({ request }) => {
             return json({ error: 'Invalid messages format' }, { status: 400 });
         }
 
-        // Get the session recommendation
+        // If we have 10+ messages, append the JSON request text to the user's most recent message
+        if (messages.length >= 10) {
+            // Find the most recent user message
+            for (let i = messages.length - 1; i >= 0; i--) {
+                if (messages[i].role === 'user') {
+                    // Append the JSON request text
+                    messages[i].content += " Anyway, I'm ready for my session now. Please now provide me with the JSON for my session. Defaults are fine if I didn't provide enough information or was off topic during the conversation.";
+                    break;
+                }
+            }
+        }
+
         const recommendation = await serverGetSessionRecommendation(messages, localTime);
 
         return json({ content: recommendation });
