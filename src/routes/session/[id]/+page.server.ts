@@ -4,14 +4,14 @@ import { getMeditation, getFeedback } from '$lib/server/supabase';
 
 
 export const load: PageServerLoad = async ({ params, locals, cookies }) => {
-  const { session } = locals;
+  const { user } = locals;
 
-  if (!session) {
-    console.log('No session found, throwing 401 error');
-    throw error(401, 'Unauthorized');
+  // Auth checks are now handled in hooks.server.ts
+  if (!user) {
+    throw error(500, 'User not available in locals');
   }
 
-  const userId = session.user.id;
+  const userId = user.id;
   const meditationId = params.id;
 
   // Get fullscreen preference from cookies

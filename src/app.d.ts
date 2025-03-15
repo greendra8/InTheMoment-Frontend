@@ -8,9 +8,11 @@ declare global {
       safeGetSession: () => Promise<{ session: Session | null; user: User | null }>;
       session: Session | null;
       user: User | null;
+      profile: any | null;
     }
     interface PageData {
-      session: Session | null
+      session: Session | null;
+      profile?: any | null;
     }
     // interface PageState {}
     // interface Platform {}
@@ -25,4 +27,4 @@ declare global {
   }
 }
 
-export {}
+export { }

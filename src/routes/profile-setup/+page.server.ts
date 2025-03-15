@@ -4,10 +4,11 @@ import type { ProfileSetup } from '$lib/stores/profileSetup';
 
 export const actions: Actions = {
 	submit: async ({ request, locals }) => {
-		const { session } = locals;
+		const { user } = locals;
 
-		if (!session) {
-			throw error(401, 'Unauthorized');
+		// Auth checks are now handled in hooks.server.ts
+		if (!user) {
+			throw error(500, 'User not available in locals');
 		}
 
 		const formData = await request.formData();
@@ -36,7 +37,7 @@ export const actions: Actions = {
 		// Return the collected preferences and user ID for client-side processing
 		return {
 			success: true,
-			userId: session.user.id,
+			userId: user.id,
 			preferences
 		};
 	}

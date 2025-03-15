@@ -1,19 +1,16 @@
-import { error, redirect } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import { getUserMeditations, getUserProfile, getPlaylists } from '$lib/server/supabase';
+import { getUserMeditations, getPlaylists } from '$lib/server/supabase';
 
 // Constants
 const WEEK_IN_MS = 7 * 24 * 60 * 60 * 1000;
 
 export const load: PageServerLoad = async ({ locals, cookies }) => {
-    const { session } = locals;
+    const { session, user, profile } = locals;
 
-    if (!session) {
-        throw redirect(303, '/login');
-    }
-
-    if (!session.user || !session.user.id) {
-        throw error(500, 'Invalid session data');
+    // Auth checks are now handled in hooks.server.ts
+    if (!user) {
+        throw error(500, 'User not available in locals');
     }
 
     try {
@@ -44,11 +41,10 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
             }
         }
 
-        // Fetch data in parallel for better performance
-        const [meditationsResult, playlists, profile] = await Promise.all([
-            getUserMeditations(session.user.id, 1, 5),
-            getPlaylists(false),
-            getUserProfile(session.user.id)
+        // Fetch data in parallel for better performance - removed profile fetch
+        const [meditationsResult, playlists] = await Promise.all([
+            getUserMeditations(user.id, 1, 5),
+            getPlaylists(false)
         ]);
 
         const { data: meditations, totalCount } = meditationsResult;
@@ -65,8 +61,8 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
             totalMeditations: totalCount,
             playlists,
             user: {
-                name: profile.name || 'User',
-                minutesListened: profile.minutes_listened || 0
+                name: profile?.name || 'User',
+                minutesListened: profile?.minutes_listened || 0
             },
             inProgressMeditation,
             session

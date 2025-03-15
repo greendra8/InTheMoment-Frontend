@@ -1,4 +1,4 @@
-import { error, redirect } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { getUserMeditations } from '$lib/server/supabase';
 
@@ -6,16 +6,11 @@ export const load: PageServerLoad = async ({ locals, url, depends }) => {
 	// This makes the function re-run when this dependency is invalidated
 	depends('library:meditations');
 
-	const { session } = locals;
+	const { user } = locals;
 
-	if (!session) {
-		console.log('No session found, redirecting to login');
-		throw redirect(303, '/login');
-	}
-
-	if (!session.user || !session.user.id) {
-		console.error('Session user or user ID is undefined:', session);
-		throw error(500, 'Invalid session data');
+	// Auth checks are now handled in hooks.server.ts
+	if (!user) {
+		throw error(500, 'User not available in locals');
 	}
 
 	const page = parseInt(url.searchParams.get('page') || '1');
@@ -24,7 +19,7 @@ export const load: PageServerLoad = async ({ locals, url, depends }) => {
 
 	try {
 		const { data: meditations, totalCount } = await getUserMeditations(
-			session.user.id,
+			user.id,
 			page,
 			limit,
 			contentType || undefined
@@ -36,8 +31,8 @@ export const load: PageServerLoad = async ({ locals, url, depends }) => {
 			totalPages: Math.ceil((totalCount || 0) / limit),
 			limit,
 			currentPage: page,
-			activeFilter: contentType || 'all',
-			session
+			activeFilter: contentType || 'all'
+			// No need to return session, it's already available in +layout.server.ts
 		};
 	} catch (err) {
 		console.error('Failed to load meditations:', err);

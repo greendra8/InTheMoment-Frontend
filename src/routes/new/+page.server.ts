@@ -1,7 +1,7 @@
-import { error, redirect } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import { generateMeditation } from '$lib/pythonApi';
-import { supabaseAdmin, getPlaylists, getPlaylist, getUserMeditations } from '$lib/server/supabase';
+import { getPlaylists, getPlaylist, getUserMeditations } from '$lib/server/supabase';
 
 // Cookie name for pre-session data
 const PRE_SESSION_COOKIE_NAME = 'pre_session_data';
@@ -27,11 +27,11 @@ function getRandomQuestion(): string {
 }
 
 export const load: PageServerLoad = async ({ locals, url, cookies }) => {
-	const { session } = locals;
+	const { session, user } = locals;
 
-	if (!session) {
-		console.log('No session found, redirecting to login');
-		throw redirect(302, '/login');
+	// Auth checks are now handled in hooks.server.ts
+	if (!user) {
+		throw error(500, 'User not available in locals');
 	}
 
 	const playlistId = url.searchParams.get('playlist');
@@ -58,7 +58,7 @@ export const load: PageServerLoad = async ({ locals, url, cookies }) => {
 		const playlists = await getPlaylists(false);
 
 		// Fetch user's meditations to determine if this is their first session
-		const { data: meditations, totalCount: totalMeditations } = await getUserMeditations(session.user.id);
+		const { data: meditations, totalCount: totalMeditations } = await getUserMeditations(user.id);
 
 		let selectedPlaylist = null;
 		let initialTab = 'custom';
@@ -83,7 +83,6 @@ export const load: PageServerLoad = async ({ locals, url, cookies }) => {
 		const initialQuestion = getRandomQuestion();
 
 		return {
-			session,
 			playlists,
 			selectedPlaylist,
 			initialTab,
@@ -102,10 +101,11 @@ export const load: PageServerLoad = async ({ locals, url, cookies }) => {
 
 export const actions: Actions = {
 	generateMeditation: async ({ request, locals, cookies }) => {
-		const { session } = locals;
+		const { session, user } = locals;
 
-		if (!session) {
-			throw error(401, 'Unauthorized');
+		// Auth checks are now handled in hooks.server.ts
+		if (!user || !session) {
+			throw error(500, 'User or session not available in locals');
 		}
 
 		const data = await request.formData();

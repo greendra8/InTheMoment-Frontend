@@ -1,18 +1,14 @@
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import { getUserProfile } from '$lib/server/supabase';
 
 export const load: PageServerLoad = async ({ locals }) => {
-	const { session } = locals;
+	const { profile } = locals;
 
-	if (!session) {
-		throw error(401, 'Unauthorized');
+	// Auth checks are now handled in hooks.server.ts
+	if (!profile) {
+		throw error(500, 'Profile not available in locals');
 	}
 
-	try {
-		const profile = await getUserProfile(session.user.id);
-		return { profile, session };
-	} catch (err) {
-		throw error(500, 'Failed to load user profile');
-	}
+	// Simply return the profile from locals - no database call needed
+	return { profile };
 };
