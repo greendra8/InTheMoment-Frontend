@@ -3,6 +3,7 @@ import { createServerClient } from '@supabase/ssr';
 import { type Handle, redirect } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import { dev } from '$app/environment';
+import { getUserProfile } from '$lib/server/supabase';
 
 const PUBLIC_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const PUBLIC_SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -35,17 +36,13 @@ const supabase: Handle = async ({ event, resolve }) => {
         return event.cookies.get(key);
       },
       set: (key, value, options) => {
-        // Fix TypeScript error by ensuring path is always provided
         event.cookies.set(key, value, {
-          path: '/',  // Default path
           ...options,
           secure: event.url.protocol === 'https:',
         });
       },
       remove: (key, options) => {
-        // Fix TypeScript error by ensuring path is always provided
         event.cookies.delete(key, {
-          path: '/',  // Default path
           ...options,
           secure: event.url.protocol === 'https:',
         });
@@ -67,6 +64,24 @@ const supabase: Handle = async ({ event, resolve }) => {
 
   event.locals.isNativeApp = isNativeApp || event.cookies.get('is_native_app') === 'true';
 
+  event.locals.safeGetSession = async () => {
+    const {
+      data: { session },
+    } = await event.locals.supabase.auth.getSession();
+    if (!session) return { session: null, user: null };
+
+    const {
+      data: { user },
+      error,
+    } = await event.locals.supabase.auth.getUser();
+    if (error) {
+      console.error('JWT validation failed:', error);
+      return { session: null, user: null };
+    }
+
+    return { session: { ...session, user }, user };
+  };
+
   return resolve(event, {
     filterSerializedResponseHeaders(name) {
       return name === 'content-range' || name === 'x-supabase-api-version';
@@ -75,103 +90,33 @@ const supabase: Handle = async ({ event, resolve }) => {
 };
 
 const authGuard: Handle = async ({ event, resolve }) => {
-  // First check if we have a session cookie to avoid unnecessary API calls
-  const hasSessionCookie = event.cookies.get('sb-access-token') ||
-    event.cookies.get('sb-refresh-token') ||
-    event.cookies.get('supabase-auth-token');
+  const { session, user } = await event.locals.safeGetSession();
+  event.locals.session = session;
+  event.locals.user = user;
 
-  // If we're on a public route and don't have a session cookie, skip auth check
-  const isPublicRoute = event.url.pathname === '/' ||
-    event.url.pathname === '/login' ||
-    event.url.pathname === '/register';
-
-  if (isPublicRoute && !hasSessionCookie) {
-    // Set null values for auth-related locals
-    event.locals.session = null;
-    event.locals.user = null;
-    event.locals.profile = null;
-
-    // Skip further auth checks for public routes without session
-    return resolve(event);
+  // Fetch user profile once and store in locals if user is logged in
+  if (session?.user) {
+    try {
+      const profile = await getUserProfile(session.user.id);
+      event.locals.profile = profile;
+      // Add profile to session as well for backward compatibility
+      event.locals.session = { ...session, profile };
+    } catch (error) {
+      console.error("[Hooks] Error fetching user profile:", error);
+    }
   }
 
-  // Get session from Supabase only if we have a session cookie or need auth
-  const {
-    data: { session },
-  } = await event.locals.supabase.auth.getSession();
-
-  // If no session, set null values and check for public routes
-  if (!session) {
-    event.locals.session = null;
-    event.locals.user = null;
-    event.locals.profile = null;
-
-    // Only allow access to public routes when not authenticated
-    if (!isPublicRoute) {
-      throw redirect(303, '/login');
-    }
-  } else {
-    // We have a session, validate/refresh it and get user profile in parallel
-    try {
-      // Get user to validate/refresh token, but only if session might be stale
-      // This helps maintain the session while minimizing API calls
-      const sessionAge = Date.now() - new Date(session.created_at).getTime();
-      const needsRefresh = sessionAge > 1800000; // 30 minutes
-
-      const [userResult, profileResult] = await Promise.all([
-        // Only fetch user (which refreshes token) if needed
-        needsRefresh ? event.locals.supabase.auth.getUser() : Promise.resolve({ data: { user: session.user }, error: null }),
-        // Fetch user profile
-        event.locals.supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single()
-      ]);
-
-      if (userResult.error) {
-        console.error('Session validation failed:', userResult.error);
-        throw userResult.error;
-      }
-
-      const user = userResult.data.user;
-      const profile = profileResult.data;
-
-      // Store everything in locals for easy access in routes
-      event.locals.session = session;
-      event.locals.user = user;
-      event.locals.profile = profile;
-
-      // Handle redirects based on profile status
-      const isComplete = profile?.complete || false;
-      const isAdmin = user.id === 'cf39c581-6b6f-44b7-8c56-f7f64a26637c';
-
-      // Redirect to profile setup if profile is incomplete
-      if (!isComplete && event.url.pathname !== '/profile-setup') {
-        throw redirect(303, '/profile-setup');
-      }
-
-      // Redirect logged-in users from public routes to dashboard
-      if (isPublicRoute) {
-        throw redirect(303, '/dashboard');
-      }
-
-      // Only allow admin user to access admin routes
-      if (event.url.pathname.startsWith('/admin') && !isAdmin) {
-        throw redirect(303, '/dashboard');
-      }
-    } catch (error) {
-      console.error('Error in auth guard:', error);
-      // If there's an error fetching the profile, we'll still allow the request
-      // but with null profile
-      event.locals.session = session;
-      event.locals.user = session.user;
-      event.locals.profile = null;
-    }
+  if (
+    !session &&
+    !(
+      event.url.pathname === '/' ||
+      event.url.pathname === '/login' ||
+      event.url.pathname === '/register'
+    )
+  ) {
+    throw redirect(303, '/login');
   }
 
   return resolve(event);
 };
-
-// Update the sequence to remove the cache control handler
 export const handle: Handle = sequence(supabase, authGuard);
