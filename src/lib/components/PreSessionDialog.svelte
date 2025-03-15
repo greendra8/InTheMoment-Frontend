@@ -315,7 +315,6 @@
 	async function processResponse(audioBlob?: Blob) {
 		isProcessing = true;
 		isThinking = true;
-
 		try {
 			let response: string;
 
@@ -343,6 +342,20 @@
 
 			// Add user's response to messages
 			messages = [...messages, { role: 'user', content: response }];
+
+			// If we have over 15 messages, just dispatch a config with default values
+			if (messages.length > 15) {
+				console.log('Message limit reached, dispatching default config');
+				const defaultConfig = {
+					length: 10, // 10 minute default
+					posture: 'sitting',
+					eyes: 'closed',
+					conversation: messages,
+					sessionType: 'meditation'
+				};
+				dispatch('config', defaultConfig);
+				return;
+			}
 
 			// Get current local time in 12-hour format
 			const now = new Date();
@@ -863,7 +876,6 @@
 
 	/* Existing styles */
 	.pre-session-header {
-		margin-bottom: 1rem;
 		text-align: center;
 		display: flex;
 		flex-direction: column;
@@ -914,7 +926,7 @@
 
 	/* Question container with improved typography */
 	.question-container {
-		min-height: 120px;
+		min-height: 150px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -923,7 +935,7 @@
 	.question-wrapper {
 		width: 100%;
 		max-width: 600px;
-		min-height: 120px;
+		min-height: 150px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -950,10 +962,6 @@
 		border: 1px solid rgba(var(--interactive-gradient-1), 0.1); */
 	}
 
-	.thinking-indicator i {
-		color: rgba(var(--interactive-gradient-1), 0.7);
-	}
-
 	.question {
 		color: var(--text-primary);
 		font-size: 1.2rem;
@@ -968,6 +976,8 @@
 		border-radius: 12px;
 		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
 		width: 100%;
+		max-height: 100px;
+		overflow-y: auto;
 	}
 
 	/* Input interface container to maintain consistent height */
@@ -1245,7 +1255,7 @@
 	}
 
 	.pre-session-footer {
-		margin-top: 1.5rem;
+		margin-top: 2.5rem;
 		display: flex;
 		justify-content: center;
 		align-items: center;
