@@ -600,7 +600,7 @@
 										class="record-button"
 										class:recording={isRecording}
 										class:waiting={waitingForQuestion}
-										style="transform: scale({isRecording ? 1 + audioLevel * 0.5 : 1})"
+										style="transform: scale({isRecording ? 1 + audioLevel * 1 : 1})"
 										on:click={!interfaceActive
 											? activateInterface
 											: isRecording
