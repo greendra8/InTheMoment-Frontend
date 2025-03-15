@@ -252,19 +252,46 @@ export async function serverTranscribeAudio(audioBuffer: Buffer): Promise<string
       throw new Error('Audio recording exceeds the maximum allowed duration of 2 minutes');
     }
 
-    const formData = new FormData();
-    const blob = new Blob([audioBuffer], { type: 'audio/webm' });
-    formData.append('file', blob);
-    formData.append('model', 'openai/whisper-large-v3');
-    formData.append('language', 'en');
+    // const formData = new FormData();
+    // const blob = new Blob([audioBuffer], { type: 'audio/webm' });
+    // formData.append('file', blob);
+    // formData.append('model', 'openai/whisper-large-v3');
+    // formData.append('language', 'en');
 
-    const response = await fetch('https://api.deepinfra.com/v1/openai/audio/transcriptions', {
+    // const response = await fetch('https://api.deepinfra.com/v1/openai/audio/transcriptions', {
+    //   method: 'POST',
+    //   headers: {
+    //     'Authorization': `Bearer ${import.meta.env.VITE_DEEPINFRA_API_KEY}`
+    //   },
+    //   body: formData
+    // });
+
+    const formData = new FormData();
+
+    // Create a Blob with the correct MIME type that Groq accepts
+    // Explicitly use 'audio/webm' which is in the list of accepted formats
+    const blob = new Blob([audioBuffer], { type: 'audio/webm' });
+
+    // Generate a filename with extension to help the API identify the format
+    const fileName = `recording-${Date.now()}.webm`;
+
+    // Append as a File object with filename to ensure proper format detection
+    const file = new File([blob], fileName, { type: 'audio/webm' });
+    formData.append('file', file);
+
+    formData.append('model', 'whisper-large-v3');
+    formData.append('response_format', 'verbose_json');
+
+    console.log(`Sending transcription request with file: ${fileName}, size: ${audioBuffer.length} bytes`);
+
+    const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${import.meta.env.VITE_DEEPINFRA_API_KEY}`
+        'Authorization': `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`
       },
       body: formData
     });
+
 
     if (!response.ok) {
       const errorText = await response.text();
