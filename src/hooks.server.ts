@@ -111,17 +111,31 @@ const authGuard: Handle = async ({ event, resolve }) => {
       throw redirect(303, '/login');
     }
   } else {
-    // We have a session, get the user and profile in one go
+    // We have a session, validate/refresh it and get user profile in parallel
     try {
-      // Get user from session
-      const user = session.user;
+      // Get user to validate/refresh token, but only if session might be stale
+      // This helps maintain the session while minimizing API calls
+      const sessionAge = Date.now() - new Date(session.created_at).getTime();
+      const needsRefresh = sessionAge > 1800000; // 30 minutes
 
-      // Fetch user profile with a single query that includes completion status
-      const { data: profile } = await event.locals.supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
+      const [userResult, profileResult] = await Promise.all([
+        // Only fetch user (which refreshes token) if needed
+        needsRefresh ? event.locals.supabase.auth.getUser() : Promise.resolve({ data: { user: session.user }, error: null }),
+        // Fetch user profile
+        event.locals.supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single()
+      ]);
+
+      if (userResult.error) {
+        console.error('Session validation failed:', userResult.error);
+        throw userResult.error;
+      }
+
+      const user = userResult.data.user;
+      const profile = profileResult.data;
 
       // Store everything in locals for easy access in routes
       event.locals.session = session;
