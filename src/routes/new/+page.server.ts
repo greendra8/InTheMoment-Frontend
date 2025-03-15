@@ -8,16 +8,13 @@ const PRE_SESSION_COOKIE_NAME = 'pre_session_data';
 
 // List of possible initial questions for the pre-session dialog
 const initialQuestions = [
-	'How have you felt since the last time you meditated?',
-	'What brings you to meditation today?',
+	'How have you been feeling recently?',
 	'What have you been up to today?',
 	'What are you going to do after this session?',
-	'Whats on your mind as you prepare this session?',
 	'How has your day been going so far?',
-	"What are you hoping to experience in today's session?",
+	"How would you like to feel after this session?",
 	"What would you like to focus on in today's practice?",
-	"Is there anything specific you'd like to let go of today?",
-	"Is there a specific goal or challenge you'd like to work on today?"
+	"Is there anything specific you'd like to work on today?",
 ];
 
 // Function to get a random question from the list
