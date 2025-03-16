@@ -117,7 +117,7 @@
 		showSuccess('Profile updated successfully!');
 	}
 
-	async function handleThemeChange(newTheme: 'dark' | 'cosmic') {
+	async function handleThemeChange(newTheme: 'gem' | 'galaxy') {
 		if (!data.session?.user?.id) {
 			showError('User session not found. Please try again.');
 			return;
@@ -223,17 +223,17 @@
 				<span class="theme-label">Theme</span>
 				<div class="theme-toggle-container">
 					<button
-						class="theme-option cosmic-option {$theme === 'cosmic' ? 'active' : ''}"
-						on:click={() => handleThemeChange('cosmic')}
+						class="theme-option galaxy-option {$theme === 'galaxy' ? 'active' : ''}"
+						on:click={() => handleThemeChange('galaxy')}
 					>
-						<i class="fas fa-galaxy"></i>
+						<i class="fas fa-galaxy {$theme === 'galaxy' ? 'spin-animation' : ''}"></i>
 						Galaxy
 					</button>
 					<button
-						class="theme-option dark-option {$theme === 'dark' ? 'active' : ''}"
-						on:click={() => handleThemeChange('dark')}
+						class="theme-option gem-option {$theme === 'gem' ? 'active' : ''}"
+						on:click={() => handleThemeChange('gem')}
 					>
-						<i class="fas fa-gem"></i>
+						<i class="fas fa-gem {$theme === 'gem' ? 'rock-animation' : ''}"></i>
 						Gem
 					</button>
 				</div>
@@ -422,15 +422,46 @@
 		color: var(--btn-text);
 	}
 
-	/* Dark and Cosmic theme active styles with gradients */
-	.cosmic-option.active,
-	.dark-option.active {
+	/* gem and galaxy theme active styles with gradients */
+	.galaxy-option.active,
+	.gem-option.active {
 		background: var(--btn-bg);
 		color: var(--btn-text);
 	}
 
 	.theme-option i {
 		font-size: 1rem;
+	}
+
+	/* Icon animations */
+	@keyframes spin {
+		from {
+			transform: rotate(0deg);
+		}
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	@keyframes rock {
+		0% {
+			transform: rotate(-10deg);
+		}
+		50% {
+			transform: rotate(10deg);
+		}
+		100% {
+			transform: rotate(-10deg);
+		}
+	}
+
+	.spin-animation {
+		animation: spin 8s linear infinite;
+	}
+
+	.rock-animation {
+		animation: rock 2s ease-in-out infinite;
+		transform-origin: center;
 	}
 
 	.update-button,

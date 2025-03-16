@@ -17,12 +17,12 @@
 	// Type the session properly as it comes from the server with profile data
 	$: typedSession = session as ExtendedSession;
 
-	// Force cosmic theme for landing page and auth pages
+	// Force galaxy theme for landing page and auth pages
 	$: isLandingOrAuthRoute = isLandingOrAuthPage();
 
 	/**
 	 * Theme synchronization strategy:
-	 * 1. For landing/auth pages: Always use 'cosmic' theme
+	 * 1. For landing/auth pages: Always use 'galaxy' theme
 	 * 2. During initial render: Use server-provided theme from DB (data.theme)
 	 * 3. After initialization: Use the theme store for reactivity
 	 *
@@ -35,7 +35,7 @@
 
 	// Determine which theme to use based on current state
 	$: themeValue = isLandingOrAuthRoute
-		? 'cosmic'
+		? 'galaxy'
 		: serverTheme && !initialSessionSetupDone
 			? serverTheme
 			: $theme;
@@ -53,7 +53,7 @@
 		if (!isLandingOrAuthRoute && typedSession.profile?.theme) {
 			const profileTheme = typedSession.profile.theme;
 			// Validate theme value to avoid type errors
-			if (profileTheme === 'dark' || profileTheme === 'cosmic') {
+			if (profileTheme === 'gem' || profileTheme === 'galaxy') {
 				// Update theme store with DB value (false = don't save back to DB)
 				setTheme(profileTheme);
 				// Clear serverTheme to let the reactive store take over
@@ -68,10 +68,10 @@
 	let authListener: { subscription: { unsubscribe: () => void } } | null = null;
 
 	onMount(() => {
-		// Force cosmic theme on landing/auth pages
-		if (isLandingOrAuthRoute && $theme !== 'cosmic') {
+		// Force galaxy theme on landing/auth pages
+		if (isLandingOrAuthRoute && $theme !== 'galaxy') {
 			// Use setTheme with saveToDb=false since this is a system change
-			setTheme('cosmic');
+			setTheme('galaxy');
 		}
 
 		// Set up auth listener
@@ -214,7 +214,7 @@
 	}
 </script>
 
-<div class={themeValue !== 'cosmic' ? themeValue + '-theme' : ''}>
+<div class={themeValue !== 'galaxy' ? themeValue + '-theme' : ''}>
 	{#if !$appContext.isNativeApp && !hideNav}
 		<!-- Desktop Navigation -->
 		<nav class="desktop-nav" class:hidden={isMobile}>

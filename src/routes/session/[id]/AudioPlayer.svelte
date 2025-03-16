@@ -630,8 +630,8 @@
 		transition: filter 0.3s ease;
 	}
 
-	:global(.dark-theme) canvas,
-	:global(.cosmic-theme) canvas {
+	:global(.gem-theme) canvas,
+	:global(.galaxy-theme) canvas {
 		opacity: 0.85;
 	}
 

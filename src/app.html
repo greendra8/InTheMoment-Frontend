@@ -25,14 +25,14 @@
 				window.location.pathname === '/register';
 
 			// Quick theme check - minimal version just for initial render
-			var theme = isLandingOrAuthPage ? 'cosmic' : (localStorage.getItem('theme') || 'cosmic');
+			var theme = isLandingOrAuthPage ? 'galaxy' : (localStorage.getItem('theme') || 'galaxy');
 
 			// Apply theme classes immediately with no transitions
 			document.documentElement.classList.add('no-transitions');
-			if (theme === 'dark') {
-				document.documentElement.classList.add('dark-theme');
+			if (theme === 'gem') {
+				document.documentElement.classList.add('gem-theme');
 			}
-			// Cosmic theme is the default (no class needed)
+			// galaxy theme is the default (no class needed)
 
 			// Remove the no-transitions class after a short delay
 			setTimeout(function () {

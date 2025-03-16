@@ -24,8 +24,8 @@ export const load: LayoutServerLoad = async ({ locals, url, cookies }) => {
   log('[Layout] Profile from locals:', !!profile);
   log('[Layout] Profile theme:', profile?.theme);
 
-  // Get theme from profile or default to cosmic
-  const theme = profile?.theme || 'cosmic';
+  // Get theme from profile or default to galaxy
+  const theme = profile?.theme || 'galaxy';
   log('[Layout] Using theme:', theme);
 
   if (session?.user) {

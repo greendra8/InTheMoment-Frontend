@@ -44,8 +44,8 @@ export const theme = {
     }
 };
 
-// Dark theme colors
-export const darkTheme = {
+// gem theme colors
+export const gemTheme = {
     // Text colors
     text: {
         primary: '#e8e8e8',
@@ -88,8 +88,8 @@ export const darkTheme = {
     }
 };
 
-// Cosmic theme colors
-export const cosmicTheme = {
+// galaxy theme colors
+export const galaxyTheme = {
     // Text colors
     text: {
         primary: '#e0e4fc',
@@ -139,15 +139,15 @@ export const rgbValues = {
     'text-primary': '26, 26, 26',       // #1a1a1a
 };
 
-// RGB values for dark theme
-export const darkRgbValues = {
+// RGB values for gem theme
+export const gemRgbValues = {
     'background-card': '30, 30, 30',     // #1e1e1e
     'icon-primary': '208, 208, 208',     // #d0d0d0
     'text-primary': '232, 232, 232',     // #e8e8e8
 };
 
-// RGB values for cosmic theme
-export const cosmicRgbValues = {
+// RGB values for galaxy theme
+export const galaxyRgbValues = {
     'background-card': '26, 26, 58',     // #1a1a3a
     'icon-primary': '200, 200, 255',     // #c8c8ff
     'text-primary': '224, 228, 252',     // #e0e4fc

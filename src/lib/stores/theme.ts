@@ -5,7 +5,7 @@ import type { ExtendedSession } from '$lib/stores/session';
 import { get } from 'svelte/store';
 
 // Theme types
-export type ThemeType = 'dark' | 'cosmic';
+export type ThemeType = 'gem' | 'galaxy';
 
 // Track the last applied theme to prevent redundant applications
 let lastAppliedTheme: ThemeType | null = null;
@@ -33,7 +33,7 @@ export function getThemeFromStorage(): ThemeType | null {
     if (!browser) return null;
 
     const storedTheme = localStorage.getItem('theme');
-    if (storedTheme === 'dark' || storedTheme === 'cosmic') {
+    if (storedTheme === 'gem' || storedTheme === 'galaxy') {
         return storedTheme as ThemeType;
     }
 
@@ -53,14 +53,14 @@ function log(message: string, ...args: any[]): void {
  * Get initial theme - this should match what we set in app.html
  */
 function getInitialTheme(): ThemeType {
-    if (!browser) return 'cosmic';
+    if (!browser) return 'galaxy';
 
     log('Getting initial theme');
 
-    // Force cosmic on landing/auth pages
+    // Force galaxy on landing/auth pages
     if (isLandingOrAuthPage()) {
-        log('Forcing cosmic theme for landing/auth page');
-        return 'cosmic';
+        log('Forcing galaxy theme for landing/auth page');
+        return 'galaxy';
     }
 
     // Try localStorage first (faster than waiting for session)
@@ -72,9 +72,9 @@ function getInitialTheme(): ThemeType {
         return storedTheme;
     }
 
-    // Default to cosmic
-    log('Using default cosmic theme');
-    return 'cosmic';
+    // Default to galaxy
+    log('Using default galaxy theme');
+    return 'galaxy';
 }
 
 // Create theme store with the initial theme value
@@ -108,22 +108,22 @@ export function applyTheme(
     // Update tracking
     lastAppliedTheme = newTheme;
 
-    // Don't save cosmic theme to localStorage on landing/auth pages
+    // Don't save galaxy theme to localStorage on landing/auth pages
     if (saveToStorage && !isLandingOrAuthPage()) {
         log('Saving theme to localStorage');
         localStorage.setItem('theme', newTheme);
     }
 
     // Apply theme class to document
-    document.documentElement.classList.remove('dark-theme');
-    if (newTheme === 'dark') {
-        document.documentElement.classList.add('dark-theme');
+    document.documentElement.classList.remove('gem-theme');
+    if (newTheme === 'gem') {
+        document.documentElement.classList.add('gem-theme');
     }
-    // For cosmic theme, we don't need to add a class since it's the default in :root
+    // For galaxy theme, we don't need to add a class since it's the default in :root
 }
 
 /**
- * Toggle theme function - cycles between cosmic and dark
+ * Toggle theme function - cycles between galaxy and gem
  */
 export function toggleTheme(): void {
     // Don't toggle theme on landing or auth pages
@@ -132,11 +132,11 @@ export function toggleTheme(): void {
     theme.update(currentTheme => {
         let newTheme: ThemeType;
 
-        // Cycle between cosmic and dark
-        if (currentTheme === 'cosmic') {
-            newTheme = 'dark';
+        // Cycle between galaxy and gem
+        if (currentTheme === 'galaxy') {
+            newTheme = 'gem';
         } else {
-            newTheme = 'cosmic';
+            newTheme = 'galaxy';
         }
 
         log('Toggling theme from:', currentTheme, 'to:', newTheme);
@@ -180,7 +180,7 @@ if (browser) {
         const currentThemeValue = get(theme);
 
         // Skip if profile theme is invalid
-        if (profileTheme !== 'dark' && profileTheme !== 'cosmic') {
+        if (profileTheme !== 'gem' && profileTheme !== 'galaxy') {
             log('No valid theme in profile');
             return;
         }
