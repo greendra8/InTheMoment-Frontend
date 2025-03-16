@@ -274,7 +274,6 @@
 		border: 1px solid rgba(var(--interactive-gradient-1), 0.15);
 		position: relative;
 		overflow: hidden;
-		backdrop-filter: blur(5px);
 		box-shadow: 0 4px 15px var(--ui-shadow);
 	}
 
@@ -358,14 +357,7 @@
 		transition: all 0.3s ease;
 		position: relative;
 		overflow: hidden;
-		backdrop-filter: blur(5px);
 		box-shadow: 0 4px 15px var(--ui-shadow);
-	}
-
-	/* light theme lesson card */
-	:global(.light-theme) .lesson-card,
-	:global(.light-theme) .progress-card {
-		background: var(--grey-shade) !important;
 	}
 
 	.lesson-card:not(.disabled):hover {
@@ -513,7 +505,6 @@
 		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
 		position: relative;
 		overflow: hidden;
-		backdrop-filter: blur(5px);
 		box-shadow: 0 4px 15px var(--ui-shadow);
 	}
 

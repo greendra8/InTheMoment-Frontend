@@ -117,7 +117,7 @@
 		showSuccess('Profile updated successfully!');
 	}
 
-	async function handleThemeChange(newTheme: 'light' | 'dark' | 'cosmic') {
+	async function handleThemeChange(newTheme: 'dark' | 'cosmic') {
 		if (!data.session?.user?.id) {
 			showError('User session not found. Please try again.');
 			return;
@@ -229,13 +229,6 @@
 						<i class="fas fa-rocket"></i>
 						Cosmic
 					</button>
-					<!-- <button
-						class="theme-option light-option {$theme === 'light' ? 'active' : ''}"
-						on:click={() => handleThemeChange('light')}
-					>
-						<i class="fas fa-sun"></i>
-						Light
-					</button> -->
 					<button
 						class="theme-option dark-option {$theme === 'dark' ? 'active' : ''}"
 						on:click={() => handleThemeChange('dark')}

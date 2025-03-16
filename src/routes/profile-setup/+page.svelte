@@ -626,7 +626,6 @@
 		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
 		transition: all 0.3s ease;
 		box-shadow: 0 2px 8px var(--ui-shadow);
-		backdrop-filter: blur(5px);
 	}
 
 	.option-text {
@@ -737,7 +736,6 @@
 		max-width: 90%;
 		box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 		z-index: 100;
-		backdrop-filter: blur(5px);
 	}
 
 	@media (max-width: 768px) {

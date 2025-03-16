@@ -1,38 +1,54 @@
-<script>
+<script lang="ts">
 	import { onMount } from 'svelte';
 	import { setupAudioVisualizer } from '$lib/audioVisualizer';
 	import { browser } from '$app/environment';
 
+	declare global {
+		interface Window {
+			butterchurn: any;
+			webkitAudioContext: typeof AudioContext;
+		}
+	}
+
 	// Core visualization variables
-	let canvas;
-	let visualizer = null;
+	let canvas: HTMLCanvasElement | null = null;
+	let visualizer: any = null;
 	let rendering = false;
-	let audioContext = null;
-	let sourceNode = null;
-	let preset = null;
+	let audioContext: AudioContext | null = null;
+	let sourceNode: AudioNode | null = null;
+	let preset: string | null = null;
 
 	// Optimization variables
 	let isVisible = true;
 	let isTabActive = true;
-	let animationFrameId = null;
-	let visibilityObserver = null;
+	let animationFrameId: number | null = null;
+	let visibilityObserver: IntersectionObserver | null = null;
 	let lastRenderTime = 0;
 	let renderInterval = 1000 / 30; // Target 30fps by default
 	let isLowPerfDevice = false;
 	let presetLoaded = false;
-	let resizeTimeout;
+	let resizeTimeout: ReturnType<typeof setTimeout> | null = null;
 
 	// Orb visualizer variables
-	let orbCanvas;
-	let orbAudio;
-	let orbAudioContext;
-	let orbAnalyser;
-	let orbVisualizer;
+	let orbCanvas: HTMLCanvasElement;
+	let orbAudio: HTMLAudioElement;
+	let orbAudioContext: AudioContext | null = null;
+	let orbAnalyser: AnalyserNode | null = null;
+	let orbVisualizer: any;
+	let orbContainer: HTMLElement | null = null;
 
 	// Video background variables
-	let videoElement;
-	let videoWrapper;
+	let videoElement: HTMLVideoElement | null = null;
+	let videoWrapper: HTMLDivElement | null = null;
 	let isVideoLoaded = false;
+
+	// Lazy load Butterchurn
+	async function loadButterchurn() {
+		if (!window.butterchurn) {
+			await import('https://unpkg.com/butterchurn@2.6.7/lib/butterchurn.min.js');
+		}
+		return window.butterchurn;
+	}
 
 	// Check if device is low performance
 	function checkDevicePerformance() {
@@ -58,7 +74,7 @@
 			cancelAnimationFrame(animationFrameId);
 		}
 
-		const renderLoop = (timestamp) => {
+		const renderLoop = (timestamp: number) => {
 			// Only render if visible, tab is active, and enough time has passed
 			if (isVisible && isTabActive && visualizer) {
 				const elapsed = timestamp - lastRenderTime;
@@ -237,13 +253,8 @@
 
 		pauseRenderer();
 
-		if (sourceNode) {
-			try {
-				sourceNode.stop();
-			} catch (e) {
-				console.error('Error stopping source node:', e);
-			}
-			sourceNode = null;
+		if (sourceNode && 'stop' in sourceNode) {
+			sourceNode.stop();
 		}
 
 		if (audioContext) {
@@ -322,71 +333,81 @@
 		document.removeEventListener('touchstart', handleUserInteraction);
 	}
 
-	onMount(() => {
-		if (!browser) return;
+	function handleFontLoad(event: Event) {
+		const link = event.target as HTMLLinkElement;
+		link.onload = null;
+		link.rel = 'stylesheet';
+	}
 
-		// Add event listeners
-		window.addEventListener('resize', resizeCanvas);
-		document.addEventListener('visibilitychange', handleVisibilityChange);
+	onMount(async () => {
+		if (browser) {
+			await loadButterchurn();
+			// Add event listeners
+			window.addEventListener('resize', resizeCanvas);
+			document.addEventListener('visibilitychange', handleVisibilityChange);
 
-		// Add event listeners for user interaction
-		document.addEventListener('click', handleUserInteraction);
-		document.addEventListener('keydown', handleUserInteraction);
-		document.addEventListener('touchstart', handleUserInteraction);
+			// Add event listeners for user interaction
+			document.addEventListener('click', handleUserInteraction);
+			document.addEventListener('keydown', handleUserInteraction);
+			document.addEventListener('touchstart', handleUserInteraction);
 
-		// Initialize canvas size
-		resizeCanvas();
+			// Initialize canvas size
+			resizeCanvas();
 
-		// Start loading the preset
-		loadPreset();
+			// Start loading the preset
+			loadPreset();
 
-		// Initialize visualizer after scripts are loaded
-		const initTimeout = setTimeout(() => {
-			initVisualizer();
-		}, 300);
+			// Initialize visualizer after scripts are loaded
+			const initTimeout = setTimeout(() => {
+				initVisualizer();
+			}, 300);
 
-		// Setup orb visualizer after a short delay
-		setTimeout(() => {
-			setupOrb();
-		}, 500);
+			// Setup orb visualizer after a short delay
+			setTimeout(() => {
+				setupOrb();
+			}, 500);
 
-		// Check if low performance device
-		const isLowPerf = checkDevicePerformance();
+			// Check if low performance device
+			const isLowPerf = checkDevicePerformance();
 
-		// Setup video playback
-		if (videoElement) {
-			videoElement.muted = true;
-			videoElement.loop = true;
-			videoElement.playsInline = true;
+			// Setup video playback
+			if (videoElement) {
+				videoElement.muted = true;
+				videoElement.loop = true;
+				videoElement.playsInline = true;
 
-			// Lower quality for low performance devices
-			if (isLowPerf) {
-				videoElement.setAttribute('data-quality', 'low');
+				// Lower quality for low performance devices
+				if (isLowPerf) {
+					videoElement.setAttribute('data-quality', 'low');
+				}
+
+				// Start playing when loaded
+				videoElement.addEventListener('loadeddata', () => {
+					isVideoLoaded = true;
+					// We'll try to play, but this will likely be blocked until user interaction
+					if (isTabActive && isVisible) {
+						videoElement.play().catch((e) => {
+							console.log('Video autoplay prevented by browser, waiting for user interaction');
+						});
+					}
+				});
 			}
 
-			// Start playing when loaded
-			videoElement.addEventListener('loadeddata', () => {
-				isVideoLoaded = true;
-				// We'll try to play, but this will likely be blocked until user interaction
-				if (isTabActive && isVisible) {
-					videoElement.play().catch((e) => {
-						console.log('Video autoplay prevented by browser, waiting for user interaction');
-					});
-				}
-			});
+			// Setup visibility observer
+			setupVisibilityObserver();
+
+			return cleanup;
 		}
-
-		// Setup visibility observer
-		setupVisibilityObserver();
-
-		return cleanup;
 	});
 </script>
 
 <svelte:head>
 	<title>InTheMoment</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
 	<link
-		href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
+		href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap&display=swap"
 		rel="stylesheet"
 	/>
 	<link
@@ -407,13 +428,14 @@
 		<video
 			bind:this={videoElement}
 			class="background-video"
-			preload="auto"
+			preload="metadata"
 			muted
 			autoplay
 			loop
 			playsinline
 			disablePictureInPicture
 			disableRemotePlayback
+			poster="/video/phone-addiction-poster.jpg"
 		>
 			<source src="/video/phone-addiction.mp4" type="video/mp4" />
 		</video>
@@ -743,8 +765,10 @@
 		letter-spacing: -0.02em;
 		font-family: 'Poppins', sans-serif;
 		font-weight: 700;
-		text-shadow: 0 0 20px rgba(106, 90, 205, 0.4);
+		text-shadow: 0 2px 10px rgba(106, 90, 205, 0.3);
 		text-transform: capitalize;
+		will-change: transform;
+		transform: translateZ(0);
 	}
 
 	.tagline {
@@ -808,7 +832,6 @@
 		background: rgba(22, 22, 45, 0.5);
 		color: var(--text-primary);
 		border: 1px solid rgba(123, 104, 238, 0.25);
-		backdrop-filter: blur(4px);
 		box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 	}
 
@@ -905,7 +928,6 @@
 		height: 100%;
 		border: 1px solid rgba(123, 104, 238, 0.15);
 		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-		backdrop-filter: blur(5px);
 	}
 
 	.feature-item:hover {
@@ -1083,7 +1105,6 @@
 		border-radius: 12px;
 		box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 		border: 1px solid rgba(123, 104, 238, 0.15);
-		backdrop-filter: blur(5px);
 	}
 
 	.timeline-content h3 {
@@ -1135,7 +1156,6 @@
 		margin-bottom: 0.5rem;
 		border: 1px solid rgba(123, 104, 238, 0.15);
 		box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-		backdrop-filter: blur(5px);
 	}
 
 	.benefit-tag:hover {
@@ -1184,7 +1204,6 @@
 		border-radius: 16px;
 		box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
 		border: 1px solid rgba(123, 104, 238, 0.15);
-		backdrop-filter: blur(5px);
 	}
 
 	.app-platforms {
@@ -1462,5 +1481,10 @@
 	.centered-title::after {
 		left: 50%;
 		transform: translateX(-50%);
+	}
+
+	/* Add font-display swap to all font families */
+	:global(*) {
+		font-display: swap !important;
 	}
 </style>

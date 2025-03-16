@@ -314,30 +314,21 @@
 	</section>
 </div>
 
+<!-- dummy content divs with no styling but that are tall enough to scroll -->
+<div class="dummy-content"></div>
+<div class="dummy-content"></div>
+<div class="dummy-content"></div>
+<div class="dummy-content"></div>
+<div class="dummy-content"></div>
+
 <style>
+	.dummy-content {
+		height: 1000px;
+	}
 	/* Base Styles - Note: Container width is handled by global layout */
 	.neo-dashboard {
 		position: relative;
 		overflow: visible;
-	}
-
-	/* Subtle ambient glow */
-	.neo-dashboard::after {
-		content: '';
-		position: absolute;
-		top: 10%;
-		right: 10%;
-		width: 40%;
-		height: 40%;
-		background: radial-gradient(
-			ellipse at center,
-			rgba(var(--interactive-gradient-1), 0.04) 0%,
-			rgba(var(--interactive-gradient-1), 0) 70%
-		);
-		border-radius: 50%;
-		z-index: -1;
-		pointer-events: none;
-		filter: blur(60px);
 	}
 
 	/* Typography */
@@ -353,7 +344,6 @@
 	h1 {
 		font-size: 2rem;
 		letter-spacing: -0.5px;
-		text-shadow: 0 0 20px rgba(var(--icon-primary-rgb), 0.1);
 	}
 
 	h2 {
@@ -507,7 +497,6 @@
 		position: relative;
 		overflow: hidden;
 		text-align: center;
-		backdrop-filter: blur(5px);
 		transition: all 0.3s ease;
 	}
 
@@ -545,7 +534,6 @@
 		font-size: 1.4rem;
 		font-weight: 600;
 		color: var(--text-primary);
-		text-shadow: 0 0 10px rgba(var(--interactive-gradient-1), 0.2);
 	}
 
 	.stat-label {
@@ -598,13 +586,7 @@
 		transition: all 0.3s ease;
 		position: relative;
 		overflow: hidden;
-		backdrop-filter: blur(5px);
 		box-shadow: 0 4px 15px var(--ui-shadow);
-	}
-
-	/* light theme featured session */
-	:global(.light-theme) .featured-session {
-		background: var(--grey-shade) !important;
 	}
 
 	.featured-session:hover {
@@ -749,7 +731,6 @@
 		cursor: pointer;
 		transition: all 0.3s ease;
 		aspect-ratio: 16 / 9;
-		backdrop-filter: blur(5px);
 	}
 
 	.playlist-card:hover {
@@ -831,7 +812,6 @@
 		transition: all 0.3s ease;
 		position: relative;
 		overflow: hidden;
-		backdrop-filter: blur(5px);
 	}
 
 	.session-item:hover {
@@ -916,7 +896,6 @@
 		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
 		position: relative;
 		overflow: hidden;
-		backdrop-filter: blur(5px);
 		display: flex;
 		flex-direction: column;
 		gap: 1.5rem;

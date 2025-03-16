@@ -27,11 +27,10 @@
 
 			// Apply theme classes immediately with no transitions
 			document.documentElement.classList.add('no-transitions');
-			if (theme === 'light') {
-				document.documentElement.classList.add('light-theme');
-			} else if (theme === 'dark') {
+			if (theme === 'dark') {
 				document.documentElement.classList.add('dark-theme');
 			}
+			// Cosmic theme is the default (no class needed)
 
 			// Remove the no-transitions class after a short delay
 			setTimeout(function () {

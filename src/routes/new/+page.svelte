@@ -858,7 +858,6 @@
 		padding: 1.5rem;
 		box-shadow: 0 8px 20px var(--ui-shadow);
 		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
-		backdrop-filter: blur(5px);
 	}
 
 	/* Session Type Selector */

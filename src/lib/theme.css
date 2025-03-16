@@ -2,39 +2,47 @@
   Theme CSS Variables
 
   This file defines all the global CSS variables used for dynamic theming.
-  Design approach:
-    - The default (Cosmic) theme is applied via the :root rules and provides vibrant gradient styles
-      for interactive elements (buttons, sliders, etc.).
-    - The Light theme overrides use solid colors (e.g., #000000 for buttons and sliders) to ensure clarity
-      and consistency.
-    - The Dark theme retains vibrant gradients with refined opacity levels.
-
-  Notes:
-    - --btn-bg, --btn-bg-hover: Define button backgrounds. Light theme uses solid colors; dark/cosmic use gradients.
-    - --slider-bg, --slider-progress-bg: Define slider backgrounds similarly.
-    - Cosmic is the default theme, which helps prevent flashing of cosmic styles on initial load when light/dark is expected.
+  The app supports two themes:
+    - Cosmic (default): Vibrant gradient styles with purple/blue hues
+    - Dark: Blue/cyan gradients with refined opacity levels
 */
 
-/* Theme CSS Variables */
+/* Base Theme (Cosmic) */
 :root {
-        /* Text colors */
+        /* 
+    Text Colors
+    --text-primary: Main text color for content
+    --text-secondary: Secondary text for less important content
+    --text-light: Text color for dark backgrounds
+    --text-error: Text color for error messages
+    --text-success: Text color for success messages
+  */
         --text-primary: #e0e4fc;
         --text-secondary: #a0a8e0;
         --text-light: #1a1a2e;
         --text-error: #ff6b6b;
         --text-success: #72efdd;
 
-        /* NEW: Button text color that's consistent across themes */
+        /* 
+    Button Text Colors
+    Used consistently across themes for button text
+  */
         --btn-text: #ffffff;
         --play-btn-text: #ffffff;
 
-        /* NEW: Badge colors for meditation and hypnosis - more subtle */
+        /* 
+    Badge Colors
+    Used for meditation and hypnosis session type indicators
+  */
         --meditation-badge-bg: rgba(106, 90, 205, 0.25);
         --meditation-badge-text: #e0e4fc;
         --hypnosis-badge-bg: rgba(138, 43, 226, 0.25);
         --hypnosis-badge-text: #e0e4fc;
 
-        /* Background colors */
+        /* 
+    Background Colors
+    Main app backgrounds and component backgrounds
+  */
         --background-main: #0a0a20;
         --background-gradient-1: rgba(106, 90, 205, 0.15);
         --background-gradient-2: rgba(72, 61, 139, 0.2);
@@ -46,7 +54,17 @@
         --background-input: #252550;
         --background-error: #4a1530;
 
-        /* Background image with subtle gradients */
+        /* Fixed colors for elements that previously used gradients */
+        --fixed-card-bg: #1C1B39;
+        --fixed-card-border: #1C1A3C;
+        --fixed-card-border-hover: #25224C;
+        --fixed-play-button: #6A5ACD;
+        --fixed-play-button-hover: #8470FF;
+
+        /* 
+    Background Image
+    Creates a subtle gradient background for the app
+  */
         --background-image:
                 radial-gradient(circle at 50% -20%, var(--background-gradient-1), transparent 55%),
                 radial-gradient(circle at -20% 50%, var(--background-gradient-2), transparent 52%),
@@ -55,7 +73,10 @@
         --background-attachment: fixed;
         --background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%;
 
-        /* UI element colors */
+        /* 
+    UI Element Colors
+    Used for borders, shadows, focus states, etc.
+  */
         --ui-divider: rgba(123, 104, 238, 0.2);
         --ui-shadow: rgba(0, 0, 40, 0.3);
         --ui-shadowHover: rgba(0, 0, 40, 0.5);
@@ -67,48 +88,47 @@
         --ui-danger-hover: #ff5252;
         --ui-disabled: #444464;
 
-        /* Icon colors */
+        /* 
+    Icon Colors
+    Used for SVG icons and decorative elements
+  */
         --icon-primary: #c8c8ff;
         --icon-secondary: #8080c0;
         --icon-danger: #ff6b6b;
 
-        /* RGB values for transparency */
+        /* 
+    RGB Values for Transparency
+    Used in rgba() functions for transparent variants
+  */
         --background-card-rgb: 22, 22, 45;
         --icon-primary-rgb: 200, 200, 255;
         --text-primary-rgb: 224, 228, 252;
 
-        /* Gradient colors - cosmic themed with more subtle tones */
-        --gradient-1: 106, 90, 205;
-        /* SlateBlue */
-        --gradient-2: 132, 112, 255;
-        /* LightSlateBlue */
-        --gradient-3: 147, 112, 219;
-        /* MediumPurple */
-        --gradient-4: 138, 43, 226;
-        /* BlueViolet */
-        --gradient-5: 72, 61, 139;
-        /* DarkSlateBlue */
-        --gradient-6: 123, 104, 238;
-        /* MediumSlateBlue */
-        --gradient-7: 114, 239, 221;
-        /* Turquoise */
-        --gradient-8: 100, 149, 237;
-        /* CornflowerBlue */
-
-        /* Interactive element gradients */
+        /* 
+    Interactive Element Gradients
+    Used for creating gradient backgrounds in buttons and UI elements
+  */
         --interactive-gradient-1: 106, 90, 205;
+        /* SlateBlue */
         --interactive-gradient-2: 132, 112, 255;
+        /* LightSlateBlue */
         --interactive-opacity-1: 0.2;
         --interactive-opacity-2: 0.35;
         --interactive-hover-opacity-1: 0.3;
         --interactive-hover-opacity-2: 0.45;
 
-        /* Define CSS variables for transparent and faded variants */
+        /* 
+    Derived Variables
+    Transparent and faded variants used throughout the UI
+  */
         --background-card-transparent: rgba(var(--background-card-rgb), 0.5);
         --icon-primary-faded: rgba(var(--icon-primary-rgb), 0.85);
         --text-primary-faded: rgba(var(--text-primary-rgb), 0.85);
 
-        /* NEW: Theme-specific button and interactive element backgrounds */
+        /* 
+    Button Backgrounds
+    Gradient backgrounds for buttons and interactive elements
+  */
         --btn-bg: linear-gradient(135deg,
                         rgba(var(--interactive-gradient-1), var(--interactive-opacity-1)) 0%,
                         rgba(var(--interactive-gradient-2), var(--interactive-opacity-2)) 100%);
@@ -124,7 +144,10 @@
         --session-play-bg: rgba(var(--interactive-gradient-1), 0.15);
         --session-play-bg-hover: rgba(var(--interactive-gradient-1), 0.2);
 
-        /* NEW: Slider gradient variables */
+        /* 
+    Slider Backgrounds
+    Used for audio player and other slider components
+  */
         --slider-bg: linear-gradient(135deg,
                         rgba(var(--interactive-gradient-1), 0.6) 0%,
                         rgba(var(--interactive-gradient-2), 0.7) 100%);
@@ -132,7 +155,10 @@
                         rgba(var(--interactive-gradient-1), 0.6) 0%,
                         rgba(var(--interactive-gradient-2), 0.7) 100%);
 
-
+        /* 
+    Utility Colors
+    Miscellaneous colors used in specific components
+  */
         --grey-shade: #edeeee;
 
         /* Add smooth transition for theme changes */
@@ -153,121 +179,32 @@
         transition: background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease;
 }
 
-
-/* Light theme */
-/* Light theme overrides: Using solid colors for buttons, sliders, and interactive elements to avoid gradient appearance */
-/* .light-theme { */
-/* Text colors */
-/* --text-primary: #1a1a1a; */
-/* --text-secondary: #555; */
-/* --text-light: #ffffff; */
-/* --text-error: #d32f2f; */
-/* --text-success: #2e7d32; */
-
-/* NEW: Button text color for light theme */
-/* --btn-text: #ffffff; */
-/* --play-btn-text: #ffffff; */
-
-/* Background colors */
-/* --background-main: #f8f9fa; */
-/* --background-gradient-1: rgba(200, 200, 200, 0.1); */
-/* --background-gradient-2: rgba(180, 180, 180, 0.1); */
-/* --background-gradient-3: rgba(220, 220, 220, 0.1); */
-/* --background-card: rgba(255, 255, 255, 0.92); */
-/* --background-cardHover: rgba(255, 255, 255, 0.98); */
-/* --background-button: #000000; */
-/* --background-buttonHover: #333333; */
-/* --background-input: #fff; */
-/* --background-error: #ffebee; */
-
-/* Background image with subtle gradients */
-/* --background-image: */
-/*         radial-gradient(circle at 50% -20%, var(--background-gradient-1), transparent 60%), */
-/*         radial-gradient(circle at -10% 50%, var(--background-gradient-2), transparent 50%), */
-/*         radial-gradient(circle at 100% 80%, var(--background-gradient-3), transparent 40%), */
-/*         var(--background-main); */
-/* --background-attachment: fixed; */
-/* --background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%; */
-
-/* UI element colors */
-/* --ui-divider: rgba(0, 0, 0, 0.08); */
-/* --ui-shadow: rgba(0, 0, 0, 0.04); */
-/* --ui-shadowHover: rgba(0, 0, 0, 0.08); */
-/* --ui-border: rgba(0, 0, 0, 0.06); */
-/* --ui-focus: #000; */
-/* --ui-success: #4CAF50; */
-/* --ui-success-hover: #45a049; */
-/* --ui-danger: #f44336; */
-/* --ui-danger-hover: #d32f2f; */
-/* --ui-disabled: #d1d5db; */
-
-/* Icon colors */
-/* --icon-primary: #000; */
-/* --icon-secondary: #555; */
-/* --icon-danger: #e53935; */
-
-/* RGB values for transparency */
-/* --background-card-rgb: 255, 255, 255; */
-/* --icon-primary-rgb: 0, 0, 0; */
-/* --text-primary-rgb: 26, 26, 26; */
-
-/* Gradient colors - keeping these neutral */
-/* --gradient-1: 0, 0, 0; */
-/* --gradient-2: 51, 51, 51; */
-/* --gradient-3: 102, 102, 102; */
-/* --gradient-4: 153, 153, 153; */
-/* --gradient-5: 0, 0, 0; */
-/* --gradient-6: 51, 51, 51; */
-/* --gradient-7: 102, 102, 102; */
-/* --gradient-8: 153, 153, 153; */
-
-/* Interactive element gradients */
-/* --interactive-gradient-1: 100, 100, 100; */
-/* --interactive-gradient-2: 200, 200, 200; */
-/* --interactive-opacity-1: 1; */
-/* --interactive-opacity-2: 1; */
-/* --interactive-hover-opacity-1: 1; */
-/* --interactive-hover-opacity-2: 1; */
-
-/* Define CSS variables for transparent and faded variants */
-/* --background-card-transparent: rgba(var(--background-card-rgb), 0.5); */
-/* --icon-primary-faded: rgba(var(--icon-primary-rgb), 0.85); */
-/* --text-primary-faded: rgba(var(--text-primary-rgb), 0.85); */
-
-/* NEW: Override button and interactive element backgrounds for light theme (solid colors) */
-/* --btn-bg: #000000; */
-/* --btn-bg-hover: #333333; */
-/* --play-btn-bg: #000000; */
-/* --play-btn-bg-hover: #333333; */
-/* --session-play-bg: #000000; */
-/* --session-play-bg-hover: #333333; */
-
-/* NEW: Override slider backgrounds for light theme (solid colors) */
-/* --slider-bg: #000000; */
-/* --slider-progress-bg: #000000; */
-/* } */
-
 /* Dark theme - can be enabled by adding class "dark-theme" to an element */
-/* Dark theme: Utilizing vibrant gradients for interactive elements */
 .dark-theme {
-        /* Text colors */
+        /* 
+    Text Colors
+    Dark theme text colors are slightly less saturated
+  */
         --text-primary: #e8e8e8;
         --text-secondary: #a0a0a0;
         --text-light: #1a1a1a;
         --text-error: #ef5350;
         --text-success: #66bb6a;
 
-        /* NEW: Button text color for dark theme */
+        /* Button text colors */
         --btn-text: #ffffff;
         --play-btn-text: #ffffff;
 
-        /* NEW: Badge colors for meditation and hypnosis in dark theme - more subtle */
+        /* Badge colors for meditation and hypnosis */
         --meditation-badge-bg: rgba(79, 172, 254, 0.25);
         --meditation-badge-text: #e8e8e8;
         --hypnosis-badge-bg: rgba(147, 112, 219, 0.25);
         --hypnosis-badge-text: #e8e8e8;
 
-        /* Background colors */
+        /* 
+    Background Colors
+    Dark theme uses a darker, more neutral background
+  */
         --background-main: #121212;
         --background-gradient-1: rgba(70, 130, 180, 0.15);
         --background-gradient-2: rgba(75, 0, 130, 0.1);
@@ -279,7 +216,17 @@
         --background-input: #2a2a2a;
         --background-error: #4a1515;
 
-        /* Background image with subtle gradients */
+        /* Fixed colors for elements that previously used gradients */
+        --fixed-card-bg: #1a2630;
+        --fixed-card-border: #1e2b38;
+        --fixed-card-border-hover: #226277;
+        --fixed-play-button: #226277;
+        --fixed-play-button-hover: #16b8d0;
+
+        /* 
+    Background Image
+    Dark theme uses blue-tinted gradients
+  */
         --background-image:
                 radial-gradient(circle at 50% -20%, var(--background-gradient-1), transparent 60%),
                 radial-gradient(circle at -10% 50%, var(--background-gradient-2), transparent 50%),
@@ -288,7 +235,10 @@
         --background-attachment: fixed;
         --background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%;
 
-        /* UI element colors */
+        /* 
+    UI Element Colors
+    Dark theme uses more neutral UI colors
+  */
         --ui-divider: rgba(255, 255, 255, 0.1);
         --ui-shadow: rgba(0, 0, 0, 0.3);
         --ui-shadowHover: rgba(0, 0, 0, 0.5);
@@ -300,27 +250,26 @@
         --ui-danger-hover: #c62828;
         --ui-disabled: #555555;
 
-        /* Icon colors */
+        /* 
+    Icon Colors
+    Dark theme uses more neutral icon colors
+  */
         --icon-primary: #d0d0d0;
         --icon-secondary: #909090;
         --icon-danger: #ef5350;
 
-        /* RGB values for transparency */
+        /* 
+    RGB Values for Transparency
+    Used in rgba() functions for transparent variants
+  */
         --background-card-rgb: 30, 30, 30;
         --icon-primary-rgb: 208, 208, 208;
         --text-primary-rgb: 232, 232, 232;
 
-        /* Gradient colors - adjusted for dark theme */
-        --gradient-1: 79, 172, 254;
-        --gradient-2: 0, 242, 254;
-        --gradient-3: 250, 112, 154;
-        --gradient-4: 254, 225, 64;
-        --gradient-5: 102, 126, 234;
-        --gradient-6: 118, 75, 162;
-        --gradient-7: 67, 233, 123;
-        --gradient-8: 56, 249, 215;
-
-        /* Interactive element gradients */
+        /* 
+    Interactive Element Gradients
+    Dark theme uses blue/cyan gradients
+  */
         --interactive-gradient-1: 79, 172, 254;
         --interactive-gradient-2: 0, 242, 254;
         --interactive-opacity-1: 0.2;
@@ -328,12 +277,18 @@
         --interactive-hover-opacity-1: 0.3;
         --interactive-hover-opacity-2: 0.5;
 
-        /* Define CSS variables for transparent and faded variants */
+        /* 
+    Derived Variables
+    Transparent and faded variants
+  */
         --background-card-transparent: rgba(var(--background-card-rgb), 0.5);
         --icon-primary-faded: rgba(var(--icon-primary-rgb), 0.85);
         --text-primary-faded: rgba(var(--text-primary-rgb), 0.85);
 
-        /* NEW: Button and interactive element backgrounds for dark theme */
+        /* 
+    Button Backgrounds
+    Dark theme uses blue/cyan gradients for buttons
+  */
         --btn-bg: linear-gradient(135deg,
                         rgba(var(--interactive-gradient-1), var(--interactive-opacity-1)) 0%,
                         rgba(var(--interactive-gradient-2), var(--interactive-opacity-2)) 100%);
@@ -349,7 +304,10 @@
         --session-play-bg: rgba(var(--interactive-gradient-1), 0.15);
         --session-play-bg-hover: rgba(var(--interactive-gradient-1), 0.2);
 
-        /* NEW: Slider backgrounds for dark theme with vibrant gradients */
+        /* 
+    Slider Backgrounds
+    Dark theme uses blue/cyan gradients for sliders
+  */
         --slider-bg: linear-gradient(135deg,
                         rgba(var(--interactive-gradient-1), 0.6) 0%,
                         rgba(var(--interactive-gradient-2), 0.7) 100%);

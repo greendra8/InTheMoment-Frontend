@@ -287,7 +287,6 @@
 		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
 		transition: all 0.3s ease;
 		position: relative;
-		backdrop-filter: blur(5px);
 	}
 
 	.playlist-item.reorder-mode {

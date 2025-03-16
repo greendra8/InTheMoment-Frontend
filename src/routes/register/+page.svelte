@@ -66,7 +66,6 @@
 		border-radius: 16px;
 		box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
 		border: 1px solid rgba(123, 104, 238, 0.15);
-		backdrop-filter: blur(10px);
 	}
 
 	.auth-title {

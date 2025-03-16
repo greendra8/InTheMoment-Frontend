@@ -56,7 +56,7 @@
 			await goto(url.toString(), {
 				replaceState: true,
 				noScroll: true,
-				keepfocus: true
+				keepFocus: true
 			});
 		} catch (err) {
 			console.error('Error loading more meditations:', err);
@@ -266,7 +266,6 @@
 		color: var(--text-primary);
 		margin-bottom: 2rem;
 		letter-spacing: -0.5px;
-		text-shadow: 0 0 20px rgba(var(--icon-primary-rgb), 0.1);
 	}
 
 	.section-header {
@@ -312,7 +311,6 @@
 		padding: 0.4rem 0.75rem;
 		border-radius: 8px;
 		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
-		backdrop-filter: blur(5px);
 	}
 
 	ul {
@@ -334,97 +332,27 @@
 		);
 		border-radius: 12px;
 		padding: 0.9rem;
-		transition: all 0.3s ease;
+		transition:
+			transform 0.2s ease,
+			box-shadow 0.2s ease;
 		box-shadow: 0 4px 15px var(--ui-shadow);
-		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
+		border: 1px solid var(--fixed-card-border);
 		position: relative;
 		overflow: hidden;
-		backdrop-filter: blur(5px);
-	}
-
-	/* Add subtle variations to list items */
-	li:nth-child(4n + 1)::before {
-		content: '';
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background: linear-gradient(
-			135deg,
-			rgba(var(--gradient-1), 0.1),
-			rgba(var(--gradient-2), 0.05)
-		);
-		opacity: 0;
-		transition: opacity 0.3s ease;
-		z-index: 0;
-	}
-
-	li:nth-child(4n + 2)::before {
-		content: '';
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background: linear-gradient(
-			135deg,
-			rgba(var(--gradient-3), 0.1),
-			rgba(var(--gradient-4), 0.05)
-		);
-		opacity: 0;
-		transition: opacity 0.3s ease;
-		z-index: 0;
-	}
-
-	li:nth-child(4n + 3)::before {
-		content: '';
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background: linear-gradient(
-			135deg,
-			rgba(var(--gradient-5), 0.1),
-			rgba(var(--gradient-6), 0.05)
-		);
-		opacity: 0;
-		transition: opacity 0.3s ease;
-		z-index: 0;
-	}
-
-	li:nth-child(4n + 4)::before {
-		content: '';
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background: linear-gradient(
-			135deg,
-			rgba(var(--gradient-7), 0.1),
-			rgba(var(--gradient-8), 0.05)
-		);
-		opacity: 0;
-		transition: opacity 0.3s ease;
-		z-index: 0;
 	}
 
 	li:hover {
-		border-color: rgba(var(--interactive-gradient-1), 0.2);
+		background: var(--fixed-card-bg);
+		border-color: var(--fixed-card-border-hover);
 		transform: translateY(-2px);
 		box-shadow: 0 6px 15px var(--ui-shadowHover);
-	}
-
-	li:hover::before {
-		opacity: 1;
 	}
 
 	.play-button {
 		width: 40px;
 		height: 40px;
-		background: var(--background-button);
+		background: var(--fixed-play-button);
+		box-shadow: 0 0 8px rgba(var(--interactive-gradient-1), 0.3);
 		color: var(--play-btn-text);
 		border-radius: 50%;
 		display: flex;
@@ -432,54 +360,18 @@
 		justify-content: center;
 		margin-right: 1rem;
 		flex-shrink: 0;
-		box-shadow: 0 0 15px rgba(var(--interactive-gradient-1), 0.2);
-		transition: all 0.3s ease;
+		transition:
+			transform 0.2s ease,
+			background 0.2s ease;
 		position: relative;
 		z-index: 1;
 		text-decoration: none;
 	}
 
 	li:hover .play-button {
-		background: var(--background-buttonHover);
-		box-shadow: 0 0 20px rgba(var(--interactive-gradient-1), 0.3);
+		background: var(--fixed-play-button-hover);
 		transform: scale(1.05);
-	}
-
-	/* Apply gradients only for themed versions */
-	:global(.dark-theme) .play-button,
-	:global(.cosmic-theme) .play-button {
-		background: linear-gradient(
-			135deg,
-			rgba(var(--interactive-gradient-1), 0.4) 0%,
-			rgba(var(--interactive-gradient-2), 0.4) 100%
-		);
-		color: var(--text-primary);
-	}
-
-	:global(.dark-theme) li:hover .play-button,
-	:global(.cosmic-theme) li:hover .play-button {
-		background: linear-gradient(
-			135deg,
-			rgba(var(--interactive-gradient-1), 0.7) 0%,
-			rgba(var(--interactive-gradient-2), 0.8) 100%
-		);
-	}
-
-	/* Add subtle shine effect */
-	li::after {
-		content: '';
-		position: absolute;
-		top: 0;
-		left: -100%;
-		width: 50%;
-		height: 100%;
-		background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
-		transform: skewX(-25deg);
-		transition: all 0.75s ease;
-	}
-
-	li:hover::after {
-		left: 100%;
+		box-shadow: 0 0 8px rgba(var(--interactive-gradient-1), 0.6);
 	}
 
 	.meditation-info {
@@ -587,7 +479,9 @@
 		font-size: 1rem;
 		font-weight: 500;
 		cursor: pointer;
-		transition: all 0.3s ease;
+		transition:
+			transform 0.2s ease,
+			background 0.2s ease;
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -598,7 +492,6 @@
 	.load-more-btn:hover:not(:disabled) {
 		background: var(--btn-bg-hover);
 		transform: translateY(-2px);
-		box-shadow: 0 4px 12px var(--ui-shadowHover);
 	}
 
 	.load-more-btn:disabled {
@@ -618,7 +511,6 @@
 		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
 		position: relative;
 		overflow: hidden;
-		backdrop-filter: blur(5px);
 		display: flex;
 		flex-direction: column;
 		gap: 1.5rem;
@@ -635,7 +527,6 @@
 		font-size: 2rem;
 		color: var(--icon-primary);
 		margin-bottom: 1rem;
-		filter: drop-shadow(0 0 5px rgba(var(--icon-primary-rgb), 0.2));
 	}
 
 	.welcome-message h3 {
@@ -652,21 +543,18 @@
 	}
 
 	.pulse-icon {
-		animation: pulse 2s infinite ease-in-out;
+		animation: pulse 3s infinite ease-in-out;
 	}
 
 	@keyframes pulse {
 		0% {
 			transform: scale(1);
-			opacity: 0.8;
 		}
 		50% {
 			transform: scale(1.1);
-			opacity: 1;
 		}
 		100% {
 			transform: scale(1);
-			opacity: 0.8;
 		}
 	}
 
@@ -682,17 +570,14 @@
 		align-items: center;
 		padding: 1rem;
 		border-radius: 12px;
-		background: linear-gradient(
-			135deg,
-			rgba(var(--interactive-gradient-1), 0.08) 0%,
-			rgba(var(--interactive-gradient-2), 0.12) 100%
-		);
+		background: rgba(var(--interactive-gradient-1), 0.1);
 		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
 		cursor: pointer;
-		transition: all 0.3s ease;
+		transition:
+			transform 0.2s ease,
+			box-shadow 0.2s ease;
 		text-align: left;
 		position: relative;
-		overflow: hidden;
 	}
 
 	.onboarding-card:hover {
@@ -712,15 +597,13 @@
 		justify-content: center;
 		margin-right: 1rem;
 		flex-shrink: 0;
-		transition: all 0.3s ease;
+		transition: transform 0.2s ease;
 		position: relative;
 		z-index: 1;
-		box-shadow: 0 0 10px rgba(var(--interactive-gradient-1), 0.1);
 	}
 
 	.onboarding-card:hover .onboarding-icon {
 		background: rgba(var(--interactive-gradient-1), 0.25);
-		box-shadow: 0 0 15px rgba(var(--interactive-gradient-1), 0.2);
 		transform: scale(1.05);
 	}
 
@@ -773,26 +656,6 @@
 		box-shadow: 0 5px 15px rgba(var(--interactive-gradient-1), 0.25);
 	}
 
-	/* Apply gradients only for themed versions */
-	:global(.dark-theme) .create-new-btn,
-	:global(.cosmic-theme) .create-new-btn {
-		background: linear-gradient(
-			135deg,
-			rgba(var(--interactive-gradient-1), 0.6) 0%,
-			rgba(var(--interactive-gradient-2), 0.7) 100%
-		);
-		color: var(--text-primary);
-	}
-
-	:global(.dark-theme) .create-new-btn:hover,
-	:global(.cosmic-theme) .create-new-btn:hover {
-		background: linear-gradient(
-			135deg,
-			rgba(var(--interactive-gradient-1), 0.7) 0%,
-			rgba(var(--interactive-gradient-2), 0.8) 100%
-		);
-	}
-
 	.message.error {
 		margin-top: 1rem;
 		padding: 1rem;
@@ -820,7 +683,9 @@
 		color: var(--text-secondary);
 		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
 		cursor: pointer;
-		transition: all 0.2s ease;
+		transition:
+			background 0.2s ease,
+			border-color 0.2s ease;
 	}
 
 	.filter-btn:hover {

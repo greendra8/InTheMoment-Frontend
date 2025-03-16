@@ -266,14 +266,7 @@
 		transition: all 0.3s ease;
 		position: relative;
 		overflow: hidden;
-		backdrop-filter: blur(5px);
 		box-shadow: 0 4px 15px var(--ui-shadow);
-	}
-
-	/* light theme featured playlist */
-	:global(.light-theme) .featured-playlist,
-	:global(.light-theme) .playlist-item {
-		background: var(--grey-shade) !important;
 	}
 
 	.featured-playlist:hover {
@@ -366,7 +359,6 @@
 		transition: all 0.3s ease;
 		position: relative;
 		overflow: hidden;
-		backdrop-filter: blur(5px);
 		box-shadow: 0 4px 15px var(--ui-shadow);
 	}
 
@@ -468,7 +460,6 @@
 		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
 		position: relative;
 		overflow: hidden;
-		backdrop-filter: blur(5px);
 		box-shadow: 0 4px 15px var(--ui-shadow);
 	}
 

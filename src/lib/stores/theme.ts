@@ -5,7 +5,7 @@ import type { ExtendedSession } from '$lib/stores/session';
 import { get } from 'svelte/store';
 
 // Theme types
-export type ThemeType = 'light' | 'dark' | 'cosmic';
+export type ThemeType = 'dark' | 'cosmic';
 
 // Track the last applied theme to prevent redundant applications
 let lastAppliedTheme: ThemeType | null = null;
@@ -33,7 +33,7 @@ export function getThemeFromStorage(): ThemeType | null {
     if (!browser) return null;
 
     const storedTheme = localStorage.getItem('theme');
-    if (storedTheme === 'light' || storedTheme === 'dark' || storedTheme === 'cosmic') {
+    if (storedTheme === 'dark' || storedTheme === 'cosmic') {
         return storedTheme as ThemeType;
     }
 
@@ -115,17 +115,15 @@ export function applyTheme(
     }
 
     // Apply theme class to document
-    document.documentElement.classList.remove('light-theme', 'dark-theme');
-    if (newTheme === 'light') {
-        document.documentElement.classList.add('light-theme');
-    } else if (newTheme === 'dark') {
+    document.documentElement.classList.remove('dark-theme');
+    if (newTheme === 'dark') {
         document.documentElement.classList.add('dark-theme');
     }
     // For cosmic theme, we don't need to add a class since it's the default in :root
 }
 
 /**
- * Toggle theme function - cycles through available themes
+ * Toggle theme function - cycles between cosmic and dark
  */
 export function toggleTheme(): void {
     // Don't toggle theme on landing or auth pages
@@ -134,10 +132,8 @@ export function toggleTheme(): void {
     theme.update(currentTheme => {
         let newTheme: ThemeType;
 
-        // Cycle through themes: cosmic → light → dark → cosmic
+        // Cycle between cosmic and dark
         if (currentTheme === 'cosmic') {
-            newTheme = 'light';
-        } else if (currentTheme === 'light') {
             newTheme = 'dark';
         } else {
             newTheme = 'cosmic';
@@ -184,7 +180,7 @@ if (browser) {
         const currentThemeValue = get(theme);
 
         // Skip if profile theme is invalid
-        if (profileTheme !== 'light' && profileTheme !== 'dark' && profileTheme !== 'cosmic') {
+        if (profileTheme !== 'dark' && profileTheme !== 'cosmic') {
             log('No valid theme in profile');
             return;
         }

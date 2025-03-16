@@ -467,17 +467,20 @@
 
 	/* Theme-specific colors for first layer */
 	.bg-light-clouds::before {
-		background: radial-gradient(circle at 20% 30%, rgba(79, 172, 254, 0.12) 0%, transparent 60%),
+		background:
+			radial-gradient(circle at 20% 30%, rgba(79, 172, 254, 0.12) 0%, transparent 60%),
 			radial-gradient(circle at 80% 70%, rgba(0, 242, 254, 0.12) 0%, transparent 60%);
 	}
 
 	.bg-dark-clouds::before {
-		background: radial-gradient(circle at 20% 30%, rgba(79, 172, 254, 0.12) 0%, transparent 60%),
+		background:
+			radial-gradient(circle at 20% 30%, rgba(79, 172, 254, 0.12) 0%, transparent 60%),
 			radial-gradient(circle at 80% 70%, rgba(0, 242, 254, 0.12) 0%, transparent 60%);
 	}
 
 	.bg-cosmic::before {
-		background: radial-gradient(circle at 20% 30%, rgba(106, 90, 205, 0.15) 0%, transparent 60%),
+		background:
+			radial-gradient(circle at 20% 30%, rgba(106, 90, 205, 0.15) 0%, transparent 60%),
 			radial-gradient(circle at 80% 70%, rgba(132, 112, 255, 0.15) 0%, transparent 60%);
 	}
 
@@ -497,17 +500,20 @@
 
 	/* Theme-specific colors for second layer */
 	.bg-light-clouds::after {
-		background: radial-gradient(circle at 70% 20%, rgba(102, 126, 234, 0.15) 0%, transparent 60%),
+		background:
+			radial-gradient(circle at 70% 20%, rgba(102, 126, 234, 0.15) 0%, transparent 60%),
 			radial-gradient(circle at 30% 80%, rgba(118, 75, 162, 0.15) 0%, transparent 60%);
 	}
 
 	.bg-dark-clouds::after {
-		background: radial-gradient(circle at 70% 20%, rgba(102, 126, 234, 0.15) 0%, transparent 60%),
+		background:
+			radial-gradient(circle at 70% 20%, rgba(102, 126, 234, 0.15) 0%, transparent 60%),
 			radial-gradient(circle at 30% 80%, rgba(118, 75, 162, 0.15) 0%, transparent 60%);
 	}
 
 	.bg-cosmic::after {
-		background: radial-gradient(circle at 70% 20%, rgba(123, 104, 238, 0.18) 0%, transparent 60%),
+		background:
+			radial-gradient(circle at 70% 20%, rgba(123, 104, 238, 0.18) 0%, transparent 60%),
 			radial-gradient(circle at 30% 80%, rgba(147, 112, 219, 0.18) 0%, transparent 60%);
 	}
 
@@ -553,12 +559,14 @@
 	}
 
 	.dark-theme .hypnosis-bg::before {
-		background: radial-gradient(circle at 20% 30%, rgba(138, 43, 226, 0.15) 0%, transparent 70%),
+		background:
+			radial-gradient(circle at 20% 30%, rgba(138, 43, 226, 0.15) 0%, transparent 70%),
 			radial-gradient(circle at 80% 70%, rgba(147, 112, 219, 0.15) 0%, transparent 70%);
 	}
 
 	.hypnosis-bg::before {
-		background: radial-gradient(circle at 20% 30%, rgba(138, 43, 226, 0.15) 0%, transparent 70%),
+		background:
+			radial-gradient(circle at 20% 30%, rgba(138, 43, 226, 0.15) 0%, transparent 70%),
 			radial-gradient(circle at 80% 70%, rgba(147, 112, 219, 0.15) 0%, transparent 70%);
 	}
 
@@ -575,12 +583,14 @@
 	}
 
 	.dark-theme .hypnosis-bg::after {
-		background: radial-gradient(circle at 70% 20%, rgba(186, 85, 211, 0.15) 0%, transparent 70%),
+		background:
+			radial-gradient(circle at 70% 20%, rgba(186, 85, 211, 0.15) 0%, transparent 70%),
 			radial-gradient(circle at 30% 80%, rgba(153, 50, 204, 0.15) 0%, transparent 70%);
 	}
 
 	.hypnosis-bg::after {
-		background: radial-gradient(circle at 70% 20%, rgba(186, 85, 211, 0.15) 0%, transparent 70%),
+		background:
+			radial-gradient(circle at 70% 20%, rgba(186, 85, 211, 0.15) 0%, transparent 70%),
 			radial-gradient(circle at 30% 80%, rgba(153, 50, 204, 0.15) 0%, transparent 70%);
 	}
 
@@ -826,11 +836,6 @@
 		color: var(--text-primary);
 	}
 
-	/* Light theme adjustments for buttons */
-	:global(.light-theme) .show-feedback-button {
-		background: #000000;
-	}
-
 	/* Dropdown Menu */
 	.menu {
 		position: absolute;
@@ -846,7 +851,6 @@
 		z-index: 10;
 		overflow: hidden;
 		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
-		backdrop-filter: blur(5px);
 	}
 
 	.menu ul {
@@ -896,8 +900,6 @@
 		right: 0;
 		bottom: 0;
 		background-color: rgba(0, 0, 0, 0.5);
-		backdrop-filter: blur(5px);
-		-webkit-backdrop-filter: blur(5px);
 		display: flex;
 		justify-content: center;
 		align-items: flex-end;

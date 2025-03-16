@@ -53,7 +53,7 @@
 		if (!isLandingOrAuthRoute && typedSession.profile?.theme) {
 			const profileTheme = typedSession.profile.theme;
 			// Validate theme value to avoid type errors
-			if (profileTheme === 'light' || profileTheme === 'dark' || profileTheme === 'cosmic') {
+			if (profileTheme === 'dark' || profileTheme === 'cosmic') {
 				// Update theme store with DB value (false = don't save back to DB)
 				setTheme(profileTheme);
 				// Clear serverTheme to let the reactive store take over
