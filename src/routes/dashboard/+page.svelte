@@ -314,17 +314,7 @@
 	</section>
 </div>
 
-<!-- dummy content divs with no styling but that are tall enough to scroll -->
-<div class="dummy-content"></div>
-<div class="dummy-content"></div>
-<div class="dummy-content"></div>
-<div class="dummy-content"></div>
-<div class="dummy-content"></div>
-
 <style>
-	.dummy-content {
-		height: 1000px;
-	}
 	/* Base Styles - Note: Container width is handled by global layout */
 	.neo-dashboard {
 		position: relative;
