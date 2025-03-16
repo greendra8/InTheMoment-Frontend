@@ -226,15 +226,15 @@
 						class="theme-option cosmic-option {$theme === 'cosmic' ? 'active' : ''}"
 						on:click={() => handleThemeChange('cosmic')}
 					>
-						<i class="fas fa-rocket"></i>
-						Cosmic
+						<i class="fas fa-galaxy"></i>
+						Galaxy
 					</button>
 					<button
 						class="theme-option dark-option {$theme === 'dark' ? 'active' : ''}"
 						on:click={() => handleThemeChange('dark')}
 					>
-						<i class="fas fa-moon"></i>
-						Dark
+						<i class="fas fa-gem"></i>
+						Gem
 					</button>
 				</div>
 			</div>

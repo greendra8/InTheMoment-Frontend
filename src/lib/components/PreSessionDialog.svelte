@@ -750,7 +750,6 @@
 			rgba(var(--background-card-rgb), 0.7) 100%
 		);
 		border-radius: 16px;
-		backdrop-filter: blur(5px);
 		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
 		box-shadow: 0 8px 20px var(--ui-shadow);
 		position: relative;
