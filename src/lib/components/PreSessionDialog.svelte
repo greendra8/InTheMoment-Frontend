@@ -326,10 +326,12 @@
 					debugInfo.lastTranscription = response;
 					console.log('Whisper transcription:', response);
 				} catch (transcriptionError) {
-					console.error('Transcription error:', transcriptionError);
+					console.error('Transcription error after retries:', transcriptionError);
 					isThinking = false;
 					buttonState = 'active';
-					showError("We couldn't process your audio. Please try again or use text input.");
+					showError(
+						"We couldn't process your audio. The system tried multiple times but failed. Please try again or use text input."
+					);
 					isProcessing = false;
 					return;
 				}
@@ -464,14 +466,18 @@
 					}
 				}
 			} catch (aiError) {
-				console.error('AI recommendation error:', aiError);
+				console.error('AI recommendation error after retries:', aiError);
 				isThinking = false;
 				buttonState = 'active';
-				showError("We couldn't get a response. Let's try again.");
+				showError(
+					"We couldn't get a response from our AI system after multiple attempts. Let's try again or try a different question."
+				);
 			}
 		} catch (error) {
 			console.error('Error processing response:', error);
-			showError("Something went wrong. Let's try again.");
+			showError(
+				"Something went wrong. We tried multiple times but couldn't complete your request. Let's try again."
+			);
 			buttonState = 'active';
 		} finally {
 			isProcessing = false;
@@ -963,7 +969,7 @@
 
 	.question {
 		color: var(--text-primary);
-		font-size: 1.2rem;
+		font-size: 1.1rem;
 		line-height: 1.6;
 		margin: 0;
 		font-weight: 500;
