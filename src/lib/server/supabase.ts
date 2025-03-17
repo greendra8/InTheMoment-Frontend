@@ -280,6 +280,7 @@ export async function serverTranscribeAudio(audioBuffer: Buffer): Promise<string
     formData.append('file', file);
 
     formData.append('model', 'whisper-large-v3');
+    formData.append('language', 'en');
     formData.append('response_format', 'verbose_json');
 
     console.log(`Sending transcription request with file: ${fileName}, size: ${audioBuffer.length} bytes`);
