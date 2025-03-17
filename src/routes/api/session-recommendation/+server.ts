@@ -1,11 +1,40 @@
-import { json } from '@sveltejs/kit';
+import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { serverGetSessionRecommendation } from '$lib/server/supabase';
 
-export const POST: RequestHandler = async ({ request }) => {
+// Helper function to retry failed operations
+async function withRetry<T>(
+    operation: () => Promise<T>,
+    maxRetries = 3,
+    delay = 1000
+): Promise<T> {
+    let lastError: Error | null = null;
+
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+        try {
+            return await operation();
+        } catch (error) {
+            lastError = error as Error;
+            console.warn(`Attempt ${attempt + 1}/${maxRetries} failed:`, error);
+
+            if (attempt < maxRetries - 1) {
+                // Wait before retrying (with exponential backoff)
+                await new Promise(resolve => setTimeout(resolve, delay * Math.pow(2, attempt)));
+            }
+        }
+    }
+
+    throw lastError;
+}
+
+export const POST: RequestHandler = async ({ request, locals }) => {
     try {
         // Check if user is authenticated
-        // This would typically use locals.session, but we're keeping it simple for now
+        const { session, user } = locals;
+
+        if (!session || !user) {
+            throw error(401, 'Unauthorized: Authentication required');
+        }
 
         // Get the messages from the request
         const { messages, localTime } = await request.json();
@@ -26,11 +55,20 @@ export const POST: RequestHandler = async ({ request }) => {
             }
         }
 
-        const recommendation = await serverGetSessionRecommendation(messages, localTime);
+        // Get session recommendation with retry mechanism
+        const recommendation = await withRetry(() =>
+            serverGetSessionRecommendation(messages, localTime)
+        );
 
         return json({ content: recommendation });
     } catch (error) {
-        console.error('Error in session-recommendation endpoint:', error);
+        console.error('Error in session-recommendation endpoint after retries:', error);
+
+        // Check if this is an authentication error we threw
+        if (error instanceof Error && error.message.includes('Unauthorized')) {
+            return json({ error: error.message }, { status: 401 });
+        }
+
         return json({ error: 'Failed to get session recommendation' }, { status: 500 });
     }
 }; 
