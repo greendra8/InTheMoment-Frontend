@@ -237,7 +237,8 @@
 		<div class="playlists-grid">
 			{#each playlists.slice(0, 4) as playlist, i}
 				<div
-					class="playlist-card card-color-{i % 4}"
+					class="playlist-card"
+					style="--bg-pattern: url('{playlist.bgPattern}')"
 					on:click={() => handleNavigation(`/playlists/${playlist.id}`)}
 					on:keydown={(e) => e.key === 'Enter' && handleNavigation(`/playlists/${playlist.id}`)}
 					tabindex="0"
@@ -270,7 +271,8 @@
 			<div class="sessions-list">
 				{#each meditations.slice(0, 3) as meditation, i (meditation.id)}
 					<div
-						class="session-item session-color-{i % 3}"
+						class="session-item"
+						style="--bg-pattern: url('{meditation.bgPattern}')"
 						on:click={() => handleNavigation(`/session/${meditation.id}`)}
 						on:keydown={(e) => e.key === 'Enter' && handleNavigation(`/session/${meditation.id}`)}
 						tabindex="0"
@@ -725,6 +727,29 @@
 		box-shadow: 0 6px 15px var(--ui-shadowHover);
 	}
 
+	/* Background pattern for playlist cards */
+	.playlist-card::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		left: 0;
+		width: 100%;
+		background-position: center;
+		background-size: cover;
+		background-image: var(--bg-pattern);
+		opacity: 0.15;
+		z-index: 0;
+		mask-image: linear-gradient(135deg, rgba(0, 0, 0, 0.9) 30%, rgba(0, 0, 0, 0.2) 100%);
+		-webkit-mask-image: linear-gradient(135deg, rgba(0, 0, 0, 0.9) 30%, rgba(0, 0, 0, 0.2) 100%);
+		transition: opacity 0.3s ease;
+	}
+
+	.playlist-card:hover::before {
+		opacity: 0.25;
+	}
+
 	.playlist-content {
 		position: relative;
 		z-index: 1;
@@ -795,21 +820,48 @@
 		);
 		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
 		cursor: pointer;
-		transition: all 0.3s ease;
+		transition:
+			transform 0.2s ease,
+			box-shadow 0.2s ease;
 		position: relative;
 		overflow: hidden;
+		box-shadow: 0 4px 15px var(--ui-shadow);
 	}
 
 	.session-item:hover {
-		border-color: rgba(var(--interactive-gradient-1), 0.2);
+		background: var(--fixed-card-bg);
+		border-color: var(--fixed-card-border-hover);
 		transform: translateY(-2px);
 		box-shadow: 0 6px 15px var(--ui-shadowHover);
+	}
+
+	/* Background pattern styling */
+	.session-item::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		width: 70%;
+		background-position: center;
+		background-size: cover;
+		background-image: var(--bg-pattern);
+		opacity: 0.15;
+		z-index: 0;
+		mask-image: linear-gradient(to left, rgba(0, 0, 0, 1) 40%, rgba(0, 0, 0, 0) 100%);
+		-webkit-mask-image: linear-gradient(to left, rgba(0, 0, 0, 1) 40%, rgba(0, 0, 0, 0) 100%);
+		transition: opacity 0.3s ease;
+	}
+
+	.session-item:hover::before {
+		opacity: 0.25;
 	}
 
 	.session-play-button {
 		width: 40px;
 		height: 40px;
-		background: var(--play-btn-bg);
+		background: var(--fixed-play-button);
+		box-shadow: 0 0 8px rgba(var(--interactive-gradient-1), 0.3);
 		color: var(--play-btn-text);
 		border-radius: 50%;
 		display: flex;
@@ -817,16 +869,17 @@
 		justify-content: center;
 		margin-right: 1rem;
 		flex-shrink: 0;
-		box-shadow: 0 0 15px rgba(var(--interactive-gradient-1), 0.2);
-		transition: all 0.3s ease;
+		transition:
+			transform 0.2s ease,
+			background 0.2s ease;
 		position: relative;
 		z-index: 1;
 	}
 
 	.session-item:hover .session-play-button {
-		background: var(--play-btn-bg-hover);
-		box-shadow: 0 0 20px rgba(var(--interactive-gradient-1), 0.3);
+		background: var(--fixed-play-button-hover);
 		transform: scale(1.05);
+		box-shadow: 0 0 8px rgba(var(--interactive-gradient-1), 0.6);
 	}
 
 	.session-info {
@@ -841,17 +894,30 @@
 		font-weight: 500;
 		margin: 0;
 		color: var(--text-primary);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
 	.session-info .title-row {
-		margin-bottom: 0.2rem;
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		margin-bottom: 0.3rem;
 	}
 
 	/* Ensure consistent badge styling in session info */
 	.session-info .content-type-badge {
+		font-size: 0.7rem;
+		padding: 0.2rem 0.5rem;
+		border-radius: 10px;
 		background: var(--meditation-badge-bg);
 		color: var(--meditation-badge-text);
+		font-weight: 500;
+		text-transform: capitalize;
 		border: 1px solid rgba(255, 255, 255, 0.1);
+		display: inline-block;
 	}
 
 	.session-info .content-type-badge.hypnosis {

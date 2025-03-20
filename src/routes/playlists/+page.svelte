@@ -84,7 +84,7 @@
 		<div class="playlists-list">
 			{#each data.playlists as playlist, i}
 				<div
-					class="playlist-item card-color-{i % 4}"
+					class="playlist-item"
 					on:click={() => handleNavigation(`/playlists/${playlist.id}`)}
 					on:keydown={(e) => e.key === 'Enter' && handleNavigation(`/playlists/${playlist.id}`)}
 					tabindex="0"
@@ -408,39 +408,6 @@
 	.playlist-item:hover .playlist-arrow {
 		opacity: 1;
 		transform: translateX(5px);
-	}
-
-	/* Card color variations */
-	.card-color-0 {
-		background: linear-gradient(
-			135deg,
-			rgba(var(--interactive-gradient-1), 0.15) 0%,
-			rgba(var(--interactive-gradient-2), 0.1) 100%
-		);
-	}
-
-	.card-color-1 {
-		background: linear-gradient(
-			135deg,
-			rgba(var(--gradient-3), 0.15) 0%,
-			rgba(var(--gradient-4), 0.1) 100%
-		);
-	}
-
-	.card-color-2 {
-		background: linear-gradient(
-			135deg,
-			rgba(var(--gradient-5), 0.15) 0%,
-			rgba(var(--gradient-6), 0.1) 100%
-		);
-	}
-
-	.card-color-3 {
-		background: linear-gradient(
-			135deg,
-			rgba(var(--gradient-7), 0.15) 0%,
-			rgba(var(--gradient-8), 0.1) 100%
-		);
 	}
 
 	/* Empty State */

@@ -1,6 +1,7 @@
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { getUserMeditations } from '$lib/server/supabase';
+import { assignBackgrounds } from '$lib/utils/backgroundPatterns';
 
 export const load: PageServerLoad = async ({ locals, url, depends }) => {
 	// This makes the function re-run when this dependency is invalidated
@@ -25,8 +26,11 @@ export const load: PageServerLoad = async ({ locals, url, depends }) => {
 			contentType || undefined
 		);
 
+		// Assign background patterns to meditations using the shared utility
+		const meditationsWithBackgrounds = assignBackgrounds(meditations);
+
 		return {
-			meditations,
+			meditations: meditationsWithBackgrounds,
 			totalCount: totalCount || 0,
 			totalPages: Math.ceil((totalCount || 0) / limit),
 			limit,

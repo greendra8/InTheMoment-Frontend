@@ -83,7 +83,7 @@
 						? `/new?playlist=${data.playlist.id}`
 						: null}
 				<div
-					class="lesson-card lesson-color-{i % 4}"
+					class="lesson-card"
 					class:disabled={!href}
 					on:click={() => handleNavigation(href)}
 					on:keydown={(e) => e.key === 'Enter' && handleNavigation(href)}
@@ -446,39 +446,6 @@
 		color: var(--text-secondary);
 		font-size: 1.1rem;
 		opacity: 0.7;
-	}
-
-	/* Card color variations */
-	.lesson-color-0 {
-		background: linear-gradient(
-			135deg,
-			rgba(var(--interactive-gradient-1), 0.1) 0%,
-			rgba(var(--interactive-gradient-2), 0.05) 100%
-		);
-	}
-
-	.lesson-color-1 {
-		background: linear-gradient(
-			135deg,
-			rgba(var(--gradient-3), 0.1) 0%,
-			rgba(var(--gradient-4), 0.05) 100%
-		);
-	}
-
-	.lesson-color-2 {
-		background: linear-gradient(
-			135deg,
-			rgba(var(--gradient-5), 0.1) 0%,
-			rgba(var(--gradient-6), 0.05) 100%
-		);
-	}
-
-	.lesson-color-3 {
-		background: linear-gradient(
-			135deg,
-			rgba(var(--gradient-7), 0.1) 0%,
-			rgba(var(--gradient-8), 0.05) 100%
-		);
 	}
 
 	/* Disabled state */

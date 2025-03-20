@@ -2,6 +2,7 @@
 	import type { PageData } from './$types';
 	import { goto } from '$app/navigation';
 	import { text, background, ui, icon } from '$lib/theme';
+	import { onMount } from 'svelte';
 
 	export let data: PageData;
 
@@ -140,8 +141,12 @@
 			</div>
 		{:else}
 			<ul>
-				{#each allMeditations as meditation (meditation.id)}
-					<li class:processing={meditation.status === 'processing'}>
+				{#each allMeditations as meditation, index (meditation.id)}
+					<li
+						class:processing={meditation.status === 'processing'}
+						class:featured={index === 0 && allMeditations.length > 1}
+						style="--bg-pattern: url('{meditation.bgPattern}')"
+					>
 						{#if meditation.status !== 'processing'}
 							<a href="/session/{meditation.id}" class="play-button">
 								<i class="fas fa-play"></i>
@@ -150,18 +155,31 @@
 								<div class="title-wrapper">
 									<h3 class="title-text">{meditation.title || 'Untitled Meditation'}</h3>
 									<div class="icon-wrapper">
-										{#if meditation.listened}
+										{#if meditation.listened && index !== 0}
 											<i class="fas fa-check-circle listened-icon"></i>
 										{/if}
-										<span
-											class="content-type-badge"
-											class:hypnosis={meditation.content_type === 'hypnosis'}
-										>
-											{meditation.content_type === 'hypnosis' ? 'Hypnosis' : 'Meditation'}
-										</span>
+										{#if index !== 0}
+											<span
+												class="content-type-badge"
+												class:hypnosis={meditation.content_type === 'hypnosis'}
+											>
+												{meditation.content_type === 'hypnosis' ? 'Hypnosis' : 'Meditation'}
+											</span>
+										{/if}
 									</div>
 								</div>
-								<p>
+								{#if index === 0 && allMeditations.length > 1}
+									{#if meditation.listened}
+										<i class="fas fa-check-circle listened-icon"></i>
+									{/if}
+									<span
+										class="content-type-badge"
+										class:hypnosis={meditation.content_type === 'hypnosis'}
+									>
+										{meditation.content_type === 'hypnosis' ? 'Hypnosis' : 'Meditation'}
+									</span>
+								{/if}
+								<p class="meditation-description">
 									{meditation.lesson_playlists
 										? `Playlist: ${meditation.lesson_playlists.playlist_name}`
 										: `Theme: ${meditation.theme || 'N/A'}`}
@@ -341,11 +359,104 @@
 		overflow: hidden;
 	}
 
+	li.featured {
+		flex-direction: column;
+		padding: 1.5rem;
+		text-align: center;
+		margin-bottom: 0.5rem;
+		border: 1px solid rgba(var(--interactive-gradient-1), 0.2);
+	}
+
 	li:hover {
 		background: var(--fixed-card-bg);
 		border-color: var(--fixed-card-border-hover);
 		transform: translateY(-2px);
 		box-shadow: 0 6px 15px var(--ui-shadowHover);
+	}
+
+	li.featured:hover {
+		transform: translateY(-2px);
+	}
+
+	li.featured::before {
+		width: 100%;
+		opacity: 0.2;
+		mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.2) 100%);
+		-webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.2) 100%);
+	}
+
+	li.featured .play-button {
+		margin: 0 auto 1.2rem;
+		width: 50px;
+		height: 50px;
+		font-size: 1.2rem;
+		box-shadow: 0 0 15px rgba(var(--interactive-gradient-1), 0.4);
+	}
+
+	li.featured .meditation-info {
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		position: relative;
+	}
+
+	li.featured .listened-icon {
+		position: absolute;
+		top: -75px;
+		right: 0;
+		font-size: 1.1rem;
+	}
+
+	li.featured .title-wrapper {
+		margin-bottom: 0.6rem;
+		justify-content: center;
+	}
+
+	li.featured .title-text {
+		font-size: 1.2rem;
+		text-align: center;
+	}
+
+	li.featured .meditation-meta {
+		justify-content: center;
+		margin-top: 0.8rem;
+	}
+
+	li.featured .content-type-badge {
+	}
+
+	li.featured .meditation-description {
+		display: none;
+	}
+
+	li:hover {
+		background: var(--fixed-card-bg);
+		border-color: var(--fixed-card-border-hover);
+		transform: translateY(-2px);
+		box-shadow: 0 6px 15px var(--ui-shadowHover);
+	}
+
+	/* Background pattern styling */
+	li::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		width: 70%;
+		background-position: center;
+		background-size: cover;
+		background-image: var(--bg-pattern);
+		opacity: 0.15;
+		z-index: 0;
+		mask-image: linear-gradient(to left, rgba(0, 0, 0, 1) 40%, rgba(0, 0, 0, 0) 100%);
+		-webkit-mask-image: linear-gradient(to left, rgba(0, 0, 0, 1) 40%, rgba(0, 0, 0, 0) 100%);
+		transition: opacity 0.3s ease;
+	}
+
+	li:hover::before {
+		opacity: 0.25;
 	}
 
 	.play-button {
@@ -469,9 +580,9 @@
 	}
 
 	.load-more-btn {
-		width: 100%;
+		width: 80%;
 		padding: 0.9rem 1rem;
-		margin-top: 1.5rem;
+		margin: 1.5rem auto 0 auto;
 		background: var(--btn-bg);
 		color: var(--btn-text);
 		border: 1px solid rgba(var(--interactive-gradient-1), 0.2);
@@ -727,6 +838,24 @@
 
 		li {
 			padding: 0.8rem;
+		}
+
+		li.featured {
+			padding: 1.2rem;
+		}
+
+		li.featured .play-button {
+			width: 45px;
+			height: 45px;
+			margin-bottom: 1rem;
+		}
+
+		li.featured .title-text {
+			font-size: 1.1rem;
+		}
+
+		li.featured .listened-icon {
+			top: -65px;
 		}
 
 		.play-button {

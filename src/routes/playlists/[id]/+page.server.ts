@@ -1,6 +1,7 @@
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { getPlaylist, getPlaylistLessons, getUserProgress } from '$lib/server/supabase';
+import { getDeterministicBgPattern } from '$lib/utils/backgroundPatterns';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
   try {
@@ -18,6 +19,12 @@ export const load: PageServerLoad = async ({ params, locals }) => {
       throw error(404, 'Playlist not found');
     }
 
+    // Add background pattern to the playlist
+    const playlistWithBackground = {
+      ...playlist,
+      bgPattern: getDeterministicBgPattern(playlist)
+    };
+
     // Only fetch visible lessons
     const lessons = await getPlaylistLessons(playlistId, userId, false);
     const completedLessons = await getUserProgress(userId, playlistId);
@@ -34,7 +41,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
       .length;
 
     return {
-      playlist,
+      playlist: playlistWithBackground,
       lessons,
       completedLessons,
       nextLessonToGenerate,
