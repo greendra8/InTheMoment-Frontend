@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '../database.types';
-import { getSessionRecommendationPrompt } from '../ai/prompts';
+import { getSessionRecommendationPrompt, getFeedbackConversationPrompt } from '../ai/prompts';
 
 const PUBLIC_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const PRIVATE_SUPABASE_SERVICE_ROLE_KEY = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
@@ -308,21 +308,53 @@ export async function serverTranscribeAudio(audioBuffer: Buffer): Promise<string
   }
 }
 
-// Server-side implementation for session recommendation
-export async function serverGetSessionRecommendation(messages: Array<{ role: string, content: string }>, localTime: string) {
+// Unified AI conversation handler for both session recommendations and feedback
+export async function serverHandleAIConversation(
+  messages: Array<{ role: string, content: string }>,
+  mode: 'session-recommendation' | 'feedback-conversation',
+  options?: {
+    localTime?: string,
+    sessionId?: string
+  }
+) {
   try {
-    // Enforce character limit on the last user message if it exists
-    if (messages.length > 0) {
-      const lastMessage = messages[messages.length - 1];
-      if (lastMessage.role === 'user' && lastMessage.content.length > 500) {
-        // Truncate to 500 characters
-        lastMessage.content = lastMessage.content.substring(0, 500);
-        console.log('Truncated user message to 500 characters');
-      }
-    }
+    // Get system prompt based on mode
+    let systemPrompt: string;
 
-    // Get the system prompt from our prompts file
-    const systemPrompt = getSessionRecommendationPrompt(localTime);
+    if (mode === 'session-recommendation') {
+      if (!options?.localTime) {
+        throw new Error('localTime is required for session recommendations');
+      }
+
+      // Enforce character limit on the last user message if it exists
+      if (messages.length > 0) {
+        const lastMessage = messages[messages.length - 1];
+        if (lastMessage.role === 'user' && lastMessage.content.length > 500) {
+          // Truncate to 500 characters
+          lastMessage.content = lastMessage.content.substring(0, 500);
+          console.log('Truncated user message to 500 characters');
+        }
+      }
+
+      systemPrompt = getSessionRecommendationPrompt(options.localTime);
+    }
+    else if (mode === 'feedback-conversation') {
+      // Get session details for context (optional)
+      let sessionInfo = null;
+      if (options?.sessionId) {
+        try {
+          sessionInfo = await getMeditation(options.sessionId);
+        } catch (error) {
+          console.error('Error fetching session info:', error);
+          // We'll continue even if this fails
+        }
+      }
+
+      systemPrompt = getFeedbackConversationPrompt(sessionInfo);
+    }
+    else {
+      throw new Error(`Unsupported conversation mode: ${mode}`);
+    }
 
     // Convert messages to Gemini format
     const contents = [
@@ -340,6 +372,7 @@ export async function serverGetSessionRecommendation(messages: Array<{ role: str
       });
     }
 
+    // Call Gemini API for both types of conversations
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${import.meta.env.VITE_GOOGLE_AI_API_KEY}`,
       {
@@ -351,10 +384,7 @@ export async function serverGetSessionRecommendation(messages: Array<{ role: str
           contents,
           generationConfig: {
             temperature: 1,
-            topK: 40,
-            topP: 0.95,
             maxOutputTokens: 8192,
-            responseMimeType: "text/plain"
           }
         })
       }
@@ -362,14 +392,14 @@ export async function serverGetSessionRecommendation(messages: Array<{ role: str
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Google Gemini API error:', errorText);
-      throw new Error(`Failed to get session recommendation: ${response.status} ${response.statusText}`);
+      console.error(`Google Gemini API error (${mode}):`, errorText);
+      throw new Error(`Failed to process ${mode}: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
     return data.candidates[0].content.parts[0].text;
   } catch (error) {
-    console.error('Error in serverGetSessionRecommendation:', error);
+    console.error(`Error in serverHandleAIConversation (${mode}):`, error);
     throw error;
   }
 }

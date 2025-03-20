@@ -6,7 +6,7 @@
 	import { text, background, ui, icon } from '$lib/theme';
 	import { meditationGeneration } from '$lib/stores/meditationGeneration';
 	import { showError, showLoading, notifications, showSuccess } from '$lib/stores/notifications';
-	import PreSessionDialog from '$lib/components/PreSessionDialog.svelte';
+	import SessionDialog from '$lib/components/SessionDialog/SessionDialog.svelte';
 	import { browser } from '$app/environment';
 
 	// Cookie constants
@@ -575,12 +575,13 @@
 <div class="session-container">
 	{#if showPreSession}
 		<h1>Session Check-in</h1>
-		<PreSessionDialog
+		<SessionDialog
+			mode="pre"
+			{initialQuestion}
+			{isFirstSession}
+			{hasPreviousCheckIn}
 			on:config={handlePreSessionConfig}
 			on:skip={handlePreSessionSkip}
-			{isFirstSession}
-			{initialQuestion}
-			{hasPreviousCheckIn}
 		/>
 	{:else}
 		<h1>New Session</h1>
@@ -810,7 +811,7 @@
 				</div>
 
 				<!-- Error message display -->
-				{#if formResult && 'type' in formResult && formResult.type === 'error'}
+				{#if formResult && typeof formResult === 'object' && 'type' in formResult && formResult.type === 'error'}
 					<div class="error-message">
 						<i class="fas fa-exclamation-circle"></i>
 						<p>{formResult.message || 'An error occurred'}</p>

@@ -247,7 +247,11 @@ export async function getSessionRecommendation(messages: Array<{ role: string, c
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ messages, localTime })
+    body: JSON.stringify({
+      messages,
+      localTime,
+      mode: 'session-recommendation'
+    })
   });
 
   if (!response.ok) {
@@ -258,4 +262,40 @@ export async function getSessionRecommendation(messages: Array<{ role: string, c
 
   const data = await response.json();
   return data.content;
+}
+
+/**
+ * Process feedback conversation and generate a final feedback summary
+ */
+export async function processFeedbackConversation(
+  messages: Array<{ role: string; content: string }>,
+  sessionId: string
+): Promise<string> {
+  try {
+    console.log('Processing feedback conversation for session', sessionId);
+
+    const response = await fetch('/api/session-recommendation', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        messages,
+        sessionId,
+        mode: 'feedback-conversation'
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('Error in processFeedbackConversation:', errorData);
+      throw new Error(`Failed to process feedback: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.response;
+  } catch (error) {
+    console.error('Error in processFeedbackConversation:', error);
+    throw error;
+  }
 }

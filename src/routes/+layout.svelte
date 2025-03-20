@@ -476,7 +476,6 @@
 	.content-container {
 		max-width: 50rem; /* 800px */
 		margin: 0 auto;
-		padding: 0.3125rem; /* 0.5rem */
 	}
 
 	.global-container {
@@ -491,10 +490,6 @@
 	}
 
 	@media (max-width: 600px) {
-		.global-container {
-			padding: 0 0.3125rem; /* 0.5rem */
-		}
-
 		main.global-container {
 			padding: 0;
 		}

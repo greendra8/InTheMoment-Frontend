@@ -1,9 +1,11 @@
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { getUserMeditations, getPlaylists } from '$lib/server/supabase';
+import { assignBackgrounds } from '$lib/utils/backgroundPatterns';
 
 // Constants
 const WEEK_IN_MS = 7 * 24 * 60 * 60 * 1000;
+
 
 export const load: PageServerLoad = async ({ locals, cookies }) => {
     const { session, user, profile } = locals;
@@ -42,24 +44,28 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
         }
 
         // Fetch data in parallel for better performance - removed profile fetch
-        const [meditationsResult, playlists] = await Promise.all([
-            getUserMeditations(user.id, 1, 5),
+        const [meditationsResult, playlistsData] = await Promise.all([
+            getUserMeditations(user.id, 1, 3),
             getPlaylists(false)
         ]);
 
         const { data: meditations, totalCount } = meditationsResult;
 
+        // Assign background patterns to meditations and playlists using the shared utility
+        const meditationsWithBackgrounds = assignBackgrounds(meditations);
+        const playlistsWithBackgrounds = assignBackgrounds(playlistsData);
+
         // Find the in-progress meditation if it exists in the fetched meditations
         // Only do this lookup if we have a valid lastMeditationId
         let inProgressMeditation = null;
-        if (lastMeditationId && meditations && meditations.length > 0) {
-            inProgressMeditation = meditations.find(m => m.id === lastMeditationId) || null;
+        if (lastMeditationId && meditationsWithBackgrounds && meditationsWithBackgrounds.length > 0) {
+            inProgressMeditation = meditationsWithBackgrounds.find(m => m.id === lastMeditationId) || null;
         }
 
         return {
-            meditations,
+            meditations: meditationsWithBackgrounds,
             totalMeditations: totalCount,
-            playlists,
+            playlists: playlistsWithBackgrounds,
             user: {
                 name: profile?.name || 'User',
                 minutesListened: profile?.minutes_listened || 0
