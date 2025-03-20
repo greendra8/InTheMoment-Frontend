@@ -95,12 +95,6 @@
 		color: rgba(186, 85, 211, 0.8);
 	}
 
-	/* Apply blur to main content when feedback is open */
-	.meditation-page.feedback-open .meditation-content > :global(*:not(.blurred-overlay)) {
-		filter: blur(2px);
-		transition: filter 0.3s ease;
-	}
-
 	/* =======================
    Responsive Design
    ======================= */
