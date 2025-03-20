@@ -501,7 +501,7 @@
 </script>
 
 {#if audioUrl}
-	<div class="audio-player" class:hidden={isFeedbackVisible}>
+	<div class="audio-player">
 		<div
 			class="canvas-container"
 			on:click={togglePlayPause}
