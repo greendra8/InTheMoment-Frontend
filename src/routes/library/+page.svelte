@@ -142,70 +142,72 @@
 		{:else}
 			<ul>
 				{#each allMeditations as meditation, index (meditation.id)}
-					<li
-						class:processing={meditation.status === 'processing'}
-						class:featured={index === 0 && allMeditations.length > 1}
-						style="--bg-pattern: url('{meditation.bgPattern}')"
-					>
-						{#if meditation.status !== 'processing'}
-							<a href="/session/{meditation.id}" class="play-button">
-								<i class="fas fa-play"></i>
-							</a>
-							<a href="/session/{meditation.id}" class="meditation-info">
-								<div class="title-wrapper">
-									<h3 class="title-text">{meditation.title || 'Untitled Meditation'}</h3>
-									<div class="icon-wrapper">
-										{#if meditation.listened && index !== 0}
+					<a href="/session/{meditation.id}" class="session-link">
+						<li
+							class:processing={meditation.status === 'processing'}
+							class:featured={index === 0 && allMeditations.length > 1}
+							style="--bg-pattern: url('{meditation.bgPattern}')"
+						>
+							{#if meditation.status !== 'processing'}
+								<div class="play-button">
+									<i class="fas fa-play"></i>
+								</div>
+								<div class="meditation-info">
+									<div class="title-wrapper">
+										<h3 class="title-text">{meditation.title || 'Untitled Meditation'}</h3>
+										<div class="icon-wrapper">
+											{#if meditation.listened && index !== 0}
+												<i class="fas fa-check-circle listened-icon"></i>
+											{/if}
+											{#if index !== 0}
+												<span
+													class="content-type-badge"
+													class:hypnosis={meditation.content_type === 'hypnosis'}
+												>
+													{meditation.content_type === 'hypnosis' ? 'Hypnosis' : 'Meditation'}
+												</span>
+											{/if}
+										</div>
+									</div>
+									{#if index === 0 && allMeditations.length > 1}
+										{#if meditation.listened}
 											<i class="fas fa-check-circle listened-icon"></i>
 										{/if}
-										{#if index !== 0}
-											<span
-												class="content-type-badge"
-												class:hypnosis={meditation.content_type === 'hypnosis'}
-											>
-												{meditation.content_type === 'hypnosis' ? 'Hypnosis' : 'Meditation'}
-											</span>
-										{/if}
+										<span
+											class="content-type-badge"
+											class:hypnosis={meditation.content_type === 'hypnosis'}
+										>
+											{meditation.content_type === 'hypnosis' ? 'Hypnosis' : 'Meditation'}
+										</span>
+									{/if}
+									<p class="meditation-description">
+										{meditation.lesson_playlists
+											? `Playlist: ${meditation.lesson_playlists.playlist_name}`
+											: `Theme: ${meditation.theme || 'N/A'}`}
+									</p>
+									<div class="meditation-meta">
+										<span class="length"
+											><i class="far fa-clock"></i> {meditation.length || 'N/A'} min</span
+										>
+										<span class="date">{new Date(meditation.created_at).toLocaleDateString()}</span>
 									</div>
 								</div>
-								{#if index === 0 && allMeditations.length > 1}
-									{#if meditation.listened}
-										<i class="fas fa-check-circle listened-icon"></i>
-									{/if}
-									<span
-										class="content-type-badge"
-										class:hypnosis={meditation.content_type === 'hypnosis'}
-									>
-										{meditation.content_type === 'hypnosis' ? 'Hypnosis' : 'Meditation'}
-									</span>
-								{/if}
-								<p class="meditation-description">
-									{meditation.lesson_playlists
-										? `Playlist: ${meditation.lesson_playlists.playlist_name}`
-										: `Theme: ${meditation.theme || 'N/A'}`}
-								</p>
-								<div class="meditation-meta">
-									<span class="length"
-										><i class="far fa-clock"></i> {meditation.length || 'N/A'} min</span
-									>
-									<span class="date">{new Date(meditation.created_at).toLocaleDateString()}</span>
+							{:else}
+								<div class="processing-icon">
+									<i class="fas fa-spinner fa-spin"></i>
 								</div>
-							</a>
-						{:else}
-							<div class="processing-icon">
-								<i class="fas fa-spinner fa-spin"></i>
-							</div>
-							<div class="meditation-info">
-								<h3>Processing Meditation...</h3>
-								<p>
-									{meditation.lesson_playlists
-										? `Playlist: ${meditation.lesson_playlists.playlist_name}`
-										: `Theme: ${meditation.theme || 'N/A'}`}
-								</p>
-								<p>Length: {meditation.length || 'N/A'} min</p>
-							</div>
-						{/if}
-					</li>
+								<div class="meditation-info">
+									<h3>Processing Meditation...</h3>
+									<p>
+										{meditation.lesson_playlists
+											? `Playlist: ${meditation.lesson_playlists.playlist_name}`
+											: `Theme: ${meditation.theme || 'N/A'}`}
+									</p>
+									<p>Length: {meditation.length || 'N/A'} min</p>
+								</div>
+							{/if}
+						</li>
+					</a>
 				{/each}
 			</ul>
 			{#if currentPage < totalPages}
@@ -338,6 +340,14 @@
 		display: flex;
 		flex-direction: column;
 		gap: 0.75rem;
+	}
+
+	.session-link {
+		text-decoration: none;
+		color: inherit;
+		display: block;
+		width: 100%;
+		cursor: pointer;
 	}
 
 	li {
@@ -479,7 +489,7 @@
 		text-decoration: none;
 	}
 
-	li:hover .play-button {
+	.session-link:hover .play-button {
 		background: var(--fixed-play-button-hover);
 		transform: scale(1.05);
 		box-shadow: 0 0 8px rgba(var(--interactive-gradient-1), 0.6);
@@ -487,7 +497,6 @@
 
 	.meditation-info {
 		flex-grow: 1;
-		text-decoration: none;
 		color: var(--text-primary);
 		position: relative;
 		z-index: 1;
