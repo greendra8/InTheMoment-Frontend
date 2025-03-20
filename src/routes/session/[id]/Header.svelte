@@ -145,7 +145,13 @@
 	}
 
 	/* Responsive Design */
-	@media (max-height: 700px) {
+	@media (max-width: 768px) {
+		.meditation-info {
+			display: none;
+		}
+	}
+
+	/* @media (max-height: 700px) {
 		header {
 			padding-top: 2rem;
 		}
@@ -161,5 +167,5 @@
 		.listened-icon {
 			top: -0.5rem;
 		}
-	}
+	} */
 </style>

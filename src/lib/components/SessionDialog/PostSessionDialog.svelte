@@ -159,7 +159,11 @@
 
 	function handleSkip() {
 		// Instead of closing, dispatch an event to show existing feedback
-		dispatch('submit', { sessionId, profileId, feedback: existingFeedback || '' });
+		if (existingFeedback) {
+			dispatch('submit', { sessionId, profileId, feedback: existingFeedback });
+		} else {
+			dispatch('close');
+		}
 	}
 
 	function handleFocus() {
@@ -234,7 +238,7 @@
 				<!-- Changed to show existing feedback instead of closing -->
 				<button class="skip-btn" on:click={handleSkip} disabled={isProcessing}>
 					<i class="fas fa-arrow-right"></i>
-					Keep existing feedback
+					{existingFeedback ? 'Keep existing feedback' : 'Cancel'}
 				</button>
 
 				<!-- Debug toggle button -->

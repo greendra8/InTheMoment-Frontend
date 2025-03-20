@@ -61,11 +61,6 @@
 		height: var(--real-viewport-height, 100vh);
 	}
 
-	/* Global fullscreen styles are applied to the body tag */
-	:global(body.meditation-fullscreen) {
-		overflow: hidden;
-	}
-
 	:global(body.meditation-fullscreen .meditation-page) {
 		position: fixed;
 		top: 0;
@@ -73,7 +68,6 @@
 		right: 0;
 		bottom: 0;
 		z-index: 100;
-		width: 100vw;
 		height: 100vh;
 	}
 
@@ -103,7 +97,7 @@
 
 	/* Apply blur to main content when feedback is open */
 	.meditation-page.feedback-open .meditation-content > :global(*:not(.blurred-overlay)) {
-		filter: blur(3px);
+		filter: blur(2px);
 		transition: filter 0.3s ease;
 	}
 

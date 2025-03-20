@@ -234,7 +234,17 @@
 		}
 
 		.check-in-container.feedback-mode {
-			padding: 3rem 1rem;
+			/* align vertically */
+			justify-content: center;
+			margin-top: -80px;
+		}
+	}
+
+	/* 550px height media query */
+	@media (max-height: 550px) {
+		.check-in-container.feedback-mode {
+			margin-top: 0;
+			justify-content: flex-start;
 		}
 	}
 </style>
