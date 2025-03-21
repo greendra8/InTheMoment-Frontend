@@ -10,6 +10,8 @@
 	import { get } from 'svelte/store';
 	import { theme, isLandingOrAuthPage, setTheme } from '$lib/stores/theme';
 	import Notifications from '$lib/components/Notifications.svelte';
+	import { browser } from '$app/environment';
+	import { setTimezoneOffsetCookie } from '$lib/utils/time';
 
 	export let data;
 	$: ({ navItems, isNativeApp, session } = data);
@@ -93,6 +95,11 @@
 
 		// Add event listener for messages from React Native
 		window.addEventListener('message', handleReactNativeMessage);
+
+		// Set timezone offset cookie when the app loads
+		if (browser) {
+			setTimezoneOffsetCookie();
+		}
 
 		return () => {
 			window.removeEventListener('message', handleReactNativeMessage);
