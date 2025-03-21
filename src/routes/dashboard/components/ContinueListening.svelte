@@ -3,6 +3,37 @@
 	export let inProgressMeditation;
 	export let recentPlaylists;
 	export let handleNavigation;
+
+	// Add variables to track drag scrolling
+	let isScrolling = false;
+	let startX: number;
+	let scrollLeft: number;
+	let container: HTMLElement;
+
+	// Handle mouse/touch events for drag scrolling
+	function onMouseDown(e: MouseEvent | TouchEvent) {
+		isScrolling = true;
+		const event = e instanceof MouseEvent ? e : e.touches[0];
+		startX = event.pageX - container.offsetLeft;
+		scrollLeft = container.scrollLeft;
+		container.style.cursor = 'grabbing';
+		container.style.userSelect = 'none';
+	}
+
+	function onMouseMove(e: MouseEvent | TouchEvent) {
+		if (!isScrolling) return;
+		e.preventDefault();
+		const event = e instanceof MouseEvent ? e : e.touches[0];
+		const x = event.pageX - container.offsetLeft;
+		const walk = x - startX; // Removed the 2x multiplier for smoother scrolling
+		container.scrollLeft = scrollLeft - walk;
+	}
+
+	function onMouseUp() {
+		isScrolling = false;
+		container.style.cursor = 'grab';
+		container.style.removeProperty('user-select');
+	}
 </script>
 
 <section class="content-section">
@@ -44,7 +75,17 @@
 
 	{#if recentPlaylists && recentPlaylists.length > 0}
 		<div class="recently-listened">
-			<div class="recent-playlists-container">
+			<div
+				class="recent-playlists-container"
+				bind:this={container}
+				on:mousedown={onMouseDown}
+				on:mousemove={onMouseMove}
+				on:mouseup={onMouseUp}
+				on:mouseleave={onMouseUp}
+				on:touchstart={onMouseDown}
+				on:touchmove={onMouseMove}
+				on:touchend={onMouseUp}
+			>
 				<div class="recent-playlists-tabs">
 					{#each recentPlaylists as playlist}
 						<div
@@ -235,7 +276,7 @@
 
 	/* Recent Playlists Tabs */
 	.recently-listened {
-		margin-top: 1.5rem;
+		margin-top: 0.5rem;
 		width: 100%;
 	}
 
@@ -248,6 +289,7 @@
 		-ms-overflow-style: none; /* IE/Edge */
 		position: relative;
 		padding: 0.5rem 1rem; /* Add padding back on the scrollable container */
+		cursor: grab; /* Indicate that container is draggable */
 	}
 
 	.recent-playlists-container::-webkit-scrollbar {
