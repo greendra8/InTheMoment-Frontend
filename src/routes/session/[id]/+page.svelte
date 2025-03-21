@@ -5,17 +5,17 @@
 	import type { PageData } from './$types';
 	import { browser } from '$app/environment';
 	import { writable } from 'svelte/store';
-	import AudioPlayer from './AudioPlayer.svelte';
+	import AudioPlayer from './components/AudioPlayer.svelte';
 	import { theme as themeStore } from '$lib/stores/theme';
 
 	// Import new components
-	import MainLayout from './MainLayout.svelte';
-	import BackgroundEffect from './BackgroundEffect.svelte';
-	import Header from './Header.svelte';
-	import NavigationControls from './NavigationControls.svelte';
-	import Menu from './Menu.svelte';
-	import FeedbackDialog from './FeedbackDialog.svelte';
-	import SessionControls from './SessionControls.svelte';
+	import MainLayout from './components/MainLayout.svelte';
+	import BackgroundEffect from './components/BackgroundEffect.svelte';
+	import Header from './components/Header.svelte';
+	import NavigationControls from './components/NavigationControls.svelte';
+	import Menu from './components/Menu.svelte';
+	import FeedbackDialog from './components/FeedbackDialog.svelte';
+	import SessionControls from './components/SessionControls.svelte';
 
 	export let data: PageData;
 	const { meditation, userId, feedback, fullscreenPreference } = data;
