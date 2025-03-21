@@ -22,24 +22,26 @@
 				{title}
 			</span>
 		</h2>
-		<div class="session-type-indicator">
-			<span class="session-type-badge" class:hypnosis={isHypnosis}>
-				{contentType === 'hypnosis' ? 'Hypnosis' : 'Meditation'}
-			</span>
-		</div>
-		<div class="meditation-info">
-			<span class="info-item">
-				<i class="fas fa-layer-group"></i>
-				{#if playlistId && playlistName}
-					<a href="/playlists/{playlistId}">{playlistName}</a>
-				{:else}
-					{theme}
-				{/if}
-			</span>
-			<span class="info-item">
-				<i class="fas fa-signal"></i>{' '}
-				{difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
-			</span>
+		<div class="session-info">
+			<div class="session-type-indicator">
+				<span class="session-type-badge" class:hypnosis={isHypnosis}>
+					{contentType === 'hypnosis' ? 'Hypnosis' : 'Meditation'}
+				</span>
+			</div>
+			<div class="meditation-info">
+				<span class="info-item info-item-playlist">
+					<i class="fas fa-layer-group"></i>
+					{#if playlistId && playlistName}
+						<a href="/playlists/{playlistId}">{playlistName}</a>
+					{:else}
+						{theme}
+					{/if}
+				</span>
+				<span class="info-item info-item-difficulty">
+					<i class="fas fa-signal"></i>{' '}
+					{difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
+				</span>
+			</div>
 		</div>
 	</div>
 </header>
@@ -146,7 +148,29 @@
 
 	/* Responsive Design */
 	@media (max-width: 768px) {
-		.meditation-info {
+		header {
+			width: 100%;
+		}
+		.header-content {
+			max-width: 100%;
+		}
+		.session-info {
+			display: flex;
+			flex-direction: row;
+			align-items: center;
+			justify-content: space-between;
+			flex-direction: row-reverse;
+		}
+		.session-type-indicator {
+			margin-left: 0.5rem;
+		}
+		.session-type-badge {
+			margin-bottom: -3px;
+		}
+		.info-item a {
+			padding: 0.2rem 0.5rem;
+		}
+		.info-item-difficulty {
 			display: none;
 		}
 	}
