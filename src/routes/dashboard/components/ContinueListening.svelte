@@ -31,11 +31,12 @@
 			</div>
 			<div class="featured-meta">
 				<span><i class="far fa-clock"></i> {displayedMeditation.length || 'N/A'} min</span>
-				<span class="dot-separator">•</span>
-				<span>{new Date(displayedMeditation.created_at).toLocaleDateString()}</span>
 				{#if inProgressMeditation}
 					<span class="dot-separator">•</span>
 					<span class="in-progress-badge"><i class="fas fa-circle-play"></i> In Progress</span>
+				{:else}
+					<span class="dot-separator">•</span>
+					<span>{new Date(displayedMeditation.created_at).toLocaleDateString()}</span>
 				{/if}
 			</div>
 		</div>
@@ -299,5 +300,51 @@
 		font-size: 0.9rem;
 		font-weight: 500;
 		color: var(--text-primary);
+	}
+
+	/* Responsive Adjustments */
+	@media (max-width: 480px) {
+		/* Featured session mobile improvements */
+		.featured-session {
+			padding: 1rem;
+		}
+
+		.featured-play-button {
+			width: 45px;
+			height: 45px;
+			margin-right: 1rem;
+			font-size: 1rem;
+		}
+
+		.featured-info h3 {
+			font-size: 1rem;
+			line-height: 1.3;
+		}
+
+		.title-row {
+			gap: 0.4rem;
+		}
+
+		.featured-meta {
+			font-size: 0.8rem;
+		}
+
+		.content-type-badge {
+			font-size: 0.65rem;
+			padding: 0.15rem 0.4rem;
+		}
+
+		.simple-empty-state {
+			padding: 1.5rem 1rem;
+		}
+
+		.simple-empty-state p {
+			font-size: 0.9rem;
+		}
+
+		.create-btn {
+			padding: 0.6rem 1.2rem;
+			font-size: 0.8rem;
+		}
 	}
 </style>

@@ -8,6 +8,7 @@
 	import NewUserOnboarding from './components/NewUserOnboarding.svelte';
 	import PlaylistsSection from './components/PlaylistsSection.svelte';
 	import RecentSessions from './components/RecentSessions.svelte';
+	import StatsSection from './components/StatsSection.svelte';
 
 	export let data: PageData;
 
@@ -85,6 +86,8 @@
 	<Hero {user} {handleNavigation} />
 
 	{#if meditations.length > 0}
+		<StatsSection {totalMinutes} {daysInRow} {totalMeditations} enabled={true} />
+
 		<ContinueListening
 			{displayedMeditation}
 			{inProgressMeditation}

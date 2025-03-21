@@ -165,9 +165,27 @@
 		text-overflow: ellipsis;
 	}
 
-	@media (max-width: 768px) {
+	/* Responsive Adjustments */
+	@media (max-width: 480px) {
 		.playlists-grid {
-			grid-template-columns: 1fr;
+			grid-template-columns: repeat(2, 1fr);
+			gap: 0.5rem;
+		}
+
+		.playlist-content {
+			padding: 0.8rem;
+		}
+
+		.playlist-icon {
+			width: 32px;
+			height: 32px;
+			font-size: 1rem;
+			margin-bottom: 0.5rem;
+		}
+
+		.playlist-name {
+			font-size: 0.9rem;
+			-webkit-line-clamp: 2;
 		}
 	}
 </style>

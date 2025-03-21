@@ -126,4 +126,31 @@
 		transform: translateY(-2px);
 		box-shadow: 0 5px 15px rgba(var(--interactive-gradient-1), 0.25);
 	}
+
+	/* Responsive Adjustments */
+	@media (max-width: 480px) {
+		.hero-content {
+			padding: 1.25rem 1rem;
+		}
+
+		.hero-bottom-row {
+			flex-direction: row;
+			justify-content: space-between;
+			align-items: flex-end;
+		}
+
+		.tagline {
+			font-size: 0.8rem;
+			max-width: 60%;
+		}
+
+		.primary-action-btn {
+			padding: 0.5rem 0.8rem;
+			font-size: 0.8rem;
+		}
+
+		h1 {
+			font-size: 1.5rem;
+		}
+	}
 </style>

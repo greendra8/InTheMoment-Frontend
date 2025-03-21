@@ -227,13 +227,18 @@
 		}
 	}
 
+	/* Responsive Adjustments */
 	@media (max-width: 480px) {
 		.empty-state {
 			padding: 1.5rem 1rem;
 		}
 
+		.welcome-message h3 {
+			font-size: 1.1rem;
+		}
+
 		.welcome-message p {
-			max-width: 100%;
+			font-size: 0.8rem;
 		}
 
 		.onboarding-card {
@@ -241,17 +246,17 @@
 		}
 
 		.onboarding-icon {
-			width: 36px;
-			height: 36px;
-			font-size: 1rem;
+			width: 32px;
+			height: 32px;
+			margin-right: 0.8rem;
 		}
 
 		.onboarding-content h4 {
-			font-size: 0.9rem;
+			font-size: 0.85rem;
 		}
 
 		.onboarding-content p {
-			font-size: 0.8rem;
+			font-size: 0.75rem;
 		}
 	}
 </style>

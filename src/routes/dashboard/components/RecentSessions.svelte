@@ -313,26 +313,41 @@
 		box-shadow: 0 5px 15px rgba(var(--interactive-gradient-1), 0.25);
 	}
 
+	/* Responsive Adjustments */
 	@media (max-width: 480px) {
+		/* Session item mobile improvements */
+		.session-item {
+			padding: 0.8rem;
+		}
+
+		.session-play-button {
+			width: 35px;
+			height: 35px;
+			margin-right: 0.8rem;
+		}
+
+		.session-info h3 {
+			font-size: 0.9rem;
+		}
+
 		.session-meta {
+			font-size: 0.75rem;
+		}
+
+		.in-progress-badge {
+			font-size: 0.75rem;
+		}
+
+		.in-progress-badge i {
 			font-size: 0.7rem;
 		}
 
 		.simple-empty-state {
-			padding: 2rem 1rem;
-		}
-
-		.simple-empty-state i {
-			font-size: 1.5rem;
+			padding: 1.5rem 1rem;
 		}
 
 		.simple-empty-state p {
 			font-size: 0.9rem;
-		}
-
-		.create-btn {
-			padding: 0.5rem 1rem;
-			font-size: 0.8rem;
 		}
 	}
 </style>
