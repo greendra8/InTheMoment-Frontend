@@ -51,33 +51,33 @@
 
 		<!-- Sessions timeline -->
 		<div class="practice-sessions">
-			{#if hasMorningSession}
+			{#if hasEveningSession}
 				<div
 					class="practice-session"
-					on:click={() => handleNavigation(`/session/${morningSession.id}`)}
-					on:keydown={(e) => e.key === 'Enter' && handleNavigation(`/session/${morningSession.id}`)}
+					on:click={() => handleNavigation(`/session/${eveningSession.id}`)}
+					on:keydown={(e) => e.key === 'Enter' && handleNavigation(`/session/${eveningSession.id}`)}
 					tabindex="0"
 					role="button"
-					style="--bg-pattern: url('{morningSession.bgPattern}')"
+					style="--bg-pattern: url('{eveningSession.bgPattern}')"
 				>
 					<div class="practice-session-header">
 						<div class="practice-time">
-							<i class="fas fa-sun"></i>
-							<span>Morning</span>
+							<i class="fas fa-moon"></i>
+							<span>Evening</span>
 						</div>
 						<span
 							class="content-type-badge"
-							class:hypnosis={morningSession.content_type === 'hypnosis'}
+							class:hypnosis={eveningSession.content_type === 'hypnosis'}
 						>
-							{morningSession.content_type === 'hypnosis' ? 'Hypnosis' : 'Meditation'}
+							{eveningSession.content_type === 'hypnosis' ? 'Hypnosis' : 'Meditation'}
 						</span>
 					</div>
-					<h3 class="practice-title">{morningSession.title || 'Morning Session'}</h3>
+					<h3 class="practice-title">{eveningSession.title || 'Evening Session'}</h3>
 					<div class="practice-meta">
-						<span><i class="far fa-clock"></i> {morningSession.length} min</span>
+						<span><i class="far fa-clock"></i> {eveningSession.length} min</span>
 						<span class="meta-divider">•</span>
 						<span
-							>{new Date(morningSession.created_at).toLocaleTimeString([], {
+							>{new Date(eveningSession.created_at).toLocaleTimeString([], {
 								hour: '2-digit',
 								minute: '2-digit'
 							})}</span
@@ -127,33 +127,33 @@
 				</div>
 			{/if}
 
-			{#if hasEveningSession}
+			{#if hasMorningSession}
 				<div
 					class="practice-session"
-					on:click={() => handleNavigation(`/session/${eveningSession.id}`)}
-					on:keydown={(e) => e.key === 'Enter' && handleNavigation(`/session/${eveningSession.id}`)}
+					on:click={() => handleNavigation(`/session/${morningSession.id}`)}
+					on:keydown={(e) => e.key === 'Enter' && handleNavigation(`/session/${morningSession.id}`)}
 					tabindex="0"
 					role="button"
-					style="--bg-pattern: url('{eveningSession.bgPattern}')"
+					style="--bg-pattern: url('{morningSession.bgPattern}')"
 				>
 					<div class="practice-session-header">
 						<div class="practice-time">
-							<i class="fas fa-moon"></i>
-							<span>Evening</span>
+							<i class="fas fa-sun"></i>
+							<span>Morning</span>
 						</div>
 						<span
 							class="content-type-badge"
-							class:hypnosis={eveningSession.content_type === 'hypnosis'}
+							class:hypnosis={morningSession.content_type === 'hypnosis'}
 						>
-							{eveningSession.content_type === 'hypnosis' ? 'Hypnosis' : 'Meditation'}
+							{morningSession.content_type === 'hypnosis' ? 'Hypnosis' : 'Meditation'}
 						</span>
 					</div>
-					<h3 class="practice-title">{eveningSession.title || 'Evening Session'}</h3>
+					<h3 class="practice-title">{morningSession.title || 'Morning Session'}</h3>
 					<div class="practice-meta">
-						<span><i class="far fa-clock"></i> {eveningSession.length} min</span>
+						<span><i class="far fa-clock"></i> {morningSession.length} min</span>
 						<span class="meta-divider">•</span>
 						<span
-							>{new Date(eveningSession.created_at).toLocaleTimeString([], {
+							>{new Date(morningSession.created_at).toLocaleTimeString([], {
 								hour: '2-digit',
 								minute: '2-digit'
 							})}</span
@@ -233,7 +233,7 @@
 	.current-period-card {
 		display: grid;
 		grid-template-columns: auto 1fr auto;
-		gap: 1.2rem;
+		gap: 0.8rem;
 		align-items: center;
 		background: linear-gradient(
 			135deg,
@@ -242,7 +242,7 @@
 		);
 		border: 1px solid rgba(var(--interactive-gradient-1), 0.15);
 		border-radius: 16px;
-		padding: 1.25rem;
+		padding: 1rem;
 		box-shadow: 0 4px 15px var(--ui-shadow);
 		cursor: pointer;
 		transition: all 0.3s ease;
@@ -259,15 +259,15 @@
 	}
 
 	.period-icon {
-		width: 48px;
-		height: 48px;
+		width: 40px;
+		height: 40px;
 		background: var(--play-btn-bg);
 		color: var(--play-btn-text);
 		border-radius: 50%;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		font-size: 1.1rem;
+		font-size: 1rem;
 		box-shadow: 0 0 15px rgba(var(--interactive-gradient-1), 0.25);
 	}
 
@@ -278,24 +278,24 @@
 	}
 
 	.period-info h3 {
-		font-size: 1.1rem;
+		font-size: 1rem;
 		font-weight: 600;
-		margin-bottom: 0.3rem;
+		margin-bottom: 0.2rem;
 	}
 
 	.period-info p {
 		margin: 0;
-		font-size: 0.9rem;
+		font-size: 0.85rem;
 		color: var(--text-secondary);
 	}
 
 	.mindfulness-btn {
-		width: 38px;
-		height: 38px;
+		width: 32px;
+		height: 32px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		font-size: 1.2rem;
+		font-size: 1.1rem;
 		color: var(--text-primary);
 		opacity: 0.7;
 		transition: opacity 0.2s ease;
@@ -303,7 +303,7 @@
 
 	.practice-sessions {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+		grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
 		gap: 1rem;
 	}
 
@@ -438,76 +438,5 @@
 		background: var(--fixed-play-button-hover);
 		transform: scale(1.1);
 		box-shadow: 0 0 15px rgba(var(--interactive-gradient-1), 0.5);
-	}
-
-	@media (max-width: 768px) {
-		.practice-sessions {
-			grid-template-columns: 1fr;
-		}
-
-		.current-period-card {
-			grid-template-columns: auto 1fr;
-			grid-template-rows: auto auto;
-		}
-
-		.period-icon {
-			grid-row: span 2;
-		}
-	}
-
-	@media (max-width: 480px) {
-		.current-period-card {
-			grid-template-columns: 1fr;
-			grid-template-rows: auto auto auto;
-			gap: 0.8rem;
-		}
-
-		.period-icon {
-			justify-self: center;
-		}
-
-		.period-info {
-			text-align: center;
-		}
-
-		/* Session item mobile improvements */
-		.session-item {
-			padding: 0.8rem;
-		}
-
-		.session-play-button {
-			width: 35px;
-			height: 35px;
-			margin-right: 0.8rem;
-		}
-
-		.session-info h3 {
-			font-size: 0.9rem;
-		}
-
-		.session-meta {
-			font-size: 0.75rem;
-		}
-
-		.in-progress-badge {
-			font-size: 0.75rem;
-		}
-
-		.in-progress-badge i {
-			font-size: 0.7rem;
-		}
-
-		.simple-empty-state {
-			padding: 1.5rem 1rem;
-		}
-
-		.simple-empty-state p {
-			font-size: 0.9rem;
-		}
-
-		.create-btn {
-			padding: 0.6rem 1.2rem;
-			font-size: 0.8rem;
-		}
 	}
 </style>
