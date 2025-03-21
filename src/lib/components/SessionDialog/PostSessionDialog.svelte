@@ -283,6 +283,8 @@
 		position: relative;
 		min-height: 350px;
 		width: 100%;
+		display: flex;
+		flex-direction: column;
 	}
 
 	.content-wrapper {
@@ -345,13 +347,17 @@
 	.final-message {
 		text-align: center;
 		padding: 1.5rem;
-		margin: 1rem 0 2rem;
+		margin: auto 0;
 		min-height: 150px;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		background: rgba(var(--interactive-gradient-1), 0.05);
+		background: linear-gradient(
+			135deg,
+			rgba(var(--interactive-gradient-1), 0.05) 0%,
+			rgba(var(--interactive-gradient-2), 0.1) 100%
+		);
 		border-radius: 12px;
 		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
 	}

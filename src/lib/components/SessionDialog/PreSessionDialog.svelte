@@ -236,15 +236,17 @@
 </script>
 
 {#if showFinalMessage}
-	<div
-		class="final-message"
-		in:receive={{ key: 'final-message' }}
-		out:send={{ key: 'final-message' }}
-	>
-		<p>{finalMessage}</p>
-		<div class="spinner">
-			<i class="fas fa-circle-notch fa-spin"></i>
-			<span>Configuring your session...</span>
+	<div class="content-container">
+		<div
+			class="final-message"
+			in:receive={{ key: 'final-message' }}
+			out:send={{ key: 'final-message' }}
+		>
+			<p>{finalMessage}</p>
+			<div class="spinner">
+				<i class="fas fa-circle-notch fa-spin"></i>
+				<span>Configuring your session...</span>
+			</div>
 		</div>
 	</div>
 {:else}
@@ -378,17 +380,29 @@
 		box-shadow: 0 4px 12px rgba(var(--interactive-gradient-1), 0.15);
 	}
 
+	/* Content container for final message */
+	.content-container {
+		display: flex;
+		flex-direction: column;
+		min-height: 350px;
+		width: 100%;
+	}
+
 	/* Final message */
 	.final-message {
 		text-align: center;
 		padding: 1.5rem;
-		margin: 1rem 0 2rem;
+		margin: auto 0;
 		min-height: 150px;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		background: rgba(var(--interactive-gradient-1), 0.05);
+		background: linear-gradient(
+			135deg,
+			rgba(var(--interactive-gradient-1), 0.05) 0%,
+			rgba(var(--interactive-gradient-2), 0.1) 100%
+		);
 		border-radius: 12px;
 		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
 	}
