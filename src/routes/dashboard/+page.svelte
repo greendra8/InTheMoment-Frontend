@@ -86,7 +86,7 @@
 	<Hero {user} {handleNavigation} />
 
 	{#if meditations.length > 0}
-		<StatsSection {totalMinutes} {daysInRow} {totalMeditations} enabled={true} />
+		<StatsSection {totalMinutes} {daysInRow} {totalMeditations} enabled={false} />
 
 		<ContinueListening
 			{displayedMeditation}
