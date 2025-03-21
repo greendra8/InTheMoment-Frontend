@@ -53,7 +53,7 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
 
         // Assign background patterns to meditations and playlists using the shared utility
         const meditationsWithBackgrounds = assignBackgrounds(meditations);
-        const playlistsWithBackgrounds = assignBackgrounds(playlistsData);
+        const playlistsWithBackgrounds = assignBackgrounds(playlistsData, profile.theme);
 
         // Find the in-progress meditation if it exists in the fetched meditations
         // Only do this lookup if we have a valid lastMeditationId

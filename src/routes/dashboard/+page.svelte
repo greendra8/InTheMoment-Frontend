@@ -2,7 +2,6 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import type { PageData } from './$types';
-	import { browser } from '$app/environment';
 
 	export let data: PageData;
 
@@ -711,8 +710,8 @@
 		border-radius: 12px;
 		background: linear-gradient(
 			135deg,
-			rgba(var(--background-card-rgb), 0.9) 0%,
-			rgba(var(--background-card-rgb), 0.7) 100%
+			rgba(var(--background-card-rgb), 0.3) 0%,
+			rgba(var(--background-card-rgb), 0) 100%
 		);
 		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
 		overflow: hidden;
