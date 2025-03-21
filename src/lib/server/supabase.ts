@@ -208,6 +208,47 @@ export async function getUserProgress(userId: string, playlistId: string) {
   return data?.completed_lessons || [];
 }
 
+// Get recent playlists the user has interacted with
+export async function getUserRecentPlaylists(userId: string, limit: number = 4) {
+  try {
+    // Get the user's progress data, ordered by most recently updated
+    const { data: progressData, error: progressError } = await supabaseAdmin
+      .from('user_progress')
+      .select('playlist_id, updated_at')
+      .eq('user_id', userId)
+      .order('updated_at', { ascending: false })
+      .limit(limit);
+
+    if (progressError) throw progressError;
+
+    if (!progressData || progressData.length === 0) {
+      return [];
+    }
+
+    // Extract playlist IDs
+    const playlistIds = progressData.map(item => item.playlist_id);
+
+    // Fetch the actual playlist details
+    const { data: playlistsData, error: playlistsError } = await supabaseAdmin
+      .from('lesson_playlists')
+      .select('id, playlist_name, playlist_description, visible')
+      .in('id', playlistIds)
+      .eq('visible', true);
+
+    if (playlistsError) throw playlistsError;
+
+    // Sort the playlists according to the order in progressData
+    const orderedPlaylists = playlistIds
+      .map(id => playlistsData.find(playlist => playlist.id === id))
+      .filter(Boolean); // Remove any undefined entries
+
+    return orderedPlaylists;
+  } catch (err) {
+    console.error('Error fetching user recent playlists:', err);
+    throw err;
+  }
+}
+
 // Add this new function to generate a signed URL
 async function getSignedUrl(filePath: string) {
   console.log('Generating signed URL for file path:', filePath);
