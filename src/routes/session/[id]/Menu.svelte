@@ -18,10 +18,14 @@
 		}
 	}
 
-	function handleMarkComplete() {
-		if (!listened && !isCompletedThisSession) {
-			dispatch('markComplete', { meditationId, userId, length: meditationLength });
-		}
+	function handleToggleCompletion() {
+		const currentStatus = listened || isCompletedThisSession;
+		dispatch('toggleCompletion', {
+			meditationId,
+			userId,
+			length: meditationLength,
+			currentStatus
+		});
 	}
 </script>
 
@@ -35,9 +39,9 @@
 				<i class="fas {isDownloaded ? 'fa-check-circle' : 'fa-download'}"></i>
 				{isDownloaded ? 'Already downloaded' : 'Download'}
 			</li>
-			<li on:click|stopPropagation={handleMarkComplete}>
+			<li on:click|stopPropagation={handleToggleCompletion}>
 				<i class="fas {listened || isCompletedThisSession ? 'fa-check-circle' : 'fa-check'}"></i>
-				{listened || isCompletedThisSession ? 'Already completed' : 'Mark as complete'}
+				{listened || isCompletedThisSession ? 'Mark as incomplete' : 'Mark as complete'}
 			</li>
 		</ul>
 	</div>

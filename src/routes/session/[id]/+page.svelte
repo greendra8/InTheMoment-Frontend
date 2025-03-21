@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { page } from '$app/stores';
-	import { completeMeditation, submitFeedback } from '$lib/api';
+	import { completeMeditation, submitFeedback, toggleMeditationCompletion } from '$lib/api';
 	import type { PageData } from './$types';
 	import { browser } from '$app/environment';
 	import { writable } from 'svelte/store';
@@ -240,6 +240,18 @@
 		}
 	}
 
+	function handleToggleCompletion(event: CustomEvent) {
+		const { meditationId, userId, length, currentStatus } = event.detail;
+		toggleMeditationCompletion(meditationId, userId, length, currentStatus).then(() => {
+			// Update the local state to reflect the change
+			if (!currentStatus) {
+				isCompletedThisSession = true;
+			} else {
+				isCompletedThisSession = false;
+			}
+		});
+	}
+
 	function handleMarkComplete(event: CustomEvent) {
 		const { meditationId, userId, length } = event.detail;
 		completeMeditation(meditationId, userId, length);
@@ -327,7 +339,7 @@
 		meditationLength={meditation.length}
 		{isCompletedThisSession}
 		on:triggerDownload={triggerDownload}
-		on:markComplete={handleMarkComplete}
+		on:toggleCompletion={handleToggleCompletion}
 	/>
 
 	<Header

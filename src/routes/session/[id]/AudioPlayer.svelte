@@ -34,8 +34,6 @@
 	let isSeekingProgress = false;
 	let hassentCompletionRequest = false;
 	let lockSend = false;
-	let totalPlayTime = 0;
-	let lastUpdateTime = 0;
 
 	let visualizer: ReturnType<typeof setupAudioVisualizer> | null = null;
 
@@ -133,7 +131,6 @@
 
 			await audioElement.play();
 			isPlaying = true;
-			lastUpdateTime = Date.now();
 			if (!isIOS && visualizer) {
 				visualizer.setStandbyMode(false);
 			}
@@ -174,12 +171,6 @@
 	}
 
 	function updateProgress() {
-		const now = Date.now();
-		if (isPlaying) {
-			totalPlayTime += (now - lastUpdateTime) / 1000;
-		}
-		lastUpdateTime = now;
-
 		// iOS-specific: Only update currentTime from audio element if playback has started
 		// This prevents the UI from jumping back to 0 on iOS when paused
 		if (!isIOS || hasStartedPlayback) {
@@ -196,16 +187,10 @@
 			saveAudioProgress(meditationId, currentTime, duration);
 		}
 
-		const minimumPlayTimeRequired = duration * 0.8;
+		// Simplified completion logic: just check if playing and in last 20 seconds
 		const timeUntilEnd = duration - currentTime;
 
-		if (
-			!lockSend &&
-			!hassentCompletionRequest &&
-			totalPlayTime >= minimumPlayTimeRequired &&
-			timeUntilEnd <= 60
-		) {
-			lockSend = true;
+		if (!hassentCompletionRequest && isPlaying && timeUntilEnd <= 20) {
 			sendCompletionRequest();
 			hassentCompletionRequest = true;
 		}
@@ -755,6 +740,10 @@
 		-webkit-appearance: none;
 		background: transparent;
 		cursor: pointer;
+	}
+
+	:global(.native-app) .controls-wrapper {
+		bottom: 5.5rem; /* More space at bottom for native app navigation */
 	}
 
 	/* Global styles for pseudo-elements */

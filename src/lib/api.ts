@@ -177,6 +177,25 @@ export async function completeMeditation(meditationId: string, userId: string, m
   console.log('Meditation completed and user total time updated successfully.')
 }
 
+// Helper function to toggle a meditation's completion status
+export async function toggleMeditationCompletion(meditationId: string, userId: string, minutesCompleted: number, currentStatus: boolean) {
+  if (!currentStatus) {
+    // If not completed, mark as complete
+    return await completeMeditation(meditationId, userId, minutesCompleted);
+  } else {
+    // If completed, mark as incomplete
+    const { error: updateMeditationError } = await supabase
+      .from('audio_sessions')
+      .update({
+        listened: false
+      })
+      .eq('id', meditationId)
+
+    if (updateMeditationError) throw updateMeditationError
+
+    console.log('Meditation marked as incomplete.');
+  }
+}
 
 // Helper function to update user profile
 export async function updateUserProfile(userId: string, data: {
