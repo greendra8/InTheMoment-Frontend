@@ -36,26 +36,8 @@
 		<p>Join thousands of people who have transformed their lives with In The Moment</p>
 
 		<div class="cta-actions">
-			<Button href="/register" variant="primary" size="large">Start Free Trial</Button>
-			<span class="cta-note">No credit card required. 14-day free trial.</span>
-		</div>
-
-		<div class="testimonials">
-			<div class="testimonial">
-				<div class="testimonial-avatar">JD</div>
-				<div class="testimonial-quote">
-					"I've tried many meditation apps, but this one adapts to me unlike any other."
-				</div>
-				<div class="testimonial-author">– Jamie D.</div>
-			</div>
-
-			<div class="testimonial">
-				<div class="testimonial-avatar">KT</div>
-				<div class="testimonial-quote">
-					"The personalized approach helped me establish a consistent practice."
-				</div>
-				<div class="testimonial-author">– Kiran T.</div>
-			</div>
+			<Button href="/register" variant="primary" size="large">Start for Free</Button>
+			<span class="cta-note">No credit card required.</span>
 		</div>
 	</div>
 </section>
@@ -127,68 +109,9 @@
 		font-size: 0.9rem;
 	}
 
-	.testimonials {
-		display: flex;
-		flex-wrap: wrap;
-		justify-content: center;
-		gap: 2rem;
-		margin-top: 3rem;
-	}
-
-	.testimonial {
-		background: rgba(255, 255, 255, 0.1);
-		border-radius: 12px;
-		padding: 1.5rem;
-		max-width: 350px;
-		text-align: left;
-		position: relative;
-		backdrop-filter: blur(5px);
-		border: 1px solid rgba(255, 255, 255, 0.1);
-	}
-
-	.testimonial-avatar {
-		position: absolute;
-		top: -20px;
-		left: 20px;
-		width: 40px;
-		height: 40px;
-		border-radius: 50%;
-		background: linear-gradient(135deg, #7b68ee, #9370db);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		color: white;
-		font-weight: 600;
-		font-size: 0.8rem;
-		box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-	}
-
-	.testimonial-quote {
-		color: white;
-		font-size: 1rem;
-		line-height: 1.6;
-		margin-bottom: 0.8rem;
-		font-style: italic;
-	}
-
-	.testimonial-author {
-		color: rgba(255, 255, 255, 0.7);
-		font-size: 0.9rem;
-		text-align: right;
-	}
-
 	@media (max-width: 768px) {
 		.cta-section {
 			padding: 4rem 1.5rem;
-		}
-
-		.testimonials {
-			flex-direction: column;
-			align-items: center;
-		}
-
-		.testimonial {
-			width: 100%;
 		}
 	}
 </style>

@@ -2,6 +2,15 @@
 	import { onMount, afterUpdate } from 'svelte';
 	import { browser } from '$app/environment';
 
+	// Add TypeScript interface for FontAwesome
+	declare global {
+		interface Window {
+			FontAwesome: any; // Use any for simplicity as the API is complex
+			fontawesome: any; // Lowercase alternative
+			FA: any; // Another common alias
+		}
+	}
+
 	export let isMindfulnessActive = false;
 	export let toggleCenter = { x: 0, y: 0 };
 
@@ -11,22 +20,30 @@
 	let ctx: CanvasRenderingContext2D | null;
 	let iconsArray: DistractionIcon[] = [];
 	let animationFrameId: number;
+	let animationPaused = false;
+	let observer: IntersectionObserver;
 
-	// Font Awesome icons with their CSS classes and colors
-	const iconTypes = [
+	interface IconType {
+		name: string;
+		cssClass: string;
+		color: string;
+	}
+
+	// Font Awesome icons with their classes
+	const iconTypes: IconType[] = [
 		// Social media
 		{ name: 'instagram', cssClass: 'fab fa-instagram', color: '#C13584' },
-		{ name: 'facebook', cssClass: 'fab fa-facebook', color: '#4267B2' },
+		{ name: 'facebook', cssClass: 'fab fa-facebook-f', color: '#4267B2' },
 		{ name: 'tiktok', cssClass: 'fab fa-tiktok', color: '#EE1D52' },
 		{ name: 'twitter', cssClass: 'fab fa-twitter', color: '#1DA1F2' },
 		{ name: 'youtube', cssClass: 'fab fa-youtube', color: '#FF0000' },
-		{ name: 'snapchat', cssClass: 'fab fa-snapchat', color: '#FFFC00' },
+		{ name: 'snapchat', cssClass: 'fab fa-snapchat-ghost', color: '#FFFC00' },
 		{ name: 'whatsapp', cssClass: 'fab fa-whatsapp', color: '#25D366' },
-		{ name: 'telegram', cssClass: 'fab fa-telegram', color: '#0088cc' },
+		{ name: 'telegram', cssClass: 'fab fa-telegram-plane', color: '#0088cc' },
 		{ name: 'discord', cssClass: 'fab fa-discord', color: '#5865F2' },
 		{ name: 'twitch', cssClass: 'fab fa-twitch', color: '#6441A4' },
-		{ name: 'reddit-square', cssClass: 'fab fa-reddit-square', color: '#FF4500' },
-		{ name: 'pinterest', cssClass: 'fab fa-pinterest', color: '#E60023' },
+		{ name: 'reddit', cssClass: 'fab fa-reddit-alien', color: '#FF4500' },
+		{ name: 'pinterest', cssClass: 'fab fa-pinterest-p', color: '#E60023' },
 
 		// Notifications & Interactions
 		{ name: 'bell', cssClass: 'fas fa-bell', color: '#FFA500' },
@@ -35,14 +52,13 @@
 		{ name: 'heart', cssClass: 'fas fa-heart', color: '#FF6B6B' },
 		{ name: 'thumbs-up', cssClass: 'fas fa-thumbs-up', color: '#3B5998' },
 		{ name: 'star', cssClass: 'fas fa-star', color: '#FFD700' },
-		{ name: 'notification', cssClass: 'fas fa-bell', color: '#FF4500' },
-		{ name: 'share', cssClass: 'fas fa-share', color: '#00acee' },
+		{ name: 'share', cssClass: 'fas fa-share-alt', color: '#00acee' },
 
 		// Devices
-		{ name: 'mobile-alt', cssClass: 'fas fa-mobile-alt', color: '#A0A0A0' },
+		{ name: 'mobile', cssClass: 'fas fa-mobile-alt', color: '#A0A0A0' },
 		{ name: 'laptop', cssClass: 'fas fa-laptop', color: '#808080' },
 		{ name: 'desktop', cssClass: 'fas fa-desktop', color: '#696969' },
-		{ name: 'tablet-alt', cssClass: 'fas fa-tablet-alt', color: '#909090' },
+		{ name: 'tablet', cssClass: 'fas fa-tablet-alt', color: '#909090' },
 		{ name: 'headphones', cssClass: 'fas fa-headphones', color: '#555555' },
 		{ name: 'tv', cssClass: 'fas fa-tv', color: '#444444' },
 
@@ -53,35 +69,6 @@
 		{ name: 'wifi', cssClass: 'fas fa-wifi', color: '#4CAF50' }
 	];
 
-	// Create DOM elements for each icon to use for canvas drawing
-	let iconElements: { [key: string]: HTMLElement } = {};
-
-	function createIconElements() {
-		if (!browser) return;
-
-		// Create a hidden container to hold our icon elements
-		const container = document.createElement('div');
-		container.style.position = 'absolute';
-		container.style.visibility = 'hidden';
-		container.style.pointerEvents = 'none';
-		document.body.appendChild(container);
-
-		// Create an element for each icon type
-		iconTypes.forEach((icon) => {
-			const element = document.createElement('i');
-			element.className = icon.cssClass;
-			container.appendChild(element);
-			iconElements[icon.name] = element;
-		});
-
-		// Clean up function to remove icons when component unmounts
-		return () => {
-			if (container && container.parentNode) {
-				container.parentNode.removeChild(container);
-			}
-		};
-	}
-
 	class DistractionIcon {
 		x: number;
 		y: number;
@@ -90,7 +77,7 @@
 		speedY: number;
 		rotation: number;
 		rotationSpeed: number;
-		icon: (typeof iconTypes)[number];
+		icon: IconType;
 		opacity: number;
 		// For mindfulness animation
 		targetX: number;
@@ -105,10 +92,12 @@
 		originalSize: number;
 		explodeAngle?: number; // Store explosion angle for consistency
 		readyToExplode: boolean; // Flag to control when the icon starts exploding
+		iconSvg: SVGElement | null;
+		iconImage: HTMLImageElement | null; // Store the icon image for reuse
 
 		constructor() {
-			this.x = Math.random() * (canvas?.width || window.innerWidth);
-			this.y = Math.random() * (canvas?.height || window.innerHeight);
+			this.x = Math.random() * window.innerWidth;
+			this.y = Math.random() * window.innerHeight;
 			this.originalX = this.x;
 			this.originalY = this.y;
 			this.size = Math.random() * 15 + 12;
@@ -128,6 +117,119 @@
 			this.attractionSpeed = Math.random() * 0.08 + 0.12; // Higher value for faster attraction
 			this.originalSize = this.size; // Store original size for restoration
 			this.readyToExplode = false; // Not ready to explode initially
+			this.iconSvg = null;
+			this.iconImage = null;
+
+			// Try to get the Font Awesome icon and prepare it
+			this.initializeIcon();
+		}
+
+		// Initialize the icon using Font Awesome's JS API
+		initializeIcon() {
+			if (!browser) return;
+
+			// Try to find FontAwesome global object under different possible names
+			const fa = window.FontAwesome || window.fontawesome || window.FA;
+			if (!fa) return;
+
+			try {
+				const iconParts = this.icon.cssClass.split(' ');
+				const iconStyle = iconParts[0]; // 'fas' or 'fab'
+				const iconName = iconParts[1].substring(3); // remove 'fa-' prefix
+
+				// Try different potential API structures
+				let iconDefinition;
+				let iconNode;
+
+				// Try the main findIconDefinition API
+				if (typeof fa.findIconDefinition === 'function') {
+					iconDefinition = fa.findIconDefinition({
+						prefix: iconStyle === 'fas' ? 'fas' : 'fab',
+						iconName: iconName
+					});
+
+					if (iconDefinition && typeof fa.icon === 'function') {
+						const result = fa.icon(iconDefinition);
+						iconNode = result && result.node && result.node[0];
+					}
+				}
+				// Try accessing via fontawesome.library
+				else if (fa.library) {
+					// Different potential API structures
+					const prefix = iconStyle === 'fas' ? 'fas' : 'fab';
+					const library = fa.library || fa.dom;
+
+					if (library && library.icon) {
+						const result = library.icon(`${prefix} fa-${iconName}`);
+						iconNode = result && result.node && result.node[0];
+					}
+				}
+
+				if (iconNode) {
+					this.iconSvg = iconNode;
+
+					// Set SVG to white color
+					const paths = this.iconSvg.querySelectorAll('path');
+					paths.forEach((path) => {
+						path.setAttribute('fill', 'white');
+					});
+
+					// Convert SVG to image once for reuse
+					this.convertSvgToImage();
+				} else {
+					// Fallback to creating SVG for the icon
+					this.createFallbackSvg(iconName);
+				}
+			} catch (e) {
+				console.warn(`Couldn't load icon SVG for ${this.icon.cssClass}:`, e);
+			}
+		}
+
+		// Create a simple SVG representation if FontAwesome API fails
+		createFallbackSvg(iconName: string) {
+			// Simple SVG with the first letter of the icon
+			const letter = this.icon.name.charAt(0).toUpperCase();
+			const svgNS = 'http://www.w3.org/2000/svg';
+
+			const svg = document.createElementNS(svgNS, 'svg');
+			svg.setAttribute('viewBox', '0 0 32 32');
+			svg.setAttribute('width', '32');
+			svg.setAttribute('height', '32');
+
+			const text = document.createElementNS(svgNS, 'text');
+			text.setAttribute('x', '16');
+			text.setAttribute('y', '22');
+			text.setAttribute('font-family', 'sans-serif');
+			text.setAttribute('font-size', '20');
+			text.setAttribute('text-anchor', 'middle');
+			text.setAttribute('fill', 'white');
+			text.textContent = letter;
+
+			svg.appendChild(text);
+			this.iconSvg = svg;
+			this.convertSvgToImage();
+		}
+
+		// Convert SVG to image for canvas use
+		convertSvgToImage() {
+			if (!this.iconSvg) return;
+
+			try {
+				// Create a data URL from the SVG
+				const svgData = new XMLSerializer().serializeToString(this.iconSvg);
+				const svgBlob = new Blob([svgData], { type: 'image/svg+xml' });
+				const url = URL.createObjectURL(svgBlob);
+
+				// Create an image, store it for reuse
+				this.iconImage = new Image();
+				this.iconImage.onload = () => {
+					// Free memory
+					URL.revokeObjectURL(url);
+				};
+				this.iconImage.src = url;
+			} catch (e) {
+				console.warn("Couldn't convert SVG to image:", e);
+			}
 		}
 
 		update() {
@@ -230,13 +332,19 @@
 				this.y += this.speedY;
 				this.rotation += this.rotationSpeed;
 
-				// Bounce off edges
-				if (this.x <= 0 || this.x >= (canvas?.width || window.innerWidth)) {
+				// Bounce off edges - use window dimensions instead of canvas for consistency
+				if (this.x < this.size || this.x > window.innerWidth - this.size) {
 					this.speedX = -this.speedX;
+					// Keep within bounds
+					if (this.x < this.size) this.x = this.size;
+					if (this.x > window.innerWidth - this.size) this.x = window.innerWidth - this.size;
 				}
 
-				if (this.y <= 0 || this.y >= (canvas?.height || window.innerHeight)) {
+				if (this.y < this.size || this.y > window.innerHeight - this.size) {
 					this.speedY = -this.speedY;
+					// Keep within bounds
+					if (this.y < this.size) this.y = this.size;
+					if (this.y > window.innerHeight - this.size) this.y = window.innerHeight - this.size;
 				}
 
 				// Slightly vary the opacity for a pulsing effect
@@ -258,46 +366,28 @@
 			ctx.arc(0, 0, this.size, 0, Math.PI * 2);
 			ctx.fill();
 
-			// Instead of using fillText with Unicode, we'll just draw a white symbol
-			// A simplified representation of the icon (since we can't render HTML in canvas)
-			ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-			ctx.beginPath();
-
-			// Draw a simple shape based on the icon type
-			// We'll use basic shapes that loosely represent the icon categories
-			if (
-				this.icon.name.includes('facebook') ||
-				this.icon.name.includes('twitter') ||
-				this.icon.name.includes('instagram') ||
-				this.icon.name.includes('youtube')
-			) {
-				// Social media icons - draw a simple dot
-				ctx.arc(0, 0, this.size * 0.4, 0, Math.PI * 2);
-			} else if (this.icon.name.includes('bell') || this.icon.name.includes('notification')) {
-				// Notification icons - draw a small triangle
-				const size = this.size * 0.4;
-				ctx.moveTo(0, -size);
-				ctx.lineTo(size, size);
-				ctx.lineTo(-size, size);
-			} else if (
-				this.icon.name.includes('mobile') ||
-				this.icon.name.includes('laptop') ||
-				this.icon.name.includes('desktop')
-			) {
-				// Device icons - draw a rectangle
-				const size = this.size * 0.4;
-				ctx.rect(-size, -size, size * 2, size * 2);
+			// If we have a loaded icon image, draw it
+			if (this.iconImage && this.iconImage.complete) {
+				const iconSize = this.size * 0.8;
+				ctx.drawImage(this.iconImage, -iconSize / 2, -iconSize / 2, iconSize, iconSize);
 			} else {
-				// Default - simple plus symbol
-				const size = this.size * 0.4;
-				ctx.moveTo(-size, 0);
-				ctx.lineTo(size, 0);
-				ctx.moveTo(0, -size);
-				ctx.lineTo(0, size);
+				// Fallback to letter if no image is available
+				this.drawLetterFallback(ctx);
 			}
 
-			ctx.fill();
 			ctx.restore();
+		}
+
+		// Separate method for the letter fallback
+		drawLetterFallback(ctx: CanvasRenderingContext2D) {
+			ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+			ctx.font = `bold ${this.size * 0.7}px sans-serif`;
+			ctx.textAlign = 'center';
+			ctx.textBaseline = 'middle';
+
+			// Use first letter of the icon name
+			const letter = this.icon.name.charAt(0).toUpperCase();
+			ctx.fillText(letter, 0, 0);
 		}
 
 		// Check collision with another icon
@@ -369,11 +459,22 @@
 	function initIcons() {
 		if (!canvas) return;
 
-		canvas.width = window.innerWidth;
-		canvas.height = window.innerHeight;
+		// Set correct canvas dimensions accounting for device pixel ratio
+		const dpr = window.devicePixelRatio || 1;
+		canvas.width = window.innerWidth * dpr;
+		canvas.height = window.innerHeight * dpr;
+
+		// Set display size
+		canvas.style.width = window.innerWidth + 'px';
+		canvas.style.height = window.innerHeight + 'px';
+
+		// Scale the context for the actual device pixel ratio
+		if (ctx) {
+			ctx.scale(dpr, dpr);
+		}
 
 		// Calculate the number of icons based on screen size
-		const iconCount = Math.min(35, Math.floor((canvas.width * canvas.height) / 25000));
+		const iconCount = Math.min(35, Math.floor((window.innerWidth * window.innerHeight) / 25000));
 		iconsArray = [];
 
 		for (let i = 0; i < iconCount; i++) {
@@ -382,16 +483,13 @@
 	}
 
 	function animate() {
-		if (!ctx || !canvas) return;
+		if (!ctx || !canvas || animationPaused) return;
 
-		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		// Get device pixel ratio for proper scaling
+		const dpr = window.devicePixelRatio || 1;
 
-		// Apply proper scaling for consistent display across devices
-		const devicePixelRatio = window.devicePixelRatio || 1;
-		if (window.innerWidth <= 768 && devicePixelRatio !== 1) {
-			ctx.save();
-			ctx.scale(1 / devicePixelRatio, 1 / devicePixelRatio);
-		}
+		// Clear the entire canvas with device pixel ratio considered
+		ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
 
 		// Draw connection lines between nearby icons
 		for (let i = 0; i < iconsArray.length; i++) {
@@ -425,33 +523,74 @@
 			iconsArray[i].draw();
 		}
 
-		if (window.innerWidth <= 768 && devicePixelRatio !== 1) {
-			ctx.restore();
-		}
-
 		animationFrameId = requestAnimationFrame(animate);
+	}
+
+	// Function to start the animation if it's paused
+	function startAnimation() {
+		if (animationPaused) {
+			animationPaused = false;
+			animationFrameId = requestAnimationFrame(animate);
+		}
+	}
+
+	// Function to pause the animation
+	function pauseAnimation() {
+		if (!animationPaused) {
+			animationPaused = true;
+			if (animationFrameId) {
+				cancelAnimationFrame(animationFrameId);
+			}
+		}
+	}
+
+	// Setup IntersectionObserver to track visibility
+	function setupVisibilityObserver() {
+		if (!canvas || !browser) return;
+
+		// Create observer that triggers when less than 20% is visible
+		observer = new IntersectionObserver(
+			(entries) => {
+				entries.forEach((entry) => {
+					if (entry.isIntersecting && entry.intersectionRatio > 0.2) {
+						startAnimation();
+					} else {
+						pauseAnimation();
+					}
+				});
+			},
+			{
+				threshold: [0, 0.1, 0.2, 0.3] // Check at these visibility thresholds
+			}
+		);
+
+		// Start observing the canvas
+		observer.observe(canvas);
 	}
 
 	function handleResize() {
 		if (!canvas) return;
 
-		// Set width and height to ensure proper aspect ratio
-		canvas.width = window.innerWidth;
-		canvas.height = window.innerHeight;
+		// Set correct canvas dimensions for device pixel ratio
+		const dpr = window.devicePixelRatio || 1;
+		canvas.width = window.innerWidth * dpr;
+		canvas.height = window.innerHeight * dpr;
 
-		// On tablet, ensure icons maintain circular shape
-		const devicePixelRatio = window.devicePixelRatio || 1;
-		if (window.innerWidth <= 768) {
-			// Apply scale transformation to maintain correct pixel ratio
-			if (ctx) {
-				ctx.scale(devicePixelRatio, devicePixelRatio);
-			}
+		// Set display size
+		canvas.style.width = window.innerWidth + 'px';
+		canvas.style.height = window.innerHeight + 'px';
+
+		// Reset and apply the correct scale
+		if (ctx) {
+			ctx.setTransform(1, 0, 0, 1, 0, 0);
+			ctx.scale(dpr, dpr);
 		}
 
-		// Reposition icons within new canvas bounds
+		// Reposition icons within new canvas bounds - ensure they're distributed across the entire canvas
 		iconsArray.forEach((icon) => {
-			if (icon.x > canvas.width) icon.x = canvas.width * Math.random();
-			if (icon.y > canvas.height) icon.y = canvas.height * Math.random();
+			// If icons are outside the canvas, reposition them inside
+			if (icon.x > window.innerWidth) icon.x = window.innerWidth * Math.random();
+			if (icon.y > window.innerHeight) icon.y = window.innerHeight * Math.random();
 		});
 	}
 
@@ -528,6 +667,26 @@
 		}
 	}
 
+	function loadFontAwesome() {
+		// Ensure Font Awesome is loaded before drawing
+		return new Promise<void>((resolve) => {
+			if (document.querySelector('link[href*="fontawesome"]')) {
+				// Font Awesome is already loaded
+				resolve();
+				return;
+			}
+
+			const link = document.createElement('link');
+			link.href = '/fontawesome/css/all.css';
+			link.rel = 'stylesheet';
+			link.onload = () => resolve();
+			document.head.appendChild(link);
+
+			// Fallback timeout to resolve even if onload doesn't trigger
+			setTimeout(resolve, 1000);
+		});
+	}
+
 	export function startMindfulnessAnimation() {
 		// Reset the isSuckedIn state for icons if needed
 		iconsArray.forEach((icon) => {
@@ -572,27 +731,49 @@
 	onMount(() => {
 		if (browser) {
 			loaded = true;
+			loadFontAwesome().then(() => {
+				if (canvas) {
+					ctx = canvas.getContext('2d');
 
-			// Create icon elements
-			const cleanup = createIconElements();
+					// Set initial canvas dimensions
+					canvas.width = window.innerWidth;
+					canvas.height = window.innerHeight;
 
-			// Initialize canvas
-			if (canvas) {
-				ctx = canvas.getContext('2d');
-				initIcons();
-				animate();
+					initIcons();
+					animate();
+					setupVisibilityObserver();
 
-				window.addEventListener('resize', handleResize);
-				window.addEventListener('mousemove', handleMouseMove);
-			}
+					window.addEventListener('resize', handleResize);
+					window.addEventListener('mousemove', handleMouseMove);
+
+					// Handle orientation changes specifically
+					window.addEventListener('orientationchange', () => {
+						// Small delay to allow the browser to complete the orientation change
+						setTimeout(handleResize, 100);
+					});
+
+					// Also pause when tab is not visible to save resources
+					document.addEventListener('visibilitychange', () => {
+						if (document.hidden) {
+							pauseAnimation();
+						} else {
+							startAnimation();
+						}
+					});
+				}
+			});
 
 			return () => {
 				window.removeEventListener('resize', handleResize);
 				window.removeEventListener('mousemove', handleMouseMove);
+				window.removeEventListener('orientationchange', handleResize);
+				document.removeEventListener('visibilitychange', () => {});
+				if (observer) {
+					observer.disconnect();
+				}
 				if (animationFrameId) {
 					cancelAnimationFrame(animationFrameId);
 				}
-				if (cleanup) cleanup();
 			};
 		}
 	});

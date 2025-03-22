@@ -85,7 +85,7 @@
 	class:mindful={isMindfulnessActive}
 	bind:this={heroSection}
 >
-	<HeroAnimation {isMindfulnessActive} {toggleCenter} />
+	<!-- <HeroAnimation {isMindfulnessActive} {toggleCenter} />
 
 	<div class="mindfulness-toggle">
 		<button class="toggle-button" bind:this={toggleButton} on:click={toggleMindfulness}>
@@ -95,7 +95,7 @@
 			<span class="toggle-label">Mindfulness</span>
 			<span class="toggle-state">OFF</span>
 		</button>
-	</div>
+	</div> -->
 
 	<div class="hero-3d-container">
 		<div class="hero-content">
@@ -113,11 +113,14 @@
 
 			<div class="hero-cta">
 				<Button href="/register" variant="primary" size="large">Begin Your Journey</Button>
+				<!-- login link to /login -->
 				<div class="login-link">
-					<div class="login-button">
-						<i class="fa-solid fa-arrow-right-to-arc"></i>
-					</div>
-					<span>Login</span>
+					<a href="/login" class="login-link-anchor">
+						<div class="login-button">
+							<i class="fa-solid fa-arrow-right-to-arc"></i>
+						</div>
+						<span>Login</span>
+					</a>
 				</div>
 			</div>
 
@@ -354,6 +357,13 @@
 		gap: 1rem;
 		cursor: pointer;
 		transition: all 0.3s ease;
+	}
+
+	.login-link-anchor {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		text-decoration: none;
 	}
 
 	.login-link:hover {

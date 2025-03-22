@@ -262,7 +262,6 @@
 		background: rgba(255, 255, 255, 0.05);
 		border-radius: 16px;
 		padding: 1.75rem;
-		backdrop-filter: blur(10px);
 		border: 1px solid rgba(123, 104, 238, 0.15);
 		position: relative;
 		overflow: hidden;

@@ -57,27 +57,8 @@ export const load: LayoutServerLoad = async ({ locals, url, cookies }) => {
     throw redirect(303, '/login');
   }
 
-  const navItems = session?.user
-    ? [
-      { href: '/dashboard', label: 'Explore', icon: 'fa-compass' },
-      { href: '/library', label: 'Library', icon: 'fa-list' },
-      { href: '/new', label: 'New', icon: 'fa-plus' },
-      { href: '/playlists', label: 'Learn', icon: 'fa-book' },
-      { href: '/profile', label: 'Profile', icon: 'fa-user' },
-      //...(isAdmin ? [{ href: '/admin', label: 'Admin', icon: 'fa-cog' }] : []),
-    ]
-    : [
-      { href: '/', label: 'Home', icon: 'fa-home' },
-      { href: '/login', label: 'Login', icon: 'fa-sign-in-alt' },
-      { href: '/register', label: 'Register', icon: 'fa-user-plus' },
-    ];
-
-  // Session already has profile from hooks.server.ts
-  log('[Layout] Returning session with profile:', !!profile);
-
   return {
     user: session?.user ? { id: session.user.id, email: session.user.email } : null,
-    navItems,
     isNativeApp: locals.isNativeApp,
     session,
     theme

@@ -21,7 +21,7 @@
 
 <div class="welcome-screen" in:receive={{ key: 'welcome' }} out:send={{ key: 'welcome' }}>
 	<div class="welcome-content">
-		<h2>{mode === 'pre' ? 'Your First Check-in' : 'Session Feedback'}</h2>
+		<h3>{mode === 'pre' ? 'Your First Check-in' : 'Session Feedback'}</h3>
 		<div class="welcome-text">
 			{#if mode === 'pre'}
 				<p>
@@ -60,7 +60,6 @@
 		padding: 1.5rem;
 		display: flex;
 		flex-direction: column;
-		text-align: center;
 	}
 
 	.welcome-content {
@@ -78,8 +77,9 @@
 		margin: -2rem 0 1.5rem;
 	}
 
-	h2 {
+	.welcome-content h3 {
 		font-family: 'Space Grotesk', sans-serif;
+
 		font-size: 2rem;
 		font-weight: 600;
 		color: var(--text-primary);

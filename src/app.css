@@ -1,5 +1,11 @@
 @import './lib/theme.css';
 
+*,
+*:before,
+*:after {
+  box-sizing: border-box;
+}
+
 /* Control overall scaling */
 html {
   font-size: 14px;

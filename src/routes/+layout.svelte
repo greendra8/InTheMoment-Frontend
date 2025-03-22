@@ -14,10 +14,27 @@
 	import { setTimezoneOffsetCookie } from '$lib/utils/time';
 
 	export let data;
-	$: ({ navItems, isNativeApp, session } = data);
+	$: ({ isNativeApp, session } = data);
 
 	// Type the session properly as it comes from the server with profile data
 	$: typedSession = session as ExtendedSession;
+
+	// Create reactive navItems based on session state
+	$: isAdmin = typedSession?.user?.id === 'cf39c581-6b6f-44b7-8c56-f7f64a26637c';
+	$: navItems = typedSession?.user
+		? [
+				{ href: '/dashboard', label: 'Explore', icon: 'fa-compass' },
+				{ href: '/library', label: 'Library', icon: 'fa-list' },
+				{ href: '/new', label: 'New', icon: 'fa-plus' },
+				{ href: '/playlists', label: 'Learn', icon: 'fa-book' },
+				{ href: '/profile', label: 'Profile', icon: 'fa-user' }
+				//...(isAdmin ? [{ href: '/admin', label: 'Admin', icon: 'fa-cog' }] : [])
+			]
+		: [
+				{ href: '/', label: 'Home', icon: 'fa-home' },
+				{ href: '/login', label: 'Login', icon: 'fa-sign-in-alt' },
+				{ href: '/register', label: 'Register', icon: 'fa-user-plus' }
+			];
 
 	// Force galaxy theme for landing page and auth pages
 	$: isLandingOrAuthRoute = isLandingOrAuthPage();
@@ -328,9 +345,7 @@
 		align-items: center;
 		background-color: transparent;
 		color: var(--icon-primary);
-		transition:
-			background-color 0.3s ease,
-			color 0.3s ease;
+		transition: all 0.3s ease;
 		flex-shrink: 0;
 		will-change: background-color, color;
 	}
@@ -348,10 +363,7 @@
 		font-family: 'Poppins', sans-serif;
 		font-weight: 500;
 		color: var(--text-secondary);
-		transition:
-			opacity 0.3s ease,
-			max-width 0.3s ease,
-			margin-left 0.3s ease;
+		transition: all 0.3s ease;
 		font-size: 0.875rem; /* 14px */
 		opacity: 0;
 		max-width: 0;
@@ -392,7 +404,7 @@
 			background-color: var(--background-card);
 			z-index: 1000;
 			padding: 0.625rem 0 1.25rem 0; /* 10px 0 20px 0 */
-			transition: background-color 0.3s ease;
+			transition: all 0.3s ease;
 			border-top: 0.0625rem solid var(--ui-border); /* 1px */
 		}
 	}
@@ -416,7 +428,7 @@
 		text-decoration: none;
 		padding: 0.5rem 0; /* 8px 0 */
 		flex: 1;
-		transition: all 0.2s ease;
+		transition: all 0.3s ease;
 		position: relative;
 		z-index: 2;
 	}
@@ -441,6 +453,7 @@
 
 	.mobile-nav .nav-item i {
 		font-size: 1.375rem; /* 22px */
+		transition: all 0.3s ease;
 	}
 
 	.mobile-nav .nav-label {

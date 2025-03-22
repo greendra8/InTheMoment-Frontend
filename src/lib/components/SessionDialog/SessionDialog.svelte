@@ -183,6 +183,8 @@
 		width: 100%;
 		max-width: 500px;
 		box-sizing: border-box;
+		overflow-y: auto; /* Add scrolling for overflow content */
+		max-height: 80vh; /* Limit height to prevent excessive stretching */
 	}
 
 	.session-dialog.feedback-mode {

@@ -76,7 +76,7 @@
 				</div>
 
 				<div class="coming-soon">
-					<span>Coming Q3 2023</span>
+					<span>Coming 2025</span>
 				</div>
 			</div>
 
@@ -84,7 +84,7 @@
 				<div class="device-wrapper">
 					<div class="phone-outline">
 						<div class="phone-screen">
-							<img src="/images/app-mockup.jpg" alt="In The Moment App" class="app-screenshot" />
+							<!-- <img src="/images/app-mockup.jpg" alt="In The Moment App" class="app-screenshot" /> -->
 						</div>
 						<div class="phone-notch"></div>
 					</div>
@@ -248,7 +248,7 @@
 		width: 260px;
 		height: 40px;
 		background: rgba(0, 0, 0, 0.2);
-		filter: blur(15px);
+		/* filter: blur(15px); */
 		border-radius: 50%;
 		z-index: 1;
 	}
