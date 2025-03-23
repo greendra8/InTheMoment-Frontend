@@ -71,10 +71,10 @@
 
 		<div class="quote-container">
 			<blockquote>
-				"Mindfulness means paying attention in a particular way: on purpose, in the present moment,
-				and non-judgmentally."
+				"The ultimate freedom is a free mind, and we need technology that’s on our team to help us
+				live, feel, think and act freely."
 			</blockquote>
-			<cite>— Jon Kabat-Zinn, Ph.D.</cite>
+			<cite>— Tristan Harris</cite>
 		</div>
 	</Section>
 </div>
