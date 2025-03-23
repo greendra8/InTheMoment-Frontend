@@ -7,6 +7,7 @@
 	export let sessionId: string;
 	export let userId: string;
 	export let existingFeedback: string;
+	export let existingRating: number | null = null;
 
 	const dispatch = createEventDispatcher();
 
@@ -17,7 +18,13 @@
 	}
 
 	function handleFeedbackSubmit(event: CustomEvent) {
-		dispatch('submit', event.detail);
+		const { feedback, rating } = event.detail;
+		dispatch('submit', {
+			sessionId,
+			profileId: userId,
+			feedback,
+			rating
+		});
 	}
 
 	function handleFeedbackFocus() {
@@ -43,6 +50,7 @@
 					{sessionId}
 					profileId={userId}
 					{existingFeedback}
+					{existingRating}
 					initialQuestion="How was your meditation session? I'd love to hear about your experience."
 					on:submit={handleFeedbackSubmit}
 					on:focus={handleFeedbackFocus}

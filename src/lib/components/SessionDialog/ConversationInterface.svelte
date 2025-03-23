@@ -488,7 +488,7 @@
 		border-radius: 12px;
 		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
 		width: 100%;
-		max-height: 100px;
+		max-height: 150px;
 		overflow-y: auto;
 	}
 

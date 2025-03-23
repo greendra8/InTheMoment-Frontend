@@ -60,16 +60,16 @@
 	}
 
 	async function handleFeedbackSubmit(event: CustomEvent) {
-		const { sessionId, profileId, feedback } = event.detail;
-		console.log('Handling feedback submission:', { sessionId, profileId, feedback });
+		const { sessionId, profileId, feedback, rating } = event.detail;
+		console.log('Handling feedback submission:', { sessionId, profileId, feedback, rating });
 		try {
-			const result = await submitFeedback(sessionId, profileId, feedback);
+			const result = await submitFeedback(sessionId, profileId, feedback, rating);
 			console.log('Feedback submitted successfully:', result);
 			localFeedback.set(feedback);
 			// Signal the dialog that submission is complete
 			window.dispatchEvent(
 				new CustomEvent('feedbackSubmissionComplete', {
-					detail: { feedback }
+					detail: { feedback, rating }
 				})
 			);
 		} catch (error) {

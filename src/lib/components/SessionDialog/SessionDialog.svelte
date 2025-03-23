@@ -19,7 +19,7 @@
 			sessionType?: 'meditation' | 'hypnosis';
 			hypnosisPrompt?: string;
 		};
-		submit: { sessionId: string; profileId: string; feedback: string };
+		submit: { sessionId: string; profileId: string; feedback: string; rating: number };
 		skip: void;
 		close: void;
 		focus: void;
@@ -46,6 +46,7 @@
 	export let sessionId: string = '';
 	export let profileId: string = '';
 	export let existingFeedback: string | null = null;
+	export let existingRating: number | null = null;
 
 	// Add prop for first-time users
 	export let isFirstSession = false;
@@ -62,6 +63,7 @@
 	let editingExistingFeedback = false;
 	// Add variable for feedback handling
 	let feedback = existingFeedback || '';
+	let rating = existingRating || 0;
 
 	// Function to proceed from welcome screen to check-in
 	function proceedToCheckIn() {
@@ -87,9 +89,11 @@
 	}
 
 	function handleSubmit(event: CustomEvent) {
-		const { feedback: newFeedback } = event.detail;
+		const { feedback: newFeedback, rating: newRating } = event.detail;
 		feedback = newFeedback;
+		rating = newRating;
 		existingFeedback = newFeedback;
+		existingRating = newRating;
 		showExistingFeedback = true;
 		dispatch('submit', event.detail);
 	}
@@ -111,7 +115,7 @@
 		editingExistingFeedback = false;
 		feedback = event.detail;
 		existingFeedback = event.detail;
-		dispatch('submit', { sessionId, profileId, feedback: event.detail });
+		dispatch('submit', { sessionId, profileId, feedback: event.detail, rating });
 	}
 
 	function handleNewFeedback() {
@@ -123,6 +127,7 @@
 	{#if mode === 'post' && showExistingFeedback}
 		<ExistingFeedback
 			existingFeedback={existingFeedback || ''}
+			existingRating={rating}
 			bind:editingExistingFeedback
 			on:edit={handleExistingFeedbackEdit}
 			on:save={handleExistingFeedbackSave}
@@ -153,6 +158,7 @@
 					{profileId}
 					{initialQuestion}
 					{existingFeedback}
+					{existingRating}
 					on:submit={handleSubmit}
 					on:close={handleClose}
 					on:focus={handleFocus}

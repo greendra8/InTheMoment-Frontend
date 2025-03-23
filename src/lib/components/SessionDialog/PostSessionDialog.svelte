@@ -8,7 +8,7 @@
 	import ConversationInterface from './ConversationInterface.svelte';
 
 	const dispatch = createEventDispatcher<{
-		submit: { sessionId: string; profileId: string; feedback: string };
+		submit: { sessionId: string; profileId: string; feedback: string; rating: number };
 		close: void;
 		focus: void;
 		blur: void;
@@ -18,6 +18,7 @@
 	export let profileId: string = '';
 	export let initialQuestion = '';
 	export let existingFeedback: string | null = null;
+	export let existingRating: number | null = null;
 
 	// UI state
 	let inputMode: 'conversation' | 'text' = 'conversation';
@@ -25,14 +26,17 @@
 	let isProcessing = false;
 	let isThinking = false;
 	let waitingForQuestion = false;
-	let messages: Array<{ role: string; content: string }> = [
-		{ role: 'assistant', content: initialQuestion }
-	];
-	let currentQuestion = initialQuestion;
+	let messages: Array<{ role: string; content: string }> = [];
+	let currentQuestion = '';
 	let questionKey = 0;
 	let showFinalMessage = false;
 	let finalMessage = '';
 	let savedFeedback = existingFeedback;
+
+	// Star rating state
+	let showRatingScreen = true;
+	let selectedRating = existingRating || 0;
+	let ratingSubmitted = false;
 
 	// Set up crossfade transition
 	const [send, receive] = crossfade({
@@ -101,7 +105,12 @@
 			if (messages.length > 15) {
 				console.log('Message limit reached, dispatching default feedback');
 				const defaultFeedback = 'I enjoyed this session. It was relaxing and helpful.';
-				dispatch('submit', { sessionId, profileId, feedback: defaultFeedback });
+				dispatch('submit', {
+					sessionId,
+					profileId,
+					feedback: defaultFeedback,
+					rating: selectedRating
+				});
 				return;
 			}
 
@@ -130,7 +139,12 @@
 					setTimeout(() => {
 						console.log('Final feedback:', feedbackText);
 						savedFeedback = feedbackText; // Save the feedback locally
-						dispatch('submit', { sessionId, profileId, feedback: feedbackText });
+						dispatch('submit', {
+							sessionId,
+							profileId,
+							feedback: feedbackText,
+							rating: selectedRating
+						});
 						// DON'T automatically close - let the parent component handle this
 					}, 5000);
 					return;
@@ -160,7 +174,12 @@
 	function handleSkip() {
 		// Instead of closing, dispatch an event to show existing feedback
 		if (existingFeedback) {
-			dispatch('submit', { sessionId, profileId, feedback: existingFeedback });
+			dispatch('submit', {
+				sessionId,
+				profileId,
+				feedback: existingFeedback,
+				rating: selectedRating
+			});
 		} else {
 			dispatch('close');
 		}
@@ -176,12 +195,88 @@
 
 	// Direct feedback submission for when user edits existing feedback
 	function handleDirectFeedbackSubmit(feedback: string) {
-		dispatch('submit', { sessionId, profileId, feedback });
+		dispatch('submit', { sessionId, profileId, feedback, rating: selectedRating });
+	}
+
+	// Function to submit rating and start conversation
+	function submitRating() {
+		if (selectedRating === 0) {
+			showError('Please select a rating before continuing.');
+			return;
+		}
+
+		ratingSubmitted = true;
+		showRatingScreen = false;
+
+		// Set initial question based on rating
+		let starBasedQuestion = initialQuestion;
+		if (selectedRating >= 4) {
+			starBasedQuestion = `That's great to hear you rated your session ${selectedRating} stars! What did you enjoy most about it?`;
+		} else if (selectedRating === 3) {
+			starBasedQuestion = `Thanks for rating your session ${selectedRating} stars. What aspects worked well for you, and what could be improved?`;
+		} else {
+			starBasedQuestion = `I see you rated your session ${selectedRating} stars. I'd like to understand what didn't work well for you. How could we improve your experience?`;
+		}
+
+		currentQuestion = starBasedQuestion;
+		messages = [
+			// Add a system message with the rating info
+			{
+				role: 'system',
+				content: `The user has rated their meditation session ${selectedRating}/5 stars. Use this information to guide your follow-up questions and gather appropriate feedback.`
+			},
+			{ role: 'assistant', content: starBasedQuestion }
+		];
 	}
 </script>
 
 <div class="content-container">
-	{#if showFinalMessage}
+	{#if showRatingScreen}
+		<div
+			class="rating-screen"
+			in:receive={{ key: 'rating-screen' }}
+			out:send={{ key: 'rating-screen' }}
+		>
+			<h2>How was your session?</h2>
+			<p>Please rate your experience from 1 to 5 stars</p>
+
+			<div class="stars-container">
+				{#each Array(5) as _, i}
+					<button
+						class="star-btn {i < selectedRating ? 'selected' : ''}"
+						on:click={() => (selectedRating = i + 1)}
+						aria-label="Rate {i + 1} star{i !== 0 ? 's' : ''}"
+					>
+						<i class="fas fa-star"></i>
+					</button>
+				{/each}
+			</div>
+
+			<div class="rating-label">
+				{#if selectedRating === 1}
+					Poor
+				{:else if selectedRating === 2}
+					Fair
+				{:else if selectedRating === 3}
+					Good
+				{:else if selectedRating === 4}
+					Very Good
+				{:else if selectedRating === 5}
+					Excellent
+				{:else}
+					Select a rating
+				{/if}
+			</div>
+
+			<button class="continue-btn" on:click={submitRating} disabled={selectedRating === 0}>
+				Continue
+			</button>
+
+			<button class="skip-btn" on:click={handleSkip}>
+				{existingFeedback ? 'Keep existing feedback' : 'Cancel'}
+			</button>
+		</div>
+	{:else if showFinalMessage}
 		<div
 			class="final-message"
 			in:receive={{ key: 'final-message' }}
@@ -283,6 +378,7 @@
 		position: relative;
 		min-height: 350px;
 		width: 100%;
+		height: 100%;
 		display: flex;
 		flex-direction: column;
 	}
@@ -405,6 +501,9 @@
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
+		width: 80%;
+		max-width: 300px;
+		justify-content: center;
 	}
 
 	.skip-btn:hover:not(:disabled) {
@@ -512,5 +611,92 @@
 	.message.assistant {
 		background: rgba(var(--interactive-gradient-2), 0.1);
 		border: 1px solid rgba(var(--interactive-gradient-2), 0.1);
+	}
+
+	.rating-screen {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		text-align: center;
+		padding: 2rem;
+		height: 100%;
+		width: 100%;
+		box-sizing: border-box;
+	}
+
+	.rating-screen h2 {
+		font-family: 'Space Grotesk', sans-serif;
+		font-weight: 600;
+		font-size: 1.4rem;
+		margin-bottom: 0.5rem;
+		color: var(--text-primary);
+	}
+
+	.rating-screen p {
+		font-size: 0.95rem;
+		color: var(--text-secondary);
+		margin-bottom: 1.5rem;
+	}
+
+	.stars-container {
+		display: flex;
+		gap: 0.5rem;
+		margin-bottom: 0.75rem;
+	}
+
+	.star-btn {
+		background: none;
+		border: none;
+		color: rgba(var(--interactive-gradient-1), 0.3);
+		font-size: 2.5rem;
+		cursor: pointer;
+		transition: all 0.2s ease;
+		padding: 0.5rem;
+		line-height: 1;
+	}
+
+	.star-btn:hover {
+		transform: scale(1.1);
+		color: rgba(var(--interactive-gradient-1), 0.6);
+	}
+
+	.star-btn.selected {
+		color: rgba(var(--interactive-gradient-1), 1);
+	}
+
+	.rating-label {
+		font-size: 1rem;
+		color: var(--text-primary);
+		font-weight: 500;
+		height: 1.5rem;
+		margin-bottom: 2rem;
+	}
+
+	.continue-btn {
+		background: var(--btn-bg);
+		color: var(--btn-text);
+		border: none;
+		border-radius: 12px;
+		padding: 0.8rem 2rem;
+		font-family: 'Inter', sans-serif;
+		font-size: 0.95rem;
+		font-weight: 500;
+		cursor: pointer;
+		transition: all 0.3s ease;
+		margin-bottom: 1rem;
+		box-shadow: 0 4px 12px rgba(var(--interactive-gradient-1), 0.15);
+		width: 80%;
+		max-width: 300px;
+	}
+
+	.continue-btn:hover:not(:disabled) {
+		transform: translateY(-2px);
+		box-shadow: 0 6px 16px rgba(var(--interactive-gradient-1), 0.25);
+	}
+
+	.continue-btn:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
 	}
 </style>

@@ -69,7 +69,7 @@ export function subscribeMeditationStatus(meditationId: string, callback: (statu
   };
 }
 
-export async function submitFeedback(sessionId: string, profileId: string, feedback: string) {
+export async function submitFeedback(sessionId: string, profileId: string, feedback: string, rating: number) {
   try {
     // Check if a record already exists
     const { data: existingFeedback, error: checkError } = await supabase
@@ -86,6 +86,7 @@ export async function submitFeedback(sessionId: string, profileId: string, feedb
 
     const feedbackData = {
       feedback: { text: feedback },
+      rating,  // Store rating directly in the rating column
       modified_at: new Date().toISOString()
     };
 
@@ -99,7 +100,10 @@ export async function submitFeedback(sessionId: string, profileId: string, feedb
         .eq('profile_id', profileId)
         .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating feedback:', error);
+        throw error;
+      }
       result = data;
     } else {
       // Insert new feedback
@@ -112,11 +116,14 @@ export async function submitFeedback(sessionId: string, profileId: string, feedb
         })
         .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error inserting feedback:', error);
+        throw error;
+      }
       result = data;
     }
 
-    console.log('Submitted feedback');
+    console.log('Submitted feedback with rating:', { feedback, rating });
     return result[0];
   } catch (err) {
     console.error('Caught error in submitFeedback:', err);
