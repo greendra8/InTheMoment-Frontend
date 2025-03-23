@@ -174,22 +174,4 @@
 			display: none;
 		}
 	}
-
-	/* @media (max-height: 700px) {
-		header {
-			padding-top: 2rem;
-		}
-
-		h2 {
-			font-size: 1.5rem;
-		}
-
-		.title-wrapper {
-			padding-top: 1rem;
-		}
-
-		.listened-icon {
-			top: -0.5rem;
-		}
-	} */
 </style>
