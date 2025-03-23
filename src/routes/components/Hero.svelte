@@ -169,7 +169,7 @@
 		width: 100%;
 		opacity: 1;
 		transform: translateY(0);
-		filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0));
+		filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.1));
 	}
 
 	.hero-badge {
