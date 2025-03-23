@@ -47,10 +47,9 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		background: var(--background-image);
-		background-attachment: var(--background-attachment);
-		background-size: var(--background-size);
 		padding: 2rem 1rem;
+		margin-top: -5rem;
+		min-height: 100vh;
 	}
 
 	.auth-container {
