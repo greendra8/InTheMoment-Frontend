@@ -354,7 +354,7 @@
 
 <div class="profile-setup">
 	<div class="profile-setup-header">
-		<h1>Welcome to In The Moment</h1>
+		<h1>Welcome to InTheMoment</h1>
 		<p>Let's personalize your meditation experience</p>
 	</div>
 

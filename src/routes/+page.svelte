@@ -23,8 +23,8 @@
 
 <main>
 	<Hero
-		backgroundImage="/images/hero/desktop.webp"
-		mobileBackgroundImage="/images/hero/mobile.webp"
+		backgroundImage="/images/landing/desktop.webp"
+		mobileBackgroundImage="/images/landing/mobile.webp"
 		initialImage={data.initialImage}
 		serverIsMobile={data.isMobile}
 	/>

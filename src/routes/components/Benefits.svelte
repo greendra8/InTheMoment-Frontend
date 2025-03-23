@@ -57,7 +57,7 @@
 </script>
 
 <div bind:this={section}>
-	<Section title="Why Choose In The Moment?" centered={true} padding="medium">
+	<Section title="Why Choose InTheMoment?" centered={true} padding="medium">
 		<div class="benefits-grid {isVisible ? 'visible' : ''}">
 			{#each benefits as benefit, i}
 				<div class="benefit-card" style="--delay: {i * 0.1}s">

@@ -98,7 +98,7 @@
 					The Science of <span class="highlight">Mindfulness</span> in Your Daily Life
 				</h2>
 				<p class="intro-description">
-					In The Moment combines proven mindfulness techniques with AI technology to create
+					InTheMoment combines proven mindfulness techniques with AI technology to create
 					personalized meditation experiences that fit perfectly into your busy schedule.
 				</p>
 

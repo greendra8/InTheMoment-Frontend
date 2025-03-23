@@ -24,7 +24,7 @@
 </script>
 
 <svelte:head>
-	<title>{data.playlist.playlist_name} - In The Moment</title>
+	<title>{data.playlist.playlist_name} - InTheMoment</title>
 	<link
 		href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
 		rel="stylesheet"

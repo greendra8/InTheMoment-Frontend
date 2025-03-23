@@ -84,7 +84,11 @@
 				<div class="device-wrapper">
 					<div class="phone-outline">
 						<div class="phone-screen">
-							<!-- <img src="/images/app-mockup.jpg" alt="In The Moment App" class="app-screenshot" /> -->
+							<img
+								src="/images/landing/screenshot.webp"
+								alt="InTheMoment App"
+								class="app-screenshot"
+							/>
 						</div>
 						<div class="phone-notch"></div>
 					</div>

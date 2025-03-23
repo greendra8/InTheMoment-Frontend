@@ -33,7 +33,7 @@
 	<div class="cta-bg"></div>
 	<div class="cta-content {isVisible ? 'visible' : ''}">
 		<h2>Begin Your Mindfulness Journey Today</h2>
-		<p>Join thousands of people who have transformed their lives with In The Moment</p>
+		<p>Join thousands of people who have transformed their lives with InTheMoment</p>
 
 		<div class="cta-actions">
 			<Button href="/register" variant="primary" size="large">Start for Free</Button>
