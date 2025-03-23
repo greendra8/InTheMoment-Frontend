@@ -209,7 +209,7 @@
 
 	.phone-outline {
 		width: 280px;
-		height: 570px;
+		height: 585px;
 		background: #1a1a2e;
 		border-radius: 36px;
 		padding: 10px;
