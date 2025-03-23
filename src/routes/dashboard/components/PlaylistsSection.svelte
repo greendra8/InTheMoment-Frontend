@@ -116,6 +116,11 @@
 	}
 
 	.playlist-content {
+		background: linear-gradient(
+			135deg,
+			rgba(var(--background-card-rgb), 0.9),
+			rgba(var(--background-card-rgb), 0.7)
+		);
 		position: relative;
 		z-index: 1;
 		height: 100%;
