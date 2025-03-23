@@ -2,100 +2,97 @@
 	import { onMount } from 'svelte';
 	import Button from './shared/Button.svelte';
 	import { browser } from '$app/environment';
-	import HeroAnimation from './HeroAnimation.svelte';
 
 	let heroSection: HTMLElement;
 	let loaded = false;
-	let isMindfulnessActive = false;
-	let toggleButton: HTMLButtonElement;
-	let toggleCenter = { x: 0, y: 0 };
+	let isMobile = false;
+	let imageLoaded = false;
 
-	// Create a ripple effect at the toggle button
-	function createRippleEffect(button: HTMLElement) {
-		const ripple = document.createElement('span');
-		ripple.classList.add('ripple');
-		button.appendChild(ripple);
+	// Background image (optional)
+	export let backgroundImage: string | undefined = undefined;
+	// Mobile background image (optional)
+	export let mobileBackgroundImage: string | undefined = undefined;
 
-		setTimeout(() => {
-			ripple.remove();
-		}, 1000);
+	// Variable to hold the current background image
+	let currentBackgroundImage: string | undefined = undefined;
+
+	// Function to check if image is already cached
+	function isImageCached(src: string): boolean {
+		if (!browser) return false;
+		const img = new Image();
+		img.src = src;
+		return img.complete;
 	}
 
-	// Update toggle state
-	function toggleMindfulness() {
-		isMindfulnessActive = !isMindfulnessActive;
+	// Function to preload and update the background image
+	function updateBackgroundImage() {
+		// Select the appropriate image based on screen size
+		const selectedImage =
+			isMobile && mobileBackgroundImage ? mobileBackgroundImage : backgroundImage;
 
-		if (toggleButton) {
-			// Update the button appearance
-			if (isMindfulnessActive) {
-				toggleButton.classList.add('active');
-				toggleButton.querySelector('.toggle-state')!.textContent = 'ON';
-
-				// Add a ripple effect
-				createRippleEffect(toggleButton);
-
-				// Add glow effect to button and change background
-				toggleButton.style.boxShadow = '0 0 20px rgba(123, 104, 238, 0.6)';
-				if (heroSection) {
-					heroSection.classList.add('mindful');
-				}
+		if (selectedImage) {
+			// Check if the image is already cached
+			if (isImageCached(selectedImage)) {
+				// If cached, display immediately without fade
+				currentBackgroundImage = selectedImage;
+				imageLoaded = true;
 			} else {
-				toggleButton.classList.remove('active');
-				toggleButton.querySelector('.toggle-state')!.textContent = 'OFF';
-
-				// Reset button appearance
-				toggleButton.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.2)';
-				if (heroSection) {
-					heroSection.classList.remove('mindful');
-				}
+				// If not cached, perform fade-in effect
+				imageLoaded = false;
+				preloadImage(selectedImage);
 			}
-
-			// Calculate the center of the toggle button for animation
-			const rect = toggleButton.getBoundingClientRect();
-			toggleCenter = {
-				x: rect.left + rect.width / 2,
-				y: rect.top + rect.height / 2
-			};
 		}
+	}
+
+	// Preload image function
+	function preloadImage(src: string) {
+		const img = new Image();
+		img.onload = () => {
+			currentBackgroundImage = src;
+			// Small delay to ensure CSS transition works properly
+			setTimeout(() => {
+				imageLoaded = true;
+			}, 50);
+		};
+		img.src = src;
 	}
 
 	onMount(() => {
 		if (browser) {
 			loaded = true;
 
-			// 3D tilt effect for hero content
-			const heroContent = document.querySelector('.hero-content') as HTMLElement;
-			if (heroContent) {
-				heroContent.addEventListener('mousemove', (e) => {
-					const xAxis = (window.innerWidth / 2 - e.pageX) / 25;
-					const yAxis = (window.innerHeight / 2 - e.pageY) / 25;
-					heroContent.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
-				});
+			// Simple media query check for mobile devices
+			const mediaQuery = window.matchMedia('(max-width: 768px)');
 
-				heroContent.addEventListener('mouseleave', () => {
-					heroContent.style.transform = 'rotateY(0deg) rotateX(0deg)';
-				});
-			}
+			// Initial check
+			isMobile = mediaQuery.matches;
+
+			// Set the initial background image
+			updateBackgroundImage();
+
+			// Add listener for changes
+			const handleMediaChange = (e: MediaQueryListEvent) => {
+				isMobile = e.matches;
+				updateBackgroundImage();
+			};
+
+			mediaQuery.addEventListener('change', handleMediaChange);
+
+			return () => {
+				mediaQuery.removeEventListener('change', handleMediaChange);
+			};
 		}
 	});
 </script>
 
 <section
 	class="hero {loaded ? 'loaded' : ''}"
-	class:mindful={isMindfulnessActive}
+	class:image-loaded={imageLoaded}
 	bind:this={heroSection}
 >
-	<!-- <HeroAnimation {isMindfulnessActive} {toggleCenter} />
-
-	<div class="mindfulness-toggle">
-		<button class="toggle-button" bind:this={toggleButton} on:click={toggleMindfulness}>
-			<span class="toggle-icon">
-				<i class="fas fa-brain"></i>
-			</span>
-			<span class="toggle-label">Mindfulness</span>
-			<span class="toggle-state">OFF</span>
-		</button>
-	</div> -->
+	{#if currentBackgroundImage}
+		<div class="hero-background" style={`background-image: url(${currentBackgroundImage});`}></div>
+	{/if}
 
 	<div class="hero-3d-container">
 		<div class="hero-content">
@@ -113,7 +110,6 @@
 
 			<div class="hero-cta">
 				<Button href="/register" variant="primary" size="large">Begin Your Journey</Button>
-				<!-- login link to /login -->
 				<div class="login-link">
 					<a href="/login" class="login-link-anchor">
 						<div class="login-button">
@@ -161,142 +157,63 @@
 		background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
 		overflow: hidden;
 		perspective: 1000px;
-		transition: background 1.5s ease;
 		width: 100%;
 		padding: 2rem 0;
 	}
 
-	.hero.mindful {
-		background: linear-gradient(135deg, #0f1a29 0%, #2f3c63 50%, #243a4e 100%);
-	}
-
-	.hero.mindful .toggle-button {
-		box-shadow: 0 0 30px rgba(123, 104, 238, 0.7);
-	}
-
-	.mindfulness-toggle {
+	.hero-background {
 		position: absolute;
-		top: 2rem;
-		left: 50%;
-		transform: translateX(-50%);
-		z-index: 10;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background-size: cover;
+		background-position: center;
+		background-repeat: no-repeat;
+		opacity: 0;
+		transition: opacity 0.4s ease-in-out;
+		z-index: 0;
 	}
 
-	.toggle-button {
-		display: flex;
-		align-items: center;
-		gap: 0.75rem;
-		background: rgba(255, 255, 255, 0.1);
-		border: 1px solid rgba(255, 255, 255, 0.2);
-		border-radius: 30px;
-		color: white;
-		padding: 0.6rem 1.5rem;
-		font-size: 1rem;
-		font-weight: 500;
-		cursor: pointer;
-		backdrop-filter: blur(10px);
-		transition: all 0.3s ease;
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+	.hero.image-loaded .hero-background {
+		opacity: 1;
+	}
+
+	/* Overlay for text readability */
+	.hero-background::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background: rgba(15, 12, 41, 0.5);
+	}
+
+	.hero-3d-container,
+	.scroll-indicator {
 		position: relative;
-		overflow: hidden;
-	}
-
-	.ripple {
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
-		width: 0;
-		height: 0;
-		border-radius: 50%;
-		background: rgba(123, 104, 238, 0.4);
-		animation: ripple-animation 1s ease-out;
-	}
-
-	@keyframes ripple-animation {
-		0% {
-			width: 0;
-			height: 0;
-			opacity: 0.8;
-		}
-		100% {
-			width: 200px;
-			height: 200px;
-			opacity: 0;
-		}
-	}
-
-	.toggle-button:hover {
-		background: rgba(255, 255, 255, 0.15);
-		transform: translateY(-2px);
-		box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
-	}
-
-	.toggle-button.active {
-		background: rgba(123, 104, 238, 0.3);
-		border-color: rgba(123, 104, 238, 0.5);
-	}
-
-	.toggle-icon {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 28px;
-		height: 28px;
-		color: #9370db;
-		font-size: 1.1rem;
-	}
-
-	.toggle-button.active .toggle-icon {
-		color: white;
-	}
-
-	.toggle-label {
-		letter-spacing: 0.5px;
-		font-family: 'Poppins', sans-serif;
-	}
-
-	.toggle-state {
-		font-size: 0.8rem;
-		font-weight: 700;
-		background: rgba(255, 255, 255, 0.15);
-		padding: 0.2rem 0.5rem;
-		border-radius: 10px;
-		letter-spacing: 0.5px;
-	}
-
-	.toggle-button.active .toggle-state {
-		background: rgba(255, 255, 255, 0.25);
-		content: 'ON';
+		z-index: 2;
 	}
 
 	.hero-3d-container {
-		position: relative;
-		z-index: 3;
 		max-width: 1200px;
 		width: 100%;
 		display: flex;
 		justify-content: center;
 		align-items: center;
 		padding: 0 2rem;
-		transition: transform 0.6s ease;
+		transition: none;
 	}
 
 	.hero-content {
-		transition: transform 0.6s ease;
+		transition: none;
 		transform-style: preserve-3d;
 		max-width: 800px;
 		width: 100%;
-		opacity: 0;
-		transform: translateY(40px);
-		animation: fadeIn 1s forwards 0.5s;
-	}
-
-	@keyframes fadeIn {
-		to {
-			opacity: 1;
-			transform: translateY(0);
-		}
+		opacity: 1;
+		transform: translateY(0);
+		filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0));
 	}
 
 	.hero-badge {
@@ -329,6 +246,7 @@
 		background-clip: text;
 		color: transparent;
 		display: inline-block;
+		text-shadow: none;
 	}
 
 	.accent-text {
@@ -356,7 +274,7 @@
 		align-items: center;
 		gap: 1rem;
 		cursor: pointer;
-		transition: all 0.3s ease;
+		transition: transform 0.2s ease-in-out;
 	}
 
 	.login-link-anchor {
@@ -380,7 +298,7 @@
 		justify-content: center;
 		color: white;
 		border: 1px solid rgba(255, 255, 255, 0.2);
-		transition: all 0.3s ease;
+		transition: none;
 	}
 
 	.login-link:hover .login-button {
@@ -438,8 +356,7 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		opacity: 0;
-		animation: fadeIn 1s forwards 1.2s;
+		opacity: 1;
 	}
 
 	.mouse {
@@ -484,8 +401,9 @@
 			padding: 6rem 0 6rem;
 		}
 
-		.mindfulness-toggle {
-			top: 1rem;
+		/* Apply mobile background image if specified */
+		.hero[style*='background-image'] {
+			background-position: center;
 		}
 
 		.hero-cta {
@@ -517,25 +435,8 @@
 
 	@media (max-width: 480px) {
 		.hero {
-			padding: 3rem 0 4rem;
+			padding: 0 0 4rem;
 			justify-content: flex-start;
-		}
-
-		.mindfulness-toggle {
-			top: rem;
-			width: 100%;
-			display: flex;
-			justify-content: center;
-		}
-
-		.toggle-button {
-			padding: 0.5rem 1.2rem;
-			font-size: 0.9rem;
-		}
-
-		.toggle-icon {
-			width: 24px;
-			height: 24px;
 		}
 
 		.hero-3d-container {
@@ -544,7 +445,6 @@
 		}
 
 		.hero-content {
-			text-align: center;
 			padding: 0;
 			transform-style: flat;
 		}
@@ -564,7 +464,6 @@
 		}
 
 		.hero-cta {
-			align-items: center;
 			margin-bottom: 2.5rem;
 			gap: 1.2rem;
 		}
@@ -597,6 +496,12 @@
 
 		.scroll-text {
 			font-size: 0.8rem;
+		}
+	}
+
+	@media (max-height: 835px) and (min-width: 768px) {
+		.scroll-indicator {
+			display: none;
 		}
 	}
 </style>

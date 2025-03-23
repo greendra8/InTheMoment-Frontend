@@ -13,7 +13,10 @@
 </svelte:head>
 
 <main>
-	<Hero />
+	<Hero
+		backgroundImage="/images/hero/desktop.webp"
+		mobileBackgroundImage="/images/hero/mobile.webp"
+	/>
 	<Intro />
 	<Features />
 	<HowItWorks />
