@@ -65,12 +65,17 @@
 							<i class="fas fa-moon"></i>
 							<span>Evening</span>
 						</div>
-						<span
-							class="content-type-badge"
-							class:hypnosis={eveningSession.content_type === 'hypnosis'}
-						>
-							{eveningSession.content_type === 'hypnosis' ? 'Hypnosis' : 'Meditation'}
-						</span>
+						<div class="session-indicators">
+							{#if eveningSession.listened}
+								<i class="fas fa-check-circle listened-icon"></i>
+							{/if}
+							<span
+								class="content-type-badge"
+								class:hypnosis={eveningSession.content_type === 'hypnosis'}
+							>
+								{eveningSession.content_type === 'hypnosis' ? 'Hypnosis' : 'Meditation'}
+							</span>
+						</div>
 					</div>
 					<h3 class="practice-title">{eveningSession.title || 'Evening Session'}</h3>
 					<div class="practice-meta">
@@ -103,12 +108,17 @@
 							<i class="fas fa-cloud-sun"></i>
 							<span>Midday</span>
 						</div>
-						<span
-							class="content-type-badge"
-							class:hypnosis={middaySession.content_type === 'hypnosis'}
-						>
-							{middaySession.content_type === 'hypnosis' ? 'Hypnosis' : 'Meditation'}
-						</span>
+						<div class="session-indicators">
+							{#if middaySession.listened}
+								<i class="fas fa-check-circle listened-icon"></i>
+							{/if}
+							<span
+								class="content-type-badge"
+								class:hypnosis={middaySession.content_type === 'hypnosis'}
+							>
+								{middaySession.content_type === 'hypnosis' ? 'Hypnosis' : 'Meditation'}
+							</span>
+						</div>
 					</div>
 					<h3 class="practice-title">{middaySession.title || 'Midday Session'}</h3>
 					<div class="practice-meta">
@@ -141,12 +151,17 @@
 							<i class="fas fa-sun"></i>
 							<span>Morning</span>
 						</div>
-						<span
-							class="content-type-badge"
-							class:hypnosis={morningSession.content_type === 'hypnosis'}
-						>
-							{morningSession.content_type === 'hypnosis' ? 'Hypnosis' : 'Meditation'}
-						</span>
+						<div class="session-indicators">
+							{#if morningSession.listened}
+								<i class="fas fa-check-circle listened-icon"></i>
+							{/if}
+							<span
+								class="content-type-badge"
+								class:hypnosis={morningSession.content_type === 'hypnosis'}
+							>
+								{morningSession.content_type === 'hypnosis' ? 'Hypnosis' : 'Meditation'}
+							</span>
+						</div>
 					</div>
 					<h3 class="practice-title">{morningSession.title || 'Morning Session'}</h3>
 					<div class="practice-meta">
@@ -371,6 +386,17 @@
 
 	.practice-time i {
 		color: var(--icon-primary);
+	}
+
+	.session-indicators {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.listened-icon {
+		color: var(--ui-success);
+		font-size: 1rem;
 	}
 
 	.content-type-badge {
