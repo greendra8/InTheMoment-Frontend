@@ -118,18 +118,11 @@ textarea {
 /* Add bottom padding to prevent content from being hidden by navigation bars */
 main {
   min-height: 100vh;
-  padding-bottom: 80px;
+  padding-bottom: 100px;
   /* Default space for mobile nav */
   max-width: 100%;
   overflow-x: hidden;
   /* Prevent horizontal scrolling */
-}
-
-/* Improve layout stability */
-.content-container {
-  /* word-wrap: break-word;
-  overflow-wrap: break-word;
-  hyphens: auto; */
 }
 
 

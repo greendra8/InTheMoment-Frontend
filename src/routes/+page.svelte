@@ -43,5 +43,6 @@
 		background: var(--background-image);
 		background-attachment: var(--background-attachment);
 		background-size: var(--background-size);
+		padding-bottom: 0 !important;
 	}
 </style>
