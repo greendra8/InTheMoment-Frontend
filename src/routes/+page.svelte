@@ -6,16 +6,27 @@
 	import Benefits from './components/Benefits.svelte';
 	import MobileSection from './components/MobileSection.svelte';
 	import CtaSection from './components/CtaSection.svelte';
+
+	/** @type {import('./$types').PageData} */
+	export let data;
 </script>
 
 <svelte:head>
 	<title>InTheMoment</title>
+	<link rel="preload" href={data.initialImage} as="image" fetchpriority="high" />
+	{#if data.isMobile}
+		<link rel="preload" href="/images/hero/mobile.webp" as="image" fetchpriority="high" />
+	{:else}
+		<link rel="preload" href="/images/hero/desktop.webp" as="image" fetchpriority="high" />
+	{/if}
 </svelte:head>
 
 <main>
 	<Hero
 		backgroundImage="/images/hero/desktop.webp"
 		mobileBackgroundImage="/images/hero/mobile.webp"
+		initialImage={data.initialImage}
+		serverIsMobile={data.isMobile}
 	/>
 	<Intro />
 	<Features />

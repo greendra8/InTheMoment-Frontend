@@ -6,56 +6,19 @@
 	let heroSection: HTMLElement;
 	let loaded = false;
 	let isMobile = false;
-	let imageLoaded = false;
+	let imageLoaded = true;
 
 	// Background image (optional)
 	export let backgroundImage: string | undefined = undefined;
 	// Mobile background image (optional)
 	export let mobileBackgroundImage: string | undefined = undefined;
+	// Server-provided initial image
+	export let initialImage: string;
+	// Server-detected mobile state
+	export let serverIsMobile: boolean;
 
-	// Variable to hold the current background image
-	let currentBackgroundImage: string | undefined = undefined;
-
-	// Function to check if image is already cached
-	function isImageCached(src: string): boolean {
-		if (!browser) return false;
-		const img = new Image();
-		img.src = src;
-		return img.complete;
-	}
-
-	// Function to preload and update the background image
-	function updateBackgroundImage() {
-		// Select the appropriate image based on screen size
-		const selectedImage =
-			isMobile && mobileBackgroundImage ? mobileBackgroundImage : backgroundImage;
-
-		if (selectedImage) {
-			// Check if the image is already cached
-			if (isImageCached(selectedImage)) {
-				// If cached, display immediately without fade
-				currentBackgroundImage = selectedImage;
-				imageLoaded = true;
-			} else {
-				// If not cached, perform fade-in effect
-				imageLoaded = false;
-				preloadImage(selectedImage);
-			}
-		}
-	}
-
-	// Preload image function
-	function preloadImage(src: string) {
-		const img = new Image();
-		img.onload = () => {
-			currentBackgroundImage = src;
-			// Small delay to ensure CSS transition works properly
-			setTimeout(() => {
-				imageLoaded = true;
-			}, 50);
-		};
-		img.src = src;
-	}
+	// Start with the server-provided image
+	let currentBackgroundImage = initialImage;
 
 	onMount(() => {
 		if (browser) {
@@ -64,16 +27,16 @@
 			// Simple media query check for mobile devices
 			const mediaQuery = window.matchMedia('(max-width: 768px)');
 
-			// Initial check
-			isMobile = mediaQuery.matches;
-
-			// Set the initial background image
-			updateBackgroundImage();
+			// Only update if the client-side detection differs from server
+			if (mediaQuery.matches !== serverIsMobile) {
+				isMobile = mediaQuery.matches;
+				currentBackgroundImage = isMobile ? mobileBackgroundImage : backgroundImage;
+			}
 
 			// Add listener for changes
 			const handleMediaChange = (e: MediaQueryListEvent) => {
 				isMobile = e.matches;
-				updateBackgroundImage();
+				currentBackgroundImage = isMobile ? mobileBackgroundImage : backgroundImage;
 			};
 
 			mediaQuery.addEventListener('change', handleMediaChange);
@@ -170,16 +133,9 @@
 		background-size: cover;
 		background-position: center;
 		background-repeat: no-repeat;
-		opacity: 0;
-		transition: opacity 0.4s ease-in-out;
 		z-index: 0;
 	}
 
-	.hero.image-loaded .hero-background {
-		opacity: 1;
-	}
-
-	/* Overlay for text readability */
 	.hero-background::before {
 		content: '';
 		position: absolute;
