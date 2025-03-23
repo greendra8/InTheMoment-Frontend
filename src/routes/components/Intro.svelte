@@ -104,12 +104,12 @@
 
 				<div class="intro-stats">
 					<div class="stat-item">
-						<span class="stat-number">87%</span>
-						<span class="stat-text">Report reduced stress within 14 days</span>
+						<span class="stat-number">50%</span>
+						<span class="stat-text">Report reduced stress within 6 weeks</span>
 					</div>
 					<div class="stat-item">
-						<span class="stat-number">62%</span>
-						<span class="stat-text">Improvement in focus and concentration</span>
+						<span class="stat-number">61%</span>
+						<span class="stat-text">Improvement in focus and mental clarity</span>
 					</div>
 				</div>
 
