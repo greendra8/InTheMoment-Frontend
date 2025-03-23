@@ -244,7 +244,6 @@
 		.check-in-container.feedback-mode {
 			/* align vertically */
 			justify-content: center;
-			margin-top: -80px;
 		}
 	}
 
