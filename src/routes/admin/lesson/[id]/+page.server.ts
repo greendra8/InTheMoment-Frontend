@@ -33,6 +33,8 @@ export const actions: Actions = {
     const lessonContent = formData.get('lesson_content') as string;
     const lessonTechniques = formData.get('lesson_techniques') as string || null;
     const lessonVisible = formData.has('lessonVisible');
+    const eyes = formData.get('eyes') as string || null;
+    const posture = formData.get('posture') as string || null;
 
     console.log('Lesson visibility:', lessonVisible);
 
@@ -51,7 +53,9 @@ export const actions: Actions = {
           lesson_number: lessonNumber,
           lesson_content: lessonContent,
           lesson_techniques: lessonTechniques,
-          visible: lessonVisible
+          visible: lessonVisible,
+          eyes: eyes,
+          posture: posture
         })
         .eq('id', id)
         .select('*')

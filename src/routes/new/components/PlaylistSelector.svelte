@@ -3,15 +3,22 @@
 	export let selectedPlaylist: string;
 	export let playlists: any[];
 	export let onChange: (value: string) => void;
+	export let loading: boolean = false;
+
+	// Function to handle selection change
+	function handleChange() {
+		onChange(selectedPlaylist);
+	}
 </script>
 
 <div class="option-group playlist-group">
 	<label for="playlist-select">Playlist (Optional)</label>
-	<div class="playlist-selector">
+	<div class="playlist-selector" class:loading>
 		<select
 			id="playlist-select"
 			bind:value={selectedPlaylist}
-			on:change={() => onChange(selectedPlaylist)}
+			on:change={handleChange}
+			disabled={loading}
 		>
 			<option value="">No playlist - Custom meditation</option>
 			{#each playlists as playlist}
@@ -19,7 +26,11 @@
 			{/each}
 		</select>
 		<div class="select-icon">
-			<i class="fas fa-chevron-down"></i>
+			{#if loading}
+				<i class="fas fa-spinner fa-spin"></i>
+			{:else}
+				<i class="fas fa-chevron-down"></i>
+			{/if}
 		</div>
 	</div>
 </div>
@@ -45,6 +56,11 @@
 	/* Playlist Selector */
 	.playlist-selector {
 		position: relative;
+		margin-bottom: 0.5rem;
+	}
+
+	.playlist-selector.loading {
+		opacity: 0.8;
 	}
 
 	.playlist-selector select {

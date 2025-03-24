@@ -1,7 +1,7 @@
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import { generateMeditation } from '$lib/pythonApi';
-import { getPlaylists, getPlaylist, getUserMeditations } from '$lib/server/supabase';
+import { getPlaylists, getPlaylist, getUserMeditations, getPlaylistWithConstraints } from '$lib/server/supabase';
 
 // Cookie name for pre-session data
 const PRE_SESSION_COOKIE_NAME = 'pre_session_data';
@@ -52,7 +52,7 @@ export const load: PageServerLoad = async ({ locals, url, cookies }) => {
 
 	try {
 		// Only fetch visible playlists for the dropdown
-		const playlists = await getPlaylists(false);
+		const playlists = await getPlaylists(20, false);
 
 		// Fetch user's meditations to determine if this is their first session
 		const { data: meditations, totalCount: totalMeditations } = await getUserMeditations(user.id);
@@ -63,14 +63,14 @@ export const load: PageServerLoad = async ({ locals, url, cookies }) => {
 		if (playlistId) {
 			initialTab = 'lesson';
 			if (playlistId !== '') {
-				// Only fetch visible playlist for selection
+				// Use the new function that fetches playlist with constraints
 				try {
-					const playlist = await getPlaylist(playlistId, false);
-					if (playlist) {
-						selectedPlaylist = playlist;
+					const playlistWithConstraints = await getPlaylistWithConstraints(playlistId, user.id, false);
+					if (playlistWithConstraints) {
+						selectedPlaylist = playlistWithConstraints;
 					}
 				} catch (err) {
-					console.error('Error fetching selected playlist:', err);
+					console.error('Error fetching selected playlist with constraints:', err);
 					// If playlist is not found or not visible, we'll leave selectedPlaylist as null
 				}
 			}

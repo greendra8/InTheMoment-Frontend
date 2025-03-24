@@ -102,12 +102,13 @@ export async function isUserProfileComplete(userId: string) {
 }
 
 // Helper function to get playlists with visibility handling
-export async function getPlaylists(includeHidden: boolean = false) {
+export async function getPlaylists(limit: number = 10, includeHidden: boolean = false) {
   try {
     let query = supabaseAdmin
       .from('lesson_playlists')
       .select('id, playlist_name, playlist_order, playlist_description, visible')
-      .order('playlist_order');
+      .order('playlist_order')
+      .limit(limit);
 
     if (!includeHidden) {
       query = query.eq('visible', true);
@@ -141,6 +142,53 @@ export async function getPlaylist(playlistId: string, includeHidden: boolean = f
     return data;
   } catch (err) {
     console.error('Error fetching playlist:', err);
+    throw err;
+  }
+}
+
+// New function to get playlist with next lesson constraints
+export async function getPlaylistWithConstraints(playlistId: string, userId: string, includeHidden: boolean = false) {
+  try {
+    // First get the user's progress to determine completed lessons
+    const userProgress = await getUserProgress(userId, playlistId);
+    const completedLessons = userProgress || [];
+
+    // Get the playlist details
+    const playlist = await getPlaylist(playlistId, includeHidden);
+
+    if (!playlist) {
+      throw new Error('Playlist not found');
+    }
+
+    // Get all lessons for this playlist
+    let query = supabaseAdmin
+      .from('lesson_content')
+      .select('id, lesson_number, lesson_title, visible, eyes, posture')
+      .eq('playlist_id', playlistId)
+      .order('lesson_number');
+
+    if (!includeHidden) {
+      query = query.eq('visible', true);
+    }
+
+    const { data: lessons, error } = await query;
+
+    if (error) throw error;
+
+    // Find the next uncompleted lesson
+    const nextLesson = lessons.find(lesson =>
+      !completedLessons.includes(lesson.lesson_number)
+    );
+
+    // Return the playlist with constraint information
+    return {
+      ...playlist,
+      eyesConstraint: nextLesson?.eyes || null,
+      postureConstraint: nextLesson?.posture || null,
+      nextLessonId: nextLesson?.id || null
+    };
+  } catch (err) {
+    console.error('Error fetching playlist with constraints:', err);
     throw err;
   }
 }

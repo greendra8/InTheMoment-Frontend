@@ -325,3 +325,31 @@ export async function processFeedbackConversation(
     throw error;
   }
 }
+
+/**
+ * Get the next lesson for a playlist with its posture and eyes constraints
+ */
+export async function getPlaylistConstraints(playlistId: string) {
+  try {
+    // We'll use a specialized endpoint that uses the server-side function
+    // This ensures proper RLS while using the data we need
+    const response = await fetch(`/api/playlists/${playlistId}/constraints`);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Error getting playlist constraints (${response.status}):`, errorText);
+      throw new Error(`Failed to get playlist constraints: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    return {
+      eyesConstraint: data.eyesConstraint,
+      postureConstraint: data.postureConstraint,
+      nextLessonId: data.nextLessonId
+    };
+  } catch (error) {
+    console.error('Error in getPlaylistConstraints:', error);
+    throw error;
+  }
+}

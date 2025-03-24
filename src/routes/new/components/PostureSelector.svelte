@@ -3,22 +3,49 @@
 	export let selectedPosture: string;
 	export let postureOptions: { value: string; display: string; icon: string }[];
 	export let onChange: (value: string) => void;
+	export let constrained: boolean = false;
+	export let constraintValue: string | null = null;
+
+	// If constrained and constraint value exists
+	$: effectivelyDisabled = constrained && !!constraintValue;
+
+	// If constrained and constraint value is valid, use it and ensure it's respected
+	$: if (constrained && constraintValue) {
+		// Find if constraint is a valid posture option
+		const validConstraint = postureOptions.find((option) => option.value === constraintValue);
+		if (validConstraint && selectedPosture !== constraintValue) {
+			// Force the posture to the constraint value
+			selectedPosture = constraintValue;
+			onChange(constraintValue);
+		}
+	}
 </script>
 
-<div class="option-group posture-group">
+<div class="option-group posture-group" class:disabled={effectivelyDisabled}>
 	<div class="option-header">
-		<label>Posture</label>
-		<div class="cycle-selector">
+		<div class="left-section">
+			<label>Posture</label>
+			{#if effectivelyDisabled}
+				<div class="constraint-badge">
+					<i class="fas fa-lock"></i>
+					<span>Locked</span>
+				</div>
+			{/if}
+		</div>
+		<div class="cycle-selector" class:constrained={effectivelyDisabled}>
 			<button
 				type="button"
 				class="cycle-btn prev"
 				on:click={() => {
-					const currentIndex = postureOptions.findIndex((p) => p.value === selectedPosture);
-					const prevIndex = (currentIndex - 1 + postureOptions.length) % postureOptions.length;
-					const newValue = postureOptions[prevIndex].value;
-					selectedPosture = newValue;
-					onChange(newValue);
+					if (!effectivelyDisabled) {
+						const currentIndex = postureOptions.findIndex((p) => p.value === selectedPosture);
+						const prevIndex = (currentIndex - 1 + postureOptions.length) % postureOptions.length;
+						const newValue = postureOptions[prevIndex].value;
+						selectedPosture = newValue;
+						onChange(newValue);
+					}
 				}}
+				disabled={effectivelyDisabled}
 			>
 				<i class="fas fa-chevron-left"></i>
 			</button>
@@ -30,12 +57,15 @@
 				type="button"
 				class="cycle-btn next"
 				on:click={() => {
-					const currentIndex = postureOptions.findIndex((p) => p.value === selectedPosture);
-					const nextIndex = (currentIndex + 1) % postureOptions.length;
-					const newValue = postureOptions[nextIndex].value;
-					selectedPosture = newValue;
-					onChange(newValue);
+					if (!effectivelyDisabled) {
+						const currentIndex = postureOptions.findIndex((p) => p.value === selectedPosture);
+						const nextIndex = (currentIndex + 1) % postureOptions.length;
+						const newValue = postureOptions[nextIndex].value;
+						selectedPosture = newValue;
+						onChange(newValue);
+					}
 				}}
+				disabled={effectivelyDisabled}
 			>
 				<i class="fas fa-chevron-right"></i>
 			</button>
@@ -57,6 +87,12 @@
 		align-items: center;
 	}
 
+	.left-section {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
 	.option-header label {
 		font-size: 0.9rem;
 		font-weight: 500;
@@ -65,6 +101,23 @@
 		align-items: center;
 		gap: 0.5rem;
 		font-family: 'Inter', sans-serif;
+	}
+
+	/* Constraint Badge */
+	.constraint-badge {
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+		font-size: 0.75rem;
+		color: var(--text-secondary);
+		background: rgba(var(--interactive-gradient-1), 0.1);
+		padding: 0.3rem 0.5rem;
+		border-radius: 4px;
+	}
+
+	.constrained {
+		opacity: 0.8;
+		border: 1px solid rgba(var(--interactive-gradient-1), 0.2);
 	}
 
 	/* Cycle Selector */
@@ -123,5 +176,9 @@
 	.cycle-btn:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
+	}
+
+	.option-group.disabled {
+		opacity: 0.7;
 	}
 </style>

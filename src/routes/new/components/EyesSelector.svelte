@@ -4,17 +4,41 @@
 	export let eyesOptions: { value: string; display: string; icon: string }[];
 	export let onChange: (value: string) => void;
 	export let disabled: boolean = false;
+	export let constrained: boolean = false;
+	export let constraintValue: string | null = null;
+
+	// If we have either walking constraint or posture constraint
+	$: effectivelyDisabled = disabled || (constrained && !!constraintValue);
+
+	// If constrained and constraint value is valid, use it and ensure it's respected
+	$: if (constrained && constraintValue && !disabled) {
+		// Find if constraint is a valid eyes option
+		const validConstraint = eyesOptions.find((option) => option.value === constraintValue);
+		if (validConstraint && selectedEyes !== constraintValue) {
+			// Force the eyes to the constraint value
+			selectedEyes = constraintValue;
+			onChange(constraintValue);
+		}
+	}
 </script>
 
-<div class="option-group eyes-group" class:disabled>
+<div class="option-group eyes-group" class:disabled={effectivelyDisabled}>
 	<div class="option-header">
-		<label>Eyes</label>
-		<div class="cycle-selector">
+		<div class="left-section">
+			<label>Eyes</label>
+			{#if effectivelyDisabled}
+				<div class="constraint-badge">
+					<i class="fas fa-lock"></i>
+					<span>Locked</span>
+				</div>
+			{/if}
+		</div>
+		<div class="cycle-selector" class:constrained={effectivelyDisabled}>
 			<button
 				type="button"
 				class="cycle-btn prev"
 				on:click={() => {
-					if (!disabled) {
+					if (!effectivelyDisabled) {
 						const currentIndex = eyesOptions.findIndex((e) => e.value === selectedEyes);
 						const prevIndex = (currentIndex - 1 + eyesOptions.length) % eyesOptions.length;
 						const newValue = eyesOptions[prevIndex].value;
@@ -22,7 +46,7 @@
 						onChange(newValue);
 					}
 				}}
-				{disabled}
+				disabled={effectivelyDisabled}
 			>
 				<i class="fas fa-chevron-left"></i>
 			</button>
@@ -34,7 +58,7 @@
 				type="button"
 				class="cycle-btn next"
 				on:click={() => {
-					if (!disabled) {
+					if (!effectivelyDisabled) {
 						const currentIndex = eyesOptions.findIndex((e) => e.value === selectedEyes);
 						const nextIndex = (currentIndex + 1) % eyesOptions.length;
 						const newValue = eyesOptions[nextIndex].value;
@@ -42,7 +66,7 @@
 						onChange(newValue);
 					}
 				}}
-				{disabled}
+				disabled={effectivelyDisabled}
 			>
 				<i class="fas fa-chevron-right"></i>
 			</button>
@@ -64,6 +88,12 @@
 		align-items: center;
 	}
 
+	.left-section {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
 	.option-header label {
 		font-size: 0.9rem;
 		font-weight: 500;
@@ -72,6 +102,23 @@
 		align-items: center;
 		gap: 0.5rem;
 		font-family: 'Inter', sans-serif;
+	}
+
+	/* Constraint Badge */
+	.constraint-badge {
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+		font-size: 0.75rem;
+		color: var(--text-secondary);
+		background: rgba(var(--interactive-gradient-1), 0.1);
+		padding: 0.3rem 0.5rem;
+		border-radius: 4px;
+	}
+
+	.constrained {
+		opacity: 0.8;
+		border: 1px solid rgba(var(--interactive-gradient-1), 0.2);
 	}
 
 	/* Cycle Selector */

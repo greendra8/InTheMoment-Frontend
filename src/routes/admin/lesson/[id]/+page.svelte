@@ -11,6 +11,13 @@
 	let isUpdating = false;
 	let updateSuccess = false;
 	let lessonVisible = lesson.visible || false;
+	let eyesValue = lesson.eyes || '';
+	let postureValue = lesson.posture || '';
+
+	// Set eyes to open automatically when walking is selected
+	$: if (postureValue === 'walking') {
+		eyesValue = 'open';
+	}
 
 	function handleUpdate() {
 		isUpdating = true;
@@ -57,6 +64,16 @@
 	</a>
 
 	<form method="POST" action="?/updateLesson" use:enhance={handleUpdate}>
+		<div class="form-group visibility-group">
+			<label class="checkbox-label">
+				<input type="checkbox" name="lessonVisible" bind:checked={lessonVisible} value="true" />
+				<span class="checkbox-text">Visible to users</span>
+			</label>
+			<p class="visibility-hint">
+				When disabled, this lesson will only be visible in the admin interface
+			</p>
+		</div>
+
 		<div class="form-group">
 			<label for="lesson_title">Lesson Title</label>
 			<input id="lesson_title" name="lesson_title" bind:value={lesson.lesson_title} required />
@@ -74,6 +91,28 @@
 		</div>
 
 		<div class="form-group">
+			<label for="posture">Posture</label>
+			<select id="posture" name="posture" bind:value={postureValue}>
+				<option value="">Any (unspecified)</option>
+				<option value="sitting">Sitting</option>
+				<option value="lying">Lying</option>
+				<option value="walking">Walking</option>
+			</select>
+		</div>
+
+		<div class="form-group">
+			<label for="eyes">Eyes Position</label>
+			<select id="eyes" name="eyes" bind:value={eyesValue} disabled={postureValue === 'walking'}>
+				<option value="">Any (unspecified)</option>
+				<option value="open">Open</option>
+				<option value="closed">Closed</option>
+			</select>
+			{#if postureValue === 'walking'}
+				<p class="info-hint">Eyes are automatically set to "open" when walking</p>
+			{/if}
+		</div>
+
+		<div class="form-group">
 			<label for="lesson_techniques">Lesson Techniques</label>
 			<textarea
 				id="lesson_techniques"
@@ -81,16 +120,6 @@
 				bind:value={lesson.lesson_techniques}
 				placeholder="Default techniques"
 			/>
-		</div>
-
-		<div class="form-group visibility-group">
-			<label class="checkbox-label">
-				<input type="checkbox" name="lessonVisible" bind:checked={lessonVisible} value="true" />
-				<span class="checkbox-text">Visible to users</span>
-			</label>
-			<p class="visibility-hint">
-				When disabled, this lesson will only be visible in the admin interface
-			</p>
 		</div>
 
 		<div class="form-group">
@@ -205,7 +234,8 @@
 	}
 
 	input,
-	textarea {
+	textarea,
+	select {
 		width: 100%;
 		padding: 0.75rem;
 		border: 1px solid rgba(var(--interactive-gradient-1), 0.15);
@@ -219,7 +249,8 @@
 	}
 
 	input:focus,
-	textarea:focus {
+	textarea:focus,
+	select:focus {
 		outline: none;
 		border-color: rgba(var(--interactive-gradient-1), 0.4);
 		box-shadow: 0 4px 12px rgba(var(--interactive-gradient-1), 0.2);
@@ -323,6 +354,14 @@
 	}
 
 	.visibility-hint {
+		font-size: 0.8rem;
+		color: var(--text-secondary);
+		margin-top: 0.25rem;
+		font-style: italic;
+		font-family: 'Inter', sans-serif;
+	}
+
+	.info-hint {
 		font-size: 0.8rem;
 		color: var(--text-secondary);
 		margin-top: 0.25rem;

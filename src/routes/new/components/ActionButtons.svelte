@@ -4,6 +4,7 @@
 	export let buttonDisabled: boolean = false;
 	export let isGenerating: boolean = false;
 	export let sessionType: 'meditation' | 'hypnosis';
+	export let isLoading: boolean = false;
 </script>
 
 <div class="reset-container">
@@ -14,11 +15,19 @@
 
 	<!-- Submit button -->
 	<button type="submit" class="generate-btn" disabled={buttonDisabled}>
-		<i class="fas {isGenerating ? 'fa-spinner fa-spin' : 'fa-paper-plane'}"></i>
+		<i
+			class="fas {isGenerating
+				? 'fa-spinner fa-spin'
+				: isLoading
+					? 'fa-spinner fa-spin'
+					: 'fa-paper-plane'}"
+		></i>
 		<span
 			>{isGenerating
 				? 'Generating...'
-				: `Generate ${sessionType === 'meditation' ? 'Meditation' : 'Hypnosis'}`}</span
+				: isLoading
+					? 'Loading...'
+					: `Generate ${sessionType === 'meditation' ? 'Meditation' : 'Hypnosis'}`}</span
 		>
 	</button>
 </div>
