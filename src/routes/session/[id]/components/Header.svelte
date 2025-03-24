@@ -80,7 +80,7 @@
 		font-family: 'Space Grotesk', sans-serif;
 		position: relative;
 		display: inline-block;
-		padding-top: clamp(1.5rem, 4vw, 2rem);
+		padding-top: 2rem;
 	}
 
 	.listened-icon {
@@ -172,6 +172,12 @@
 		}
 		.info-item-difficulty {
 			display: none;
+		}
+		.title-wrapper {
+			padding-top: 0;
+		}
+		.listened-icon {
+			top: -20px;
 		}
 	}
 </style>
