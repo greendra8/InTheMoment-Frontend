@@ -58,11 +58,33 @@
 		background: linear-gradient(135deg, #7b68ee 0%, #9370db 100%);
 		color: white;
 		box-shadow: 0 4px 12px rgba(123, 104, 238, 0.25);
+		position: relative;
+	}
+
+	.primary::after {
+		content: '';
+		position: absolute;
+		top: -50%;
+		left: -50%;
+		width: 200%;
+		height: 200%;
+		background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+		transform: rotate(45deg);
+		animation: shine 3s infinite;
+	}
+
+	@keyframes shine {
+		0% {
+			transform: translate(-50%, -50%) rotate(45deg);
+		}
+		100% {
+			transform: translate(150%, 150%) rotate(45deg);
+		}
 	}
 
 	.primary:hover {
-		transform: translateY(-2px);
-		box-shadow: 0 6px 16px rgba(123, 104, 238, 0.4);
+		transform: translateY(-2px) scale(1.05);
+		box-shadow: 0 6px 20px rgba(123, 104, 238, 0.5);
 		background: linear-gradient(135deg, #8a2be2 0%, #9370db 100%);
 	}
 

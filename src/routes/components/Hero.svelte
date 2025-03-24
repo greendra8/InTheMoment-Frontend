@@ -30,13 +30,23 @@
 			// Only update if the client-side detection differs from server
 			if (mediaQuery.matches !== serverIsMobile) {
 				isMobile = mediaQuery.matches;
-				currentBackgroundImage = isMobile ? mobileBackgroundImage : backgroundImage;
+				currentBackgroundImage =
+					isMobile && mobileBackgroundImage
+						? mobileBackgroundImage
+						: backgroundImage
+							? backgroundImage
+							: initialImage;
 			}
 
 			// Add listener for changes
 			const handleMediaChange = (e: MediaQueryListEvent) => {
 				isMobile = e.matches;
-				currentBackgroundImage = isMobile ? mobileBackgroundImage : backgroundImage;
+				currentBackgroundImage =
+					isMobile && mobileBackgroundImage
+						? mobileBackgroundImage
+						: backgroundImage
+							? backgroundImage
+							: initialImage;
 			};
 
 			mediaQuery.addEventListener('change', handleMediaChange);
@@ -72,7 +82,10 @@
 			</p>
 
 			<div class="hero-cta">
-				<Button href="/register" variant="primary" size="large">Begin Your Journey</Button>
+				<div class="cta-button-container">
+					<div class="cta-glow"></div>
+					<Button href="/register" variant="primary" size="large">Begin Your Journey</Button>
+				</div>
 				<div class="login-link">
 					<a href="/login" class="login-link-anchor">
 						<div class="login-button">
@@ -225,6 +238,37 @@
 		gap: 2rem;
 	}
 
+	.cta-button-container {
+		position: relative;
+		z-index: 1;
+	}
+
+	.cta-glow {
+		position: absolute;
+		width: 100%;
+		height: 100%;
+		background: radial-gradient(circle, rgba(123, 104, 238, 0.6) 0%, rgba(123, 104, 238, 0) 70%);
+		filter: blur(15px);
+		z-index: -1;
+		transform: scale(1.2);
+		animation: glow-pulse 3s ease-in-out infinite;
+	}
+
+	@keyframes glow-pulse {
+		0% {
+			opacity: 0.5;
+			transform: scale(1.2);
+		}
+		50% {
+			opacity: 0.8;
+			transform: scale(1.4);
+		}
+		100% {
+			opacity: 0.5;
+			transform: scale(1.2);
+		}
+	}
+
 	.login-link {
 		display: flex;
 		align-items: center;
@@ -366,6 +410,10 @@
 			flex-direction: column;
 			align-items: flex-start;
 			gap: 1.5rem;
+		}
+
+		.cta-button-container {
+			width: 100%;
 		}
 
 		.hero-stats {
