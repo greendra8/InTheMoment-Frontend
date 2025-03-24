@@ -19,12 +19,16 @@
 
 	function handleFeedbackSubmit(event: CustomEvent) {
 		const { feedback, rating } = event.detail;
-		dispatch('submit', {
-			sessionId,
-			profileId: userId,
-			feedback,
-			rating
-		});
+
+		// Only dispatch submit event if there's actually new feedback to submit
+		if (feedback !== existingFeedback || rating !== existingRating) {
+			dispatch('submit', {
+				sessionId,
+				profileId: userId,
+				feedback,
+				rating
+			});
+		}
 	}
 
 	function handleFeedbackFocus() {

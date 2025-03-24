@@ -103,7 +103,12 @@
 	}
 
 	function handleClose() {
-		dispatch('close');
+		// If we have existing feedback but aren't showing it, show it instead of closing
+		if (mode === 'post' && existingFeedback && !showExistingFeedback) {
+			showExistingFeedback = true;
+		} else {
+			dispatch('close');
+		}
 	}
 
 	function handleExistingFeedbackEdit(event: CustomEvent<string>) {
@@ -121,13 +126,20 @@
 	function handleNewFeedback() {
 		showExistingFeedback = false;
 	}
+
+	// Fix for existingRating not being passed to ExistingFeedback component
+	onMount(() => {
+		// If we're in post mode and have existing feedback, show it right away
+		if (mode === 'post' && existingFeedback && existingFeedback.length > 0) {
+			showExistingFeedback = true;
+		}
+	});
 </script>
 
 <div class="session-dialog" class:feedback-mode={mode === 'post'}>
 	{#if mode === 'post' && showExistingFeedback}
 		<ExistingFeedback
 			existingFeedback={existingFeedback || ''}
-			existingRating={rating}
 			bind:editingExistingFeedback
 			on:edit={handleExistingFeedbackEdit}
 			on:save={handleExistingFeedbackSave}

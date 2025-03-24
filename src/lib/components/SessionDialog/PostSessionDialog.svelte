@@ -172,17 +172,8 @@
 	}
 
 	function handleSkip() {
-		// Instead of closing, dispatch an event to show existing feedback
-		if (existingFeedback) {
-			dispatch('submit', {
-				sessionId,
-				profileId,
-				feedback: existingFeedback,
-				rating: selectedRating
-			});
-		} else {
-			dispatch('close');
-		}
+		// Instead of submitting, dispatch a close event to let parent component handle the flow
+		dispatch('close');
 	}
 
 	function handleFocus() {

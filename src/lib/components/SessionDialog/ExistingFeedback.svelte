@@ -59,7 +59,10 @@
 	}
 
 	function saveEdits() {
-		dispatch('save', textResponse);
+		// Only dispatch save if the feedback has actually changed
+		if (textResponse !== existingFeedback) {
+			dispatch('save', textResponse);
+		}
 		editingExistingFeedback = false;
 	}
 
@@ -69,6 +72,7 @@
 	}
 
 	function startFreshFeedback() {
+		// Signal to parent component to show rating screen and conversation
 		dispatch('new');
 	}
 
