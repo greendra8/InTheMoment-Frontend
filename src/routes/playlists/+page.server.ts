@@ -5,7 +5,7 @@ import { getPlaylists } from '$lib/server/supabase';
 export const load: PageServerLoad = async () => {
   try {
     // Only fetch visible playlists
-    const playlists = await getPlaylists(false);
+    const playlists = await getPlaylists(20, false);
 
     return {
       playlists

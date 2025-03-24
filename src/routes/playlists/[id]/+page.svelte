@@ -80,7 +80,7 @@
 						? `/session/${lesson.meditationId}`
 						: null
 					: isNextToGenerate
-						? `/new?playlist=${data.playlist.id}`
+						? `/new?configure=true&playlist=${data.playlist.id}`
 						: null}
 				<div
 					class="lesson-card"

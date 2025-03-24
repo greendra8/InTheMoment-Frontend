@@ -59,7 +59,7 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
         // Fetch data in parallel for better performance - removed profile fetch
         const [meditationsResult, playlistsData, recentPlaylistsData] = await Promise.all([
             getUserMeditations(user.id, 1, 3),
-            getPlaylists(false),
+            getPlaylists(2, false),
             getUserRecentPlaylists(user.id, 4)
         ]);
 
