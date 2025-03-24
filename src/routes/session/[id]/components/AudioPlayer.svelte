@@ -187,10 +187,10 @@
 			saveAudioProgress(meditationId, currentTime, duration);
 		}
 
-		// Simplified completion logic: just check if playing and in last 20 seconds
+		// Simplified completion logic: just check if playing and in last 15 seconds
 		const timeUntilEnd = duration - currentTime;
 
-		if (!hassentCompletionRequest && isPlaying && timeUntilEnd <= 20) {
+		if (!hassentCompletionRequest && isPlaying && timeUntilEnd <= 15) {
 			sendCompletionRequest();
 			hassentCompletionRequest = true;
 		}
