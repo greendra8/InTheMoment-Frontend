@@ -19,6 +19,7 @@
 	export let sendCompletionRequest: () => void;
 
 	let audioElement: HTMLAudioElement;
+	let visualizerAudioElement: HTMLAudioElement; // Separate audio element for visualization
 	let canvasElement: HTMLCanvasElement;
 	let canvasContext: CanvasRenderingContext2D | null;
 	let canvasWidth = 300;
@@ -61,6 +62,13 @@
 	function updatePlayingState() {
 		isPlaying = !audioElement.paused;
 
+		// Sync both audio elements when playback state changes
+		if (isPlaying) {
+			visualizerAudioElement.play();
+		} else {
+			visualizerAudioElement.pause();
+		}
+
 		// iOS-specific: When playback starts, update the time display to match actual position
 		if (isIOS && isPlaying) {
 			// Mark that playback has started at least once
@@ -72,6 +80,9 @@
 					// Update display time to match actual audio position
 					displayTime = audioElement.currentTime;
 					currentTime = audioElement.currentTime;
+
+					// Sync visualizer audio time with main audio
+					visualizerAudioElement.currentTime = audioElement.currentTime;
 				}
 			}, 100);
 		}
@@ -95,7 +106,7 @@
 	export function togglePlayPause() {
 		if (audioElement.paused) {
 			// First ensure the audio context is resumed before attempting to play
-			if (!isIOS && audioContext && audioContext.state === 'suspended') {
+			if (audioContext && audioContext.state === 'suspended') {
 				audioContext
 					.resume()
 					.then(() => {
@@ -109,9 +120,10 @@
 			}
 		} else {
 			audioElement.pause();
+			// Visualizer audio will be paused in the updatePlayingState handler
 			isPlaying = false;
 			updateProgress();
-			if (!isIOS && visualizer) {
+			if (visualizer) {
 				visualizer.setStandbyMode(true);
 			}
 		}
@@ -127,11 +139,17 @@
 			// This may not work reliably, but we try anyway as a first attempt
 			if (isIOS && savedProgress > 0 && !hasStartedPlayback) {
 				audioElement.currentTime = savedProgress;
+				visualizerAudioElement.currentTime = savedProgress;
 			}
 
 			await audioElement.play();
+			// Start the visualizer audio element synchronously with the main audio
+			visualizerAudioElement
+				.play()
+				.catch((err) => console.error('Visualizer audio playback failed:', err));
+
 			isPlaying = true;
-			if (!isIOS && visualizer) {
+			if (visualizer) {
 				visualizer.setStandbyMode(false);
 			}
 
@@ -143,6 +161,7 @@
 					if (audioElement && isPlaying) {
 						// Apply the saved position now that playback has started
 						audioElement.currentTime = savedProgress;
+						visualizerAudioElement.currentTime = savedProgress;
 						currentTime = savedProgress;
 						savedProgress = 0; // Clear the saved progress
 					}
@@ -180,6 +199,11 @@
 			if (isIOS) {
 				displayTime = currentTime;
 			}
+		}
+
+		// Sync visualizer audio with main audio
+		if (Math.abs(visualizerAudioElement.currentTime - audioElement.currentTime) > 0.1) {
+			visualizerAudioElement.currentTime = audioElement.currentTime;
 		}
 
 		// Save progress to localStorage (debounced)
@@ -267,11 +291,13 @@
 			} else {
 				// If already playing, we can seek directly (works on iOS)
 				audioElement.currentTime = newTime;
+				visualizerAudioElement.currentTime = newTime;
 				currentTime = newTime;
 			}
 		} else {
 			// Non-iOS behavior: directly set the current time
 			audioElement.currentTime = newTime;
+			visualizerAudioElement.currentTime = newTime;
 			currentTime = newTime;
 		}
 	}
@@ -337,16 +363,18 @@
 
 	export function seekBackward(seconds: number) {
 		audioElement.currentTime = Math.max(audioElement.currentTime - seconds, 0);
+		visualizerAudioElement.currentTime = audioElement.currentTime;
 		updateProgress();
 	}
 
 	export function seekForward(seconds: number) {
 		audioElement.currentTime = Math.min(audioElement.currentTime + seconds, audioElement.duration);
+		visualizerAudioElement.currentTime = audioElement.currentTime;
 		updateProgress();
 	}
 
 	function handleAudioEnded() {
-		if (!isIOS && visualizer) {
+		if (visualizer) {
 			visualizer.startCelebration();
 		}
 	}
@@ -374,9 +402,32 @@
 		if (document.visibilityState === 'hidden') {
 			// Page is hidden (app in background)
 			console.log('App went to background');
+
+			// When in background: mute visualizer audio, unmute main audio
+			if (visualizerAudioElement && audioElement) {
+				visualizerAudioElement.volume = 0;
+				audioElement.muted = false;
+
+				// Ensure positions are synchronized
+				audioElement.currentTime = visualizerAudioElement.currentTime;
+			}
 		} else {
 			// Page is visible again (app in foreground)
 			console.log('App returned to foreground');
+
+			// When in foreground: unmute visualizer audio (full volume), mute main audio
+			if (visualizerAudioElement && audioElement) {
+				visualizerAudioElement.volume = 1;
+				audioElement.muted = true;
+
+				// Ensure positions are synchronized
+				visualizerAudioElement.currentTime = audioElement.currentTime;
+
+				// Resume audio context if suspended
+				if (audioContext && audioContext.state === 'suspended') {
+					audioContext.resume().catch((err) => console.error('Error resuming audio context:', err));
+				}
+			}
 		}
 	}
 
@@ -393,49 +444,35 @@
 			document.addEventListener('visibilitychange', handleVisibilityChange);
 		}
 
-		if (audioElement && canvasElement) {
+		if (audioElement && visualizerAudioElement && canvasElement) {
 			setupCanvas();
 
-			if (!isIOS) {
-				// Only set up AudioContext for non-iOS devices
-				audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-				const analyser = audioContext.createAnalyser();
-				analyser.fftSize = 1024;
-				const source = audioContext.createMediaElementSource(audioElement);
-				source.connect(analyser);
-				analyser.connect(audioContext.destination);
+			// Initialize AudioContext
+			audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
 
-				visualizer = setupAudioVisualizer(
-					audioElement,
-					canvasElement,
-					analyser,
-					canvasWidth,
-					canvasHeight
-				);
-				if (visualizer) {
-					visualizer.setStandbyMode(true);
-				}
-			} else {
-				// For iOS, create a dummy analyzer for visualization only
-				// This ensures we don't interfere with the audio element's playback
-				audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-				const analyser = audioContext.createAnalyser();
-				analyser.fftSize = 1024;
+			// Initially, visualizer audio plays audibly (when in foreground)
+			// Main audio is muted but will take over in background
+			visualizerAudioElement.volume = 1;
+			audioElement.muted = true;
 
-				// Don't connect the audio element to the AudioContext
-				// This is the key change that allows background playback on iOS
+			// Create analyzer and connect only to the visualizer audio element
+			const analyser = audioContext.createAnalyser();
+			analyser.fftSize = 1024;
+			const source = audioContext.createMediaElementSource(visualizerAudioElement);
+			source.connect(analyser);
+			analyser.connect(audioContext.destination);
 
-				visualizer = setupAudioVisualizer(
-					audioElement,
-					canvasElement,
-					analyser,
-					canvasWidth,
-					canvasHeight
-				);
-				if (visualizer) {
-					// Always keep the visualizer in standby mode on iOS
-					visualizer.setStandbyMode(true);
-				}
+			// Set up visualizer with the visualizer audio element
+			visualizer = setupAudioVisualizer(
+				visualizerAudioElement,
+				canvasElement,
+				analyser,
+				canvasWidth,
+				canvasHeight
+			);
+
+			if (visualizer) {
+				visualizer.setStandbyMode(true);
 			}
 
 			// Load saved progress with iOS-specific handling
@@ -451,6 +488,7 @@
 					} else {
 						// On other platforms: Set time directly
 						audioElement.currentTime = progress;
+						visualizerAudioElement.currentTime = progress;
 					}
 				}
 			}
@@ -463,6 +501,21 @@
 		// Initialize CSS variable
 		if (browser) {
 			document.documentElement.style.setProperty('--volume-percentage', `${volume * 100}%`);
+		}
+
+		// Initial visibility state check
+		if (document.visibilityState === 'visible') {
+			// We start in foreground - visualizer audio plays, main audio is muted
+			if (audioElement && visualizerAudioElement) {
+				visualizerAudioElement.volume = 1;
+				audioElement.muted = true;
+			}
+		} else {
+			// We start in background - main audio plays, visualizer audio is silent
+			if (audioElement && visualizerAudioElement) {
+				visualizerAudioElement.volume = 0;
+				audioElement.muted = false;
+			}
 		}
 
 		return () => {
@@ -505,6 +558,7 @@
 				</div>
 			</button>
 		</div>
+		<!-- Main audio element for playback (what user hears) -->
 		<audio
 			bind:this={audioElement}
 			src={audioUrl}
@@ -515,6 +569,9 @@
 			on:pause={handlePause}
 			on:ended={handleAudioEnded}
 		></audio>
+
+		<!-- Visualizer audio element (nearly silent for user, only for visualization) -->
+		<audio bind:this={visualizerAudioElement} src={audioUrl} crossorigin="anonymous"></audio>
 	</div>
 
 	<div class="controls-wrapper">
