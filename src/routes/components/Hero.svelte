@@ -182,7 +182,7 @@
 		width: 100%;
 		opacity: 1;
 		transform: translateY(0);
-		filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.1));
+		/* filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.1)); */
 	}
 
 	.hero-badge {
@@ -240,7 +240,6 @@
 
 	.cta-button-container {
 		position: relative;
-		z-index: 1;
 	}
 
 	.cta-glow {
@@ -316,7 +315,7 @@
 		background: rgba(255, 255, 255, 0.05);
 		border-radius: 12px;
 		padding: 1.5rem 2rem;
-		backdrop-filter: blur(10px);
+		backdrop-filter: blur(2px);
 		border: 1px solid rgba(255, 255, 255, 0.1);
 	}
 
