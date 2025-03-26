@@ -251,7 +251,6 @@
 		filter: blur(15px);
 		z-index: -1;
 		transform: scale(1.2);
-		animation: glow-pulse 3s ease-in-out infinite;
 	}
 
 	@keyframes glow-pulse {
@@ -417,15 +416,20 @@
 		}
 
 		.hero-stats {
-			flex-direction: column;
-			gap: 1.5rem;
-			padding: 1.5rem;
+			padding: 1.2rem;
 			margin-bottom: 3rem;
 		}
 
-		.stat-divider {
-			width: 80%;
-			height: 1px;
+		.stat {
+			flex: 1;
+		}
+
+		.stat-number {
+			font-size: 1.5rem;
+		}
+
+		.stat-label {
+			font-size: 0.8rem;
 		}
 
 		.scroll-indicator {
@@ -477,16 +481,13 @@
 		}
 
 		.hero-stats {
-			padding: 1.2rem;
+			padding: 0.8rem;
 			margin-bottom: 5rem;
 		}
 
-		.stat-number {
-			font-size: 1.5rem;
-		}
-
-		.stat-label {
-			font-size: 0.8rem;
+		.stat-divider {
+			height: 30px;
+			width: 1px;
 		}
 
 		.scroll-indicator {
