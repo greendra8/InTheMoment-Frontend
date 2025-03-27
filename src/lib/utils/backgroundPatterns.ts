@@ -1,5 +1,5 @@
 // List of background images all found in static/images/backgrounds 1-n.jpeg
-export const bgPatterns = Array.from({ length: 16 }, (_, i) => `/images/backgrounds/${i + 1}.jpeg`);
+export const bgPatterns = Array.from({ length: 56 }, (_, i) => `/images/backgrounds/${i + 1}.webp`);
 
 /**
  * Returns a deterministic background pattern based on object properties

@@ -1,6 +1,6 @@
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import { getUserMeditations, getPlaylists, getUserRecentPlaylists } from '$lib/server/supabase';
+import { getUserMeditations, getPlaylists, getUserRecentPlaylists, getMeditation } from '$lib/server/supabase';
 import { assignBackgrounds } from '$lib/utils/backgroundPatterns';
 import { TIMEZONE_OFFSET_COOKIE, adjustToUserTimezone, getTimeOfDayFromHour } from '$lib/utils/time';
 
@@ -58,7 +58,7 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
 
         // Fetch data in parallel for better performance - removed profile fetch
         const [meditationsResult, playlistsData, recentPlaylistsData] = await Promise.all([
-            getUserMeditations(user.id, 1, 3),
+            getUserMeditations(user.id, 1, 6), // whilst we only display 3, we fetch 6 as this is also used for today's meditation section
             getPlaylists(2, false),
             getUserRecentPlaylists(user.id, 4)
         ]);
@@ -75,6 +75,19 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
         let inProgressMeditation = null;
         if (lastMeditationId && meditationsWithBackgrounds && meditationsWithBackgrounds.length > 0) {
             inProgressMeditation = meditationsWithBackgrounds.find(m => m.id === lastMeditationId) || null;
+
+            // If the meditation is not in the recent list but we have the ID, fetch it directly
+            if (!inProgressMeditation) {
+                try {
+                    const specificMeditation = await getMeditation(lastMeditationId);
+                    // Apply the same background pattern assignment
+                    inProgressMeditation = assignBackgrounds([specificMeditation])[0];
+                } catch (e) {
+                    console.warn('Failed to fetch in-progress meditation:', e);
+                    // If we can't fetch it, clear the cookie
+                    cookies.delete('last_meditation_progress', { path: '/' });
+                }
+            }
         }
 
         // Determine time-based sessions with user's local time
