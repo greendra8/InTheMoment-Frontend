@@ -171,7 +171,9 @@
 
 			if (error) throw error;
 
-			showSuccess('Verification email sent. Please check your inbox.');
+			showSuccess(
+				'Verification email sent. You must verify both your old and new email addresses before the change takes effect.'
+			);
 			newEmail = '';
 			currentPassword = '';
 		} catch (err) {
@@ -362,7 +364,8 @@
 							{/if}
 						</button>
 						<p class="security-note">
-							Note: You'll need to verify your new email address before the change takes effect.
+							Note: You'll need to verify both your old and new email addresses before the change
+							takes effect.
 						</p>
 					</div>
 
