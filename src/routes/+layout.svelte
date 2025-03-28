@@ -12,6 +12,7 @@
 	import Notifications from '$lib/components/Notifications.svelte';
 	import { browser } from '$app/environment';
 	import { setTimezoneOffsetCookie } from '$lib/utils/time';
+	import { showSuccess, showInfo } from '$lib/stores/notifications';
 
 	export let data;
 	$: ({ isNativeApp, session } = data);
@@ -83,6 +84,24 @@
 
 	$: appContext.setIsNativeApp(isNativeApp);
 
+	// Function to handle hash-based messages in the URL
+	function handleUrlMessages() {
+		if (browser && window.location.hash) {
+			const hash = window.location.hash;
+			if (hash.includes('#message=')) {
+				const message = decodeURIComponent(hash.split('#message=')[1]);
+
+				// remove all + from message and replace with space
+				const messageWithoutPlus = message.replace(/\+/g, ' ');
+
+				showInfo(messageWithoutPlus, { autoClose: 15000 });
+
+				// Clear the hash to prevent showing the message again on refresh
+				window.history.replaceState(null, '', window.location.pathname + window.location.search);
+			}
+		}
+	}
+
 	// Auth listener for session updates
 	let authListener: { subscription: { unsubscribe: () => void } } | null = null;
 
@@ -92,6 +111,9 @@
 			// Use setTheme with saveToDb=false since this is a system change
 			setTheme('galaxy');
 		}
+
+		// Check for URL message parameters on mount
+		handleUrlMessages();
 
 		// Set up auth listener
 		const { data: newAuthListener } = supabase.auth.onAuthStateChange((event, newSession) => {
@@ -122,6 +144,11 @@
 			window.removeEventListener('message', handleReactNativeMessage);
 		};
 	});
+
+	// Listen for URL changes to handle hash-based messages
+	$: if (browser && $page.url) {
+		handleUrlMessages();
+	}
 
 	onDestroy(() => {
 		// Clean up auth listener
