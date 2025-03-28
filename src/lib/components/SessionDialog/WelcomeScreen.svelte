@@ -2,7 +2,6 @@
 	import { crossfade } from 'svelte/transition';
 	import { cubicInOut } from 'svelte/easing';
 
-	export let mode: 'pre' | 'post' = 'pre';
 	export let proceedToCheckIn: () => void;
 
 	// Set up crossfade transition
@@ -19,47 +18,33 @@
 	});
 </script>
 
-<div class="welcome-screen" in:receive={{ key: 'welcome' }} out:send={{ key: 'welcome' }}>
+<div class="welcome-screen">
 	<div class="welcome-content">
-		<h3>{mode === 'pre' ? 'Your First Check-in' : 'Session Feedback'}</h3>
+		<h3>Your First Check-in</h3>
 		<div class="welcome-text">
-			{#if mode === 'pre'}
-				<p>
-					Before each session, we'll check in with you to see how you've been getting on and what
-					you'd like to focus on today.
-				</p>
-				<p>
-					This helps us personalize your experience and recommend either a meditation or hypnosis
-					session that matches your current state of mind and intentions.
-				</p>
-			{:else}
-				<p>
-					After each session, we'd like to hear about your experience to help improve future
-					sessions.
-				</p>
-				<p>
-					This feedback helps us understand what worked well and what could be better, allowing us
-					to personalize your future sessions more effectively.
-				</p>
-			{/if}
+			<p>
+				Before each session, we'll check in with you to see how you've been getting on and what
+				you'd like to focus on today.
+			</p>
+			<p>
+				This helps us personalize your experience and recommend either a meditation or hypnosis
+				session that matches your current state of mind and intentions.
+			</p>
 		</div>
 		<button class="proceed-btn" on:click={proceedToCheckIn}>
 			<i class="fas fa-arrow-right"></i>
-			{mode === 'pre' ? 'Start Check-in' : 'Share Feedback'}
+			Start Check-in
 		</button>
 	</div>
 </div>
 
 <style>
 	.welcome-screen {
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
 		padding: 1.5rem;
 		display: flex;
 		flex-direction: column;
+		height: 100%;
+		box-sizing: border-box;
 	}
 
 	.welcome-content {
@@ -74,7 +59,7 @@
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
-		margin: -2rem 0 1.5rem;
+		margin: -1rem 0 1.5rem;
 	}
 
 	.welcome-content h3 {
@@ -115,7 +100,6 @@
 		box-shadow: 0 4px 12px rgba(var(--interactive-gradient-1), 0.15);
 		position: relative;
 		overflow: hidden;
-		align-self: center;
 	}
 
 	.proceed-btn::after {

@@ -2,8 +2,6 @@
 <script lang="ts">
 	import { createEventDispatcher, onMount } from 'svelte';
 	import { fade } from 'svelte/transition';
-	import { crossfade } from 'svelte/transition';
-	import { cubicInOut } from 'svelte/easing';
 	import { showError } from '$lib/stores/notifications';
 	import WelcomeScreen from './WelcomeScreen.svelte';
 	import PreSessionDialog from './PreSessionDialog.svelte';
@@ -26,19 +24,6 @@
 		blur: void;
 	}>();
 
-	// Set up crossfade transition
-	const [send, receive] = crossfade({
-		duration: 400,
-		easing: cubicInOut,
-		fallback(node) {
-			return {
-				duration: 400,
-				easing: cubicInOut,
-				css: (t) => `opacity: ${t}`
-			};
-		}
-	});
-
 	// Mode: 'pre' for pre-session, 'post' for post-session feedback
 	export let mode: 'pre' | 'post' = 'pre';
 
@@ -55,8 +40,8 @@
 	// Add prop to check if previous check-in data exists
 	export let hasPreviousCheckIn = false;
 
-	// Add state to track if welcome screen is shown
-	let showWelcomeScreen = isFirstSession;
+	// Only show welcome screen for first-time users during pre-session
+	let showWelcomeScreen = mode === 'pre' && isFirstSession;
 
 	// Add state for existing feedback handling
 	let showExistingFeedback = mode === 'post' && existingFeedback && existingFeedback.length > 0;
@@ -137,6 +122,17 @@
 </script>
 
 <div class="session-dialog" class:feedback-mode={mode === 'post'}>
+	{#if showWelcomeScreen}
+		<!-- Popover structure for WelcomeScreen -->
+		<div class="welcome-popover-container" transition:fade={{ duration: 300 }}>
+			<div class="popover-backdrop"></div>
+			<div class="popover-content">
+				<WelcomeScreen {proceedToCheckIn} />
+			</div>
+		</div>
+	{/if}
+
+	<!-- Main dialog content -->
 	{#if mode === 'post' && showExistingFeedback}
 		<ExistingFeedback
 			existingFeedback={existingFeedback || ''}
@@ -146,15 +142,8 @@
 			on:new={handleNewFeedback}
 			on:close={handleClose}
 		/>
-	{:else if showWelcomeScreen}
-		<WelcomeScreen {mode} {proceedToCheckIn} />
 	{:else}
-		<div
-			class="check-in-container"
-			class:feedback-mode={mode === 'post'}
-			in:receive={{ key: 'check-in' }}
-			out:send={{ key: 'check-in' }}
-		>
+		<div class="check-in-container" class:feedback-mode={mode === 'post'}>
 			{#if mode === 'pre'}
 				<PreSessionDialog
 					{initialQuestion}
@@ -204,6 +193,55 @@
 		overflow-y: auto; /* Add scrolling for overflow content */
 		max-height: 80vh; /* Limit height to prevent excessive stretching */
 	}
+
+	/* Styles for the WelcomeScreen Popover */
+	.welcome-popover-container {
+		position: fixed; /* Use fixed to overlay everything */
+		inset: 0; /* Cover the whole viewport */
+		z-index: 1001; /* Ensure it's above other dialog content (nav is 1000) */
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+
+	.popover-backdrop {
+		position: absolute;
+		inset: 0;
+		background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+		backdrop-filter: blur(8px); /* Background blur */
+		-webkit-backdrop-filter: blur(8px); /* Safari */
+	}
+
+	.popover-content {
+		position: relative; /* To be above the backdrop */
+		z-index: 1; /* Above backdrop */
+		background: linear-gradient(
+			135deg,
+			rgba(var(--background-card-rgb), 0.95) 0%,
+			/* Slightly less transparent */ rgba(var(--background-card-rgb), 0.85) 100%
+		);
+		border-radius: 16px;
+		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
+		box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2); /* More prominent shadow */
+		max-width: 500px; /* Match the dialog width */
+		width: 90%; /* Responsive width */
+		max-height: 80vh; /* Limit height */
+		overflow-y: auto;
+		display: flex; /* Use flex for internal layout */
+		flex-direction: column;
+		min-height: 350px; /* Give content some minimum height */
+	}
+
+	/* Adjustments for when feedback mode is also active */
+	.session-dialog.feedback-mode .welcome-popover-container {
+		/* Popover already covers screen, no specific adjustment needed here */
+	}
+
+	/* Hide underlying dialog scrollbar when popover is active (might need JS for full cross-browser) */
+	.session-dialog:has(.welcome-popover-container) {
+		overflow: hidden;
+	}
+	/* End Popover Styles */
 
 	.session-dialog.feedback-mode {
 		position: fixed;

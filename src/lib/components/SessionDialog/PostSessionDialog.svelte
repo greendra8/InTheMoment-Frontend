@@ -228,6 +228,13 @@
 			in:receive={{ key: 'rating-screen' }}
 			out:send={{ key: 'rating-screen' }}
 		>
+			<div class="info-icon-container">
+				<i class="fas fa-info-circle info-icon"></i>
+				<div class="tooltip">
+					After each session, we gather feedback to understand your experience and personalize
+					future sessions more effectively.
+				</div>
+			</div>
 			<h2>How was your session?</h2>
 			<p>Please rate your experience from 1 to 5 stars</p>
 
@@ -613,6 +620,57 @@
 		height: 100%;
 		width: 100%;
 		box-sizing: border-box;
+		position: relative; /* Needed for absolute positioning of info icon */
+	}
+
+	.info-icon-container {
+		position: absolute;
+		top: 1rem;
+		right: 1rem;
+		display: inline-block;
+	}
+
+	.info-icon {
+		font-size: 1.2rem;
+		color: var(--text-secondary);
+		cursor: help;
+		transition: color 0.2s ease;
+	}
+
+	.info-icon:hover {
+		color: var(--text-primary);
+	}
+
+	.tooltip {
+		visibility: hidden;
+		width: 200px;
+		background-color: rgba(var(--background-card-rgb), 0.95);
+		color: var(--text-primary);
+		text-align: center;
+		border-radius: 6px;
+		padding: 8px 12px;
+		position: absolute;
+		z-index: 1;
+		right: 0;
+		top: 130%;
+		opacity: 0;
+		transition: opacity 0.3s;
+		font-size: 0.8rem;
+		line-height: 1.4;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
+		pointer-events: none; /* Prevents tooltip from interfering with hover */
+		transform-origin: top right;
+		transform: translateY(-5px);
+		transition:
+			opacity 0.3s,
+			transform 0.3s;
+	}
+
+	.info-icon-container:hover .tooltip {
+		visibility: visible;
+		opacity: 1;
+		transform: translateY(0);
 	}
 
 	.rating-screen h2 {

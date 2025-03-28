@@ -2,25 +2,63 @@ import { error } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import { generateMeditation } from '$lib/pythonApi';
 import { getPlaylists, getPlaylist, getUserMeditations, getPlaylistWithConstraints } from '$lib/server/supabase';
+import { TIMEZONE_OFFSET_COOKIE, adjustToUserTimezone } from '$lib/utils/time'; // Import time utils
 
 // Cookie name for pre-session data
 const PRE_SESSION_COOKIE_NAME = 'pre_session_data';
 
-// List of possible initial questions for the pre-session dialog
-const initialQuestions = [
-	'How have you been feeling recently?',
-	'What have you been up to today?',
-	'What are you going to do after this session?',
-	'How has your day been going so far?',
-	"How would you like to feel after this session?",
-	"What would you like to focus on in today's practice?",
-	"Is there anything specific you'd like to work on today?",
+// List of possible initial questions for the pre-session dialog - separated by time
+const morningQuestions = [
+	'What are your plans for today?',
+	"What's on your mind this morning?",
+	"How are you feeling right now?"
 ];
 
-// Function to get a random question from the list
-function getRandomQuestion(): string {
-	const randomIndex = Math.floor(Math.random() * initialQuestions.length);
-	return initialQuestions[randomIndex];
+const middayQuestions = [
+	"What have you been up to today?",
+	"How are you feeling this afternoon?",
+	"How has your day been going so far?",
+	"What's on your mind this afternoon?",
+	"How are things going?"
+];
+
+const eveningQuestions = [
+	"What have you been up to today?",
+	"How are you feeling this evening?",
+	"What's on your mind tonight?",
+	"How are things going?"
+];
+
+// Type definition for time of day
+type TimeOfDay = 'morning' | 'midday' | 'evening';
+
+// Function to determine time of day using user's timezone, resetting at 4 am
+function getCurrentTimeOfDay(timezoneOffset: number = 0): TimeOfDay {
+	const now = new Date();
+	const userDate = adjustToUserTimezone(now, timezoneOffset);
+	const hour = userDate.getHours();
+
+	if (hour >= 4 && hour < 12) return 'morning';
+	if (hour >= 12 && hour < 17) return 'midday';
+	// Evening covers 5pm (17) up to 3:59am (exclusive of 4)
+	return 'evening';
+}
+
+// Function to get a random question based on the time of day
+function getRandomQuestion(timeOfDay: TimeOfDay): string {
+	let questionList: string[];
+
+	// Select the appropriate list based on time of day
+	if (timeOfDay === 'morning') {
+		questionList = morningQuestions;
+	} else if (timeOfDay === 'midday') {
+		questionList = middayQuestions;
+	} else {
+		questionList = eveningQuestions;
+	}
+
+	const randomIndex = Math.floor(Math.random() * questionList.length);
+	return questionList[randomIndex];
 }
 
 export const load: PageServerLoad = async ({ locals, url, cookies }) => {
@@ -51,6 +89,21 @@ export const load: PageServerLoad = async ({ locals, url, cookies }) => {
 	}
 
 	try {
+		// Get timezone offset from cookie
+		let timezoneOffset = 0;
+		const timezoneOffsetCookie = cookies.get(TIMEZONE_OFFSET_COOKIE);
+		if (timezoneOffsetCookie) {
+			try {
+				timezoneOffset = parseInt(timezoneOffsetCookie);
+			} catch (e) {
+				console.warn('Failed to parse timezone offset cookie:', e);
+				// Keep default offset of 0 if parsing fails
+			}
+		}
+
+		// Determine current time of day based on user's timezone
+		const currentTimeOfDay = getCurrentTimeOfDay(timezoneOffset);
+
 		// Only fetch visible playlists for the dropdown
 		const playlists = await getPlaylists(20, false);
 
@@ -76,8 +129,8 @@ export const load: PageServerLoad = async ({ locals, url, cookies }) => {
 			}
 		}
 
-		// Generate a random question on the server
-		const initialQuestion = getRandomQuestion();
+		// Generate a random question on the server based on the time of day
+		const initialQuestion = getRandomQuestion(currentTimeOfDay);
 
 		return {
 			playlists,
@@ -88,7 +141,8 @@ export const load: PageServerLoad = async ({ locals, url, cookies }) => {
 			initialQuestion, // Add the initial question to the returned data
 			preSessionData, // Add the pre-session data from cookies if available
 			hasPreviousCheckIn, // Add flag indicating if previous check-in data exists
-			configureMode // Add flag indicating if we're in configure mode
+			configureMode, // Add flag indicating if we're in configure mode
+			currentTimeOfDay // Add current time of day to the returned data
 		};
 	} catch (err) {
 		console.error('Error fetching data:', err);
