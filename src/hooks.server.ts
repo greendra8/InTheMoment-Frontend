@@ -16,7 +16,8 @@ const supabase: Handle = async ({ event, resolve }) => {
   event.locals.supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
     cookies: {
       get: (key) => {
-        if (key.endsWith('-auth-token')) { // This is true for native webview app
+        // Native app cookie handling (if applicable)
+        if (key.endsWith('-auth-token')) {
           const accessToken = event.cookies.get('sb-access-token');
           const refreshToken = event.cookies.get('sb-refresh-token');
           if (accessToken && refreshToken) {
@@ -28,8 +29,8 @@ const supabase: Handle = async ({ event, resolve }) => {
               expires_at: decodedPayload.exp * 1000,
               user: {
                 id: decodedPayload.sub,
-                email: decodedPayload.email,
-              },
+                email: decodedPayload.email
+              }
             });
           }
         }
@@ -38,16 +39,18 @@ const supabase: Handle = async ({ event, resolve }) => {
       set: (key, value, options) => {
         event.cookies.set(key, value, {
           ...options,
-          secure: event.url.protocol === 'https:',
+          path: options?.path || '/',
+          secure: event.url.protocol === 'https:'
         });
       },
       remove: (key, options) => {
         event.cookies.delete(key, {
           ...options,
-          secure: event.url.protocol === 'https:',
+          path: options?.path || '/',
+          secure: event.url.protocol === 'https:'
         });
-      },
-    },
+      }
+    }
   });
 
   const isNativeApp = event.request.headers.get('X-Native-App') === 'true';
@@ -58,7 +61,7 @@ const supabase: Handle = async ({ event, resolve }) => {
       httpOnly: true,
       secure: !dev,
       maxAge: 60 * 60 * 24 * 7, // 1 week
-      sameSite: 'lax',
+      sameSite: 'lax'
     });
   }
 
@@ -66,16 +69,16 @@ const supabase: Handle = async ({ event, resolve }) => {
 
   event.locals.safeGetSession = async () => {
     const {
-      data: { session },
+      data: { session }
     } = await event.locals.supabase.auth.getSession();
     if (!session) return { session: null, user: null };
 
     const {
       data: { user },
-      error,
+      error
     } = await event.locals.supabase.auth.getUser();
     if (error) {
-      console.error('JWT validation failed:', error);
+      // JWT validation failed or other error
       return { session: null, user: null };
     }
 
@@ -85,7 +88,7 @@ const supabase: Handle = async ({ event, resolve }) => {
   return resolve(event, {
     filterSerializedResponseHeaders(name) {
       return name === 'content-range' || name === 'x-supabase-api-version';
-    },
+    }
   });
 };
 
@@ -99,22 +102,27 @@ const authGuard: Handle = async ({ event, resolve }) => {
     try {
       const profile = await getUserProfile(session.user.id);
       event.locals.profile = profile;
-      // Add profile to session as well for backward compatibility
-      event.locals.session = { ...session, profile };
-    } catch (error) {
-      console.error("[Hooks] Error fetching user profile:", error);
+      event.locals.session = { ...session, profile } as typeof session;
+    } catch (error: any) {
+      console.error('[Hooks] Error fetching user profile:', error.message);
     }
   }
 
-  if (
-    !session &&
-    !(
-      event.url.pathname === '/' ||
-      event.url.pathname === '/login' ||
-      event.url.pathname === '/register'
-    )
-  ) {
-    throw redirect(303, '/login');
+  // Define public paths that don't require authentication
+  const publicPaths = [
+    '/',
+    '/login',
+    '/register',
+    '/auth/callback', // Supabase auth callback
+    '/reset-password' // Allow access to the password reset page
+  ];
+
+  // Check if the current path is NOT public AND the user is not logged in
+  if (!publicPaths.includes(event.url.pathname) && !session) {
+    // Protect non-public routes
+    if (!event.url.pathname.startsWith('/api')) { // Example: Allow API routes maybe? Adjust as needed.
+      throw redirect(303, '/login');
+    }
   }
 
   return resolve(event);

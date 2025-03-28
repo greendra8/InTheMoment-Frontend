@@ -19,7 +19,8 @@
 			var isLandingOrAuthPage =
 				window.location.pathname === '/' ||
 				window.location.pathname === '/login' ||
-				window.location.pathname === '/register';
+				window.location.pathname === '/register' ||
+				window.location.pathname === '/reset-password';
 
 			// Quick theme check - minimal version just for initial render
 			var theme = isLandingOrAuthPage ? 'galaxy' : (localStorage.getItem('theme') || 'galaxy');

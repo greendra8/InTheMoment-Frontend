@@ -515,9 +515,9 @@
 		}
 	}
 
-	:global(a:visited) {
+	/* :global(a:visited) {
 		color: inherit;
-	}
+	} */
 
 	/* Global view transition */
 

@@ -3,13 +3,38 @@ import { fail, redirect } from '@sveltejs/kit';
 import type { Actions } from './$types';
 
 export const actions: Actions = {
-  default: async ({ request, locals }) => {
+  login: async ({ request, locals, url }) => {
     const formData = await request.formData();
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
+    const useMagicLink = formData.get('magicLink') === 'true';
 
-    if (!email || !password) {
-      return fail(400, { message: 'Email and password are required' });
+    if (!email) {
+      return fail(400, { email, useMagicLink, message: 'Email is required' });
+    }
+
+    // Handle magic link login
+    if (useMagicLink) {
+      const { error } = await locals.supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${url.origin}/auth/callback`
+        }
+      });
+
+      if (error) {
+        console.error('[Login Action] Magic link error:', error.message);
+        return fail(500, { email, useMagicLink, message: 'Unable to send magic link. Please try again later.' });
+      }
+
+      return {
+        email, useMagicLink, success: 'Check your email for the magic link!'
+      };
+    }
+
+    // Handle password login
+    if (!password) {
+      return fail(400, { email, useMagicLink, message: 'Password is required' });
     }
 
     const { data, error: err } = await locals.supabase.auth.signInWithPassword({
@@ -19,11 +44,39 @@ export const actions: Actions = {
 
     if (err) {
       if (err instanceof AuthApiError && err.status === 400) {
-        return fail(400, { message: 'Invalid credentials' });
+        return fail(400, { email, useMagicLink, message: 'Invalid credentials' });
       }
-      return fail(500, { message: 'Server error. Please try again later.' });
+      console.error('[Login Action] Login error:', err.message);
+      return fail(500, { email, useMagicLink, message: 'Server error. Please try again later.' });
     }
-    
+
     throw redirect(303, '/dashboard');
+  },
+
+  // Action for password reset request
+  resetPassword: async ({ request, locals, url }) => {
+    const formData = await request.formData();
+    const email = formData.get('email') as string;
+
+    if (!email) {
+      return fail(400, { resetEmail: email, resetError: 'Email is required to reset password.' });
+    }
+
+    const redirectToUrl = `${url.origin}/reset-password`;
+
+    const { error } = await locals.supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: redirectToUrl
+    });
+
+    if (error) {
+      // Don't reveal if email exists, log server-side only
+      console.error('[Reset Password Action] Error sending reset email:', error.message);
+    }
+
+    // Always return generic success message for security
+    return {
+      resetEmail: email,
+      resetSuccess: 'If an account exists for this email, a password reset link has been sent.'
+    };
   }
 };

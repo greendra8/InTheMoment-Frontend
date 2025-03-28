@@ -34,7 +34,7 @@ export const load: LayoutServerLoad = async ({ locals, url, cookies }) => {
       throw redirect(303, '/profile-setup');
     }
     // Redirect logged-in users from "/" to "/dashboard"
-    if (url.pathname === '/' || url.pathname === "/login" || url.pathname === "/register") {
+    if (url.pathname === '/' || url.pathname === "/login" || url.pathname === "/register" || url.pathname === "/reset-password") {
       throw redirect(303, '/dashboard');
     }
 

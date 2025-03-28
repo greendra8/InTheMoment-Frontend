@@ -22,7 +22,8 @@ export function isLandingOrAuthPage(): boolean {
     return (
         window.location.pathname === '/' ||
         window.location.pathname === '/login' ||
-        window.location.pathname === '/register'
+        window.location.pathname === '/register' ||
+        window.location.pathname === '/reset-password'
     );
 }
 

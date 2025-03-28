@@ -1,8 +1,59 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import type { ActionData } from './$types';
+	import { page } from '$app/stores';
 
 	export let form: ActionData;
+	let useMagicLink = form?.useMagicLink ?? false; // Preserve state across submissions
+	let showForgotPassword = false;
+	let loginLoading = false;
+	let resetLoading = false;
+
+	// Email inputs - one for login/magic link, one for reset
+	let loginEmail = form?.email ?? '';
+	let resetEmail = form?.resetEmail ?? '';
+
+	function toggleMagicLink() {
+		useMagicLink = !useMagicLink;
+		showForgotPassword = false; // Hide forgot password when toggling main mode
+	}
+
+	function toggleForgotPassword() {
+		showForgotPassword = !showForgotPassword;
+		useMagicLink = false; // Hide magic link when showing forgot password
+	}
+
+	// Reactive updates for loading state and preserving email input
+	$: loginLoading =
+		$page.form?.submitting &&
+		$page.form?.action?.pathname === '/login' &&
+		$page.form?.action?.search === '?/login';
+	$: resetLoading = $page.form?.submitting && $page.form?.action?.search === '?/resetPassword';
+
+	$: if (form?.email) loginEmail = form.email;
+	$: if (form?.resetEmail) resetEmail = form.resetEmail;
+
+	// Handle error params from callback
+	let errorMessage = '';
+	$: {
+		const error = $page.url.searchParams.get('error');
+		if (error === 'invalid_callback') {
+			errorMessage = 'Invalid authentication request';
+		} else if (error === 'auth_error') {
+			errorMessage = 'Authentication failed';
+		} else if (error === 'no_session') {
+			errorMessage = 'Unable to establish session';
+		} else if (error === 'server_error') {
+			errorMessage = 'Server error occurred';
+		} else {
+			errorMessage = ''; // Clear errors if no error param
+		}
+
+		// Clear form-specific errors if the other form is submitted or mode changes
+		if (form && !form.message && !form.resetError) {
+			errorMessage = '';
+		}
+	}
 </script>
 
 <svelte:head>
@@ -15,21 +66,83 @@
 
 <div class="auth-page">
 	<div class="auth-container">
-		<h1 class="auth-title">Login</h1>
-		<form method="POST" use:enhance>
-			<div class="form-group">
-				<label for="email">Email</label>
-				<input type="email" id="email" name="email" required />
+		{#if showForgotPassword}
+			<!-- Forgot Password Form -->
+			<h1 class="auth-title">Reset Password</h1>
+			<form method="POST" action="?/resetPassword" use:enhance>
+				<div class="form-group">
+					<label for="reset-email">Email</label>
+					<input type="email" id="reset-email" name="email" bind:value={resetEmail} required />
+				</div>
+
+				{#if form?.resetError}
+					<p class="error">{form.resetError}</p>
+				{/if}
+				{#if form?.resetSuccess}
+					<p class="success">{form.resetSuccess}</p>
+				{/if}
+
+				<button type="submit" class="auth-button" disabled={resetLoading}>
+					{#if resetLoading}
+						<span class="loading loading-spinner loading-xs mr-2"></span> Sending...
+					{:else}
+						Send Reset Link
+					{/if}
+				</button>
+			</form>
+			<div class="auth-options">
+				<button class="link-button" on:click={toggleForgotPassword}> Back to Login </button>
 			</div>
-			<div class="form-group">
-				<label for="password">Password</label>
-				<input type="password" id="password" name="password" required />
+		{:else}
+			<!-- Login / Magic Link Form -->
+			<h1 class="auth-title">{useMagicLink ? 'Magic Link Login' : 'Login'}</h1>
+			<form method="POST" action="?/login" use:enhance>
+				<div class="form-group">
+					<label for="email">Email</label>
+					<input type="email" id="email" name="email" bind:value={loginEmail} required />
+				</div>
+				{#if !useMagicLink}
+					<div class="form-group">
+						<label for="password">Password</label>
+						<input type="password" id="password" name="password" required />
+					</div>
+				{/if}
+				<input type="hidden" name="magicLink" value={useMagicLink.toString()} />
+
+				<!-- Display general errors or login form specific errors/success -->
+				{#if errorMessage}
+					<p class="error">{errorMessage}</p>
+				{:else if form?.message}
+					<p class="error">{form.message}</p>
+				{:else if form?.success}
+					<p class="success">{form.success}</p>
+				{/if}
+
+				<button type="submit" class="auth-button" disabled={loginLoading}>
+					{#if loginLoading}
+						<span class="loading loading-spinner loading-xs mr-2"></span>
+						{#if useMagicLink}
+							Sending...
+						{:else}
+							Logging In...
+						{/if}
+					{:else}
+						{useMagicLink ? 'Send Magic Link' : 'Login'}
+					{/if}
+				</button>
+			</form>
+			<div class="auth-options">
+				<button class="link-button" on:click={toggleMagicLink}>
+					{useMagicLink ? 'Use Password Login' : 'Use Magic Link Login'}
+				</button>
+				{#if !useMagicLink}
+					<button class="link-button ml-4" on:click={toggleForgotPassword}>
+						Forgot Password?
+					</button>
+				{/if}
 			</div>
-			{#if form?.message}
-				<p class="error">{form.message}</p>
-			{/if}
-			<button type="submit" class="auth-button">Login</button>
-		</form>
+		{/if}
+
 		<p class="auth-link">Don't have an account? <a href="/register">Register</a></p>
 	</div>
 </div>
@@ -39,8 +152,6 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		padding: 2rem 1rem;
-		margin-top: -5rem;
 		min-height: 100vh;
 	}
 
@@ -171,5 +282,62 @@
 		.auth-title {
 			font-size: 1.8rem;
 		}
+	}
+
+	.auth-options {
+		margin-top: 1.5rem; /* Increased spacing */
+		text-align: center;
+		display: flex; /* Use flexbox for better alignment */
+		justify-content: center; /* Center buttons */
+		gap: 1rem; /* Add gap between buttons */
+		flex-wrap: wrap; /* Allow wrapping on small screens */
+	}
+
+	.link-button {
+		background: none;
+		border: none;
+		color: rgba(123, 104, 238, 0.9);
+		cursor: pointer;
+		font-family: 'Inter', sans-serif;
+		font-size: 0.9rem;
+		/* text-decoration: underline; */ /* Removing underline for cleaner look */
+		padding: 0.25rem 0; /* Add some padding for click area */
+		transition: color 0.3s ease;
+	}
+
+	.link-button:hover {
+		color: rgba(132, 112, 255, 1);
+		text-decoration: underline; /* Add underline on hover */
+	}
+
+	.success {
+		color: #4caf50;
+		margin: 1rem 0;
+		text-align: center;
+		font-size: 0.9rem;
+		padding: 0.5rem;
+		background: rgba(76, 175, 80, 0.1);
+		border-radius: 4px;
+		border: 1px solid rgba(76, 175, 80, 0.2);
+	}
+
+	/* Add styles for loading spinner if using daisyUI or similar */
+	/* Ensure loading class is available or replace with your spinner implementation */
+	.loading {
+		/* Example using daisyUI spinner */
+		display: inline-block;
+		vertical-align: middle;
+	}
+
+	.loading-spinner {
+		/* daisyUI styles */
+	}
+
+	.loading-xs {
+		/* daisyUI styles */
+	}
+
+	.mr-2 {
+		margin-right: 0.5rem; /* Spacing for spinner */
 	}
 </style>

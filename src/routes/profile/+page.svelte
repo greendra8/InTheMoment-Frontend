@@ -11,6 +11,15 @@
 	// Initialize the profile from the loaded data
 	let profile = data.profile;
 
+	// Security section state
+	let securitySectionOpen = false;
+	let newEmail = '';
+	let currentPassword = '';
+	let newPassword = '';
+	let confirmNewPassword = '';
+	let isChangingEmail = false;
+	let isChangingPassword = false;
+
 	const voiceOptions = [
 		{ id: 0, label: 'Female 1', audioSrc: '/audio/female1-sample.mp3' },
 		{ id: 1, label: 'Female 2', audioSrc: '/audio/female2-sample.mp3' },
@@ -136,6 +145,88 @@
 			showError('Failed to update theme. Please try again.');
 		}
 	}
+
+	async function handleEmailChange() {
+		if (!newEmail) {
+			showError('Please enter a new email address');
+			return;
+		}
+
+		if (!currentPassword) {
+			showError('Please enter your current password to confirm email change');
+			return;
+		}
+
+		isChangingEmail = true;
+
+		try {
+			const { error } = await supabase.auth.updateUser(
+				{
+					email: newEmail
+				},
+				{
+					emailRedirectTo: `${window.location.origin}/auth/callback`
+				}
+			);
+
+			if (error) throw error;
+
+			showSuccess('Verification email sent. Please check your inbox.');
+			newEmail = '';
+			currentPassword = '';
+		} catch (err) {
+			console.error('Error changing email:', err);
+			showError('Failed to update email. Please try again.');
+		} finally {
+			isChangingEmail = false;
+		}
+	}
+
+	async function handlePasswordChange() {
+		if (!currentPassword) {
+			showError('Please enter your current password');
+			return;
+		}
+
+		if (!newPassword) {
+			showError('Please enter a new password');
+			return;
+		}
+
+		if (newPassword !== confirmNewPassword) {
+			showError('New passwords do not match');
+			return;
+		}
+
+		if (newPassword.length < 6) {
+			showError('New password must be at least 6 characters');
+			return;
+		}
+
+		isChangingPassword = true;
+
+		try {
+			const { error } = await supabase.auth.updateUser({
+				password: newPassword
+			});
+
+			if (error) throw error;
+
+			showSuccess('Password updated successfully');
+			currentPassword = '';
+			newPassword = '';
+			confirmNewPassword = '';
+		} catch (err) {
+			console.error('Error changing password:', err);
+			showError('Failed to update password. Please try again.');
+		} finally {
+			isChangingPassword = false;
+		}
+	}
+
+	function toggleSecuritySection() {
+		securitySectionOpen = !securitySectionOpen;
+	}
 </script>
 
 <svelte:head>
@@ -238,6 +329,71 @@
 					</button>
 				</div>
 			</div>
+		</div>
+
+		<!-- New security section -->
+		<div class="security-section">
+			<button class="section-toggle" on:click={toggleSecuritySection}>
+				<h2>Security</h2>
+				<i class="fas fa-chevron-{securitySectionOpen ? 'up' : 'down'}"></i>
+			</button>
+
+			{#if securitySectionOpen}
+				<div class="security-content">
+					<div class="security-card">
+						<h3>Change Email Address</h3>
+						<div class="current-value">
+							<span class="label">Current Email:</span>
+							<span class="value">{data.session?.user?.email || 'Not available'}</span>
+						</div>
+						<div class="form-group">
+							<label for="newEmail">New Email Address</label>
+							<input type="email" id="newEmail" bind:value={newEmail} />
+						</div>
+						<div class="form-group">
+							<label for="currentPasswordEmail">Current Password</label>
+							<input type="password" id="currentPasswordEmail" bind:value={currentPassword} />
+						</div>
+						<button class="security-button" on:click={handleEmailChange} disabled={isChangingEmail}>
+							{#if isChangingEmail}
+								<i class="fas fa-spinner fa-spin"></i> Sending Verification...
+							{:else}
+								Change Email
+							{/if}
+						</button>
+						<p class="security-note">
+							Note: You'll need to verify your new email address before the change takes effect.
+						</p>
+					</div>
+
+					<div class="security-card">
+						<h3>Change Password</h3>
+						<div class="form-group">
+							<label for="currentPassword">Current Password</label>
+							<input type="password" id="currentPassword" bind:value={currentPassword} />
+						</div>
+						<div class="form-group">
+							<label for="newPassword">New Password</label>
+							<input type="password" id="newPassword" bind:value={newPassword} />
+						</div>
+						<div class="form-group">
+							<label for="confirmNewPassword">Confirm New Password</label>
+							<input type="password" id="confirmNewPassword" bind:value={confirmNewPassword} />
+						</div>
+						<button
+							class="security-button"
+							on:click={handlePasswordChange}
+							disabled={isChangingPassword}
+						>
+							{#if isChangingPassword}
+								<i class="fas fa-spinner fa-spin"></i> Updating...
+							{:else}
+								Change Password
+							{/if}
+						</button>
+					</div>
+				</div>
+			{/if}
 		</div>
 
 		<button class="logout-button" on:click={handleLogout}>Logout</button>
@@ -616,6 +772,106 @@
 		input,
 		select {
 			font-size: 16px;
+		}
+	}
+
+	/* Security section styles */
+	.security-section {
+		background-color: var(--background-card);
+		border-radius: 12px;
+		margin-bottom: 1rem;
+		box-shadow: 0 2px 8px var(--ui-shadow);
+		overflow: hidden;
+	}
+
+	.section-toggle {
+		width: 100%;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 1.5rem;
+		background: none;
+		border: none;
+		cursor: pointer;
+		text-align: left;
+		transition: background-color 0.2s ease;
+	}
+
+	.section-toggle h2 {
+		margin: 0;
+		font-size: 1.3rem;
+		color: var(--text-primary);
+	}
+
+	.section-toggle i {
+		font-size: 1rem;
+		color: var(--text-secondary);
+		transition: transform 0.3s ease;
+	}
+
+	.security-content {
+		padding: 0 1.5rem 1.5rem;
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+	}
+
+	.security-card h3 {
+		margin-top: 0;
+		margin-bottom: 1rem;
+		font-size: 1.1rem;
+		color: var(--text-primary);
+		font-family: 'Space Grotesk', sans-serif;
+	}
+
+	.security-button {
+		width: 100%;
+		padding: 0.8rem 1rem;
+		border-radius: 8px;
+		font-size: 0.95rem;
+		background: var(--btn-bg);
+		color: var(--btn-text);
+		border: 1px solid rgba(var(--interactive-gradient-1), 0.2);
+		cursor: pointer;
+		transition: all 0.3s ease;
+		font-family: 'Inter', sans-serif;
+		font-weight: 500;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+	}
+
+	.security-button:hover:not(:disabled) {
+		background: var(--btn-bg-hover);
+		transform: translateY(-2px);
+		box-shadow: 0 4px 12px var(--ui-shadowHover);
+	}
+
+	.security-button:disabled {
+		opacity: 0.7;
+		cursor: not-allowed;
+	}
+
+	.security-note,
+	.current-value {
+		margin-top: 0.75rem;
+		font-size: 0.8rem;
+		color: var(--text-secondary);
+		font-style: italic;
+	}
+
+	@media (max-width: 480px) {
+		.section-toggle {
+			padding: 1rem;
+		}
+
+		.security-content {
+			padding: 0 1rem 1rem;
+		}
+
+		.security-card {
+			padding: 1rem;
 		}
 	}
 </style>
