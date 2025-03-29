@@ -1,6 +1,6 @@
 // hooks.server.ts
 import { createServerClient } from '@supabase/ssr';
-import { type Handle, redirect } from '@sveltejs/kit';
+import { type Handle, redirect, error } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import { dev } from '$app/environment';
 import { getUserProfile } from '$lib/server/supabase';
@@ -117,10 +117,26 @@ const authGuard: Handle = async ({ event, resolve }) => {
     '/reset-password' // Allow access to the password reset page
   ];
 
+  // Define public API paths that don't require authentication
+  const publicApiPaths = [
+    '/api/public', // Example if you have public APIs
+    // Add other public API paths here
+  ];
+
+  // Check if the current path is a protected API route that requires auth
+  if (event.url.pathname.startsWith('/api/admin') && !session) {
+    throw error(401, 'Authentication required');
+  }
+
   // Check if the current path is NOT public AND the user is not logged in
   if (!publicPaths.includes(event.url.pathname) && !session) {
-    // Protect non-public routes
-    if (!event.url.pathname.startsWith('/api')) { // Example: Allow API routes maybe? Adjust as needed.
+    // For API routes, return an error instead of redirecting
+    if (event.url.pathname.startsWith('/api')) {
+      if (!publicApiPaths.some(path => event.url.pathname.startsWith(path))) {
+        throw error(401, 'Authentication required');
+      }
+    } else {
+      // For non-API routes, redirect to login
       throw redirect(303, '/login');
     }
   }

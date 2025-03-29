@@ -12,7 +12,7 @@
 	import Notifications from '$lib/components/Notifications.svelte';
 	import { browser } from '$app/environment';
 	import { setTimezoneOffsetCookie } from '$lib/utils/time';
-	import { showSuccess, showInfo } from '$lib/stores/notifications';
+	import { showSuccess, showInfo, showError } from '$lib/stores/notifications';
 
 	export let data;
 	$: ({ isNativeApp, session } = data);
@@ -21,7 +21,6 @@
 	$: typedSession = session as ExtendedSession;
 
 	// Create reactive navItems based on session state
-	$: isAdmin = typedSession?.user?.id === 'cf39c581-6b6f-44b7-8c56-f7f64a26637c';
 	$: navItems = typedSession?.user
 		? [
 				{ href: '/dashboard', label: 'Explore', icon: 'fa-compass' },
@@ -29,7 +28,6 @@
 				{ href: '/new', label: 'New', icon: 'fa-plus' },
 				{ href: '/playlists', label: 'Learn', icon: 'fa-book' },
 				{ href: '/profile', label: 'Profile', icon: 'fa-user' }
-				//...(isAdmin ? [{ href: '/admin', label: 'Admin', icon: 'fa-cog' }] : [])
 			]
 		: [
 				{ href: '/', label: 'Home', icon: 'fa-home' },
@@ -97,6 +95,14 @@
 				showInfo(messageWithoutPlus, { autoClose: 15000 });
 
 				// Clear the hash to prevent showing the message again on refresh
+				window.history.replaceState(null, '', window.location.pathname + window.location.search);
+			} else if (hash.includes('#error=')) {
+				const errorParams = new URLSearchParams(hash.substring(1));
+				const errorDescription =
+					errorParams.get('error_description')?.replace(/\+/g, ' ') || 'An error occurred';
+				showError(errorDescription, { autoClose: 15000 });
+
+				// Clear the hash to prevent showing the error again on refresh
 				window.history.replaceState(null, '', window.location.pathname + window.location.search);
 			}
 		}
@@ -263,6 +269,11 @@
 	function checkMobile() {
 		isMobile = window.innerWidth <= 1024;
 	}
+
+	// Remove the hardcoded ID check:
+	// BEFORE: $: isAdmin = typedSession?.user?.id === 'cf39c581-6b6f-44b7-8c56-f7f64a26637c';
+	// AFTER:
+	$: isAdmin = data.isAdmin;
 </script>
 
 <div class={themeValue !== 'galaxy' ? themeValue + '-theme' : ''}>

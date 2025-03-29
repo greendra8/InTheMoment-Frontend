@@ -1,8 +1,20 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { supabaseAdmin } from '$lib/server/supabase';
+import { isAdminUser } from '$lib/server/auth';
+import { error } from '@sveltejs/kit';
 
-export const POST: RequestHandler = async ({ request, url }) => {
+// Admin check middleware - reused for all admin endpoints
+function checkAdminAccess(locals: App.Locals) {
+  if (!isAdminUser(locals)) {
+    throw error(403, 'Unauthorized - Admin access required');
+  }
+}
+
+export const POST: RequestHandler = async ({ request, url, locals }) => {
+  // Authentication check
+  checkAdminAccess(locals);
+
   const path = url.pathname.split('/').pop();
 
   if (path === 'playlist') {
@@ -32,8 +44,16 @@ export const POST: RequestHandler = async ({ request, url }) => {
   return json({ error: 'Invalid endpoint' }, { status: 400 });
 };
 
-export const PUT: RequestHandler = async ({ request, params }) => {
-  const { id } = params;
+export const PUT: RequestHandler = async ({ request, params, locals, url }) => {
+  // Authentication check
+  checkAdminAccess(locals);
+
+  // Fix for the type error from linter
+  const id = url.pathname.split('/').pop();
+  if (!id) {
+    return json({ error: 'Missing ID parameter' }, { status: 400 });
+  }
+
   const lesson = await request.json();
   const { data, error } = await supabaseAdmin
     .from('lesson_content')
@@ -46,7 +66,10 @@ export const PUT: RequestHandler = async ({ request, params }) => {
   return json(data);
 };
 
-export const DELETE: RequestHandler = async ({ params, url }) => {
+export const DELETE: RequestHandler = async ({ params, url, locals }) => {
+  // Authentication check
+  checkAdminAccess(locals);
+
   const path = url.pathname.split('/');
   const type = path[path.length - 2];
   const value = decodeURIComponent(path[path.length - 1]);

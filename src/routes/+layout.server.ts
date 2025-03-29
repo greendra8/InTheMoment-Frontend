@@ -2,6 +2,8 @@
 import type { LayoutServerLoad } from './$types';
 import { redirect } from '@sveltejs/kit';
 import { isUserProfileComplete } from '$lib/server/supabase';
+import { isAdminUser } from '$lib/server/auth';
+import { error } from '@sveltejs/kit';
 
 // Set to false to disable logging
 const DEBUG = false;
@@ -15,7 +17,7 @@ function log(...args: any[]): void {
 
 export const load: LayoutServerLoad = async ({ locals, url, cookies }) => {
   const session = locals.session;
-  const isAdmin = session?.user?.id === 'cf39c581-6b6f-44b7-8c56-f7f64a26637c';
+  const isAdmin = isAdminUser(locals);
   // Get profile from locals instead of making another database call
   const profile = locals.profile;
 
@@ -61,6 +63,7 @@ export const load: LayoutServerLoad = async ({ locals, url, cookies }) => {
     user: session?.user ? { id: session.user.id, email: session.user.email } : null,
     isNativeApp: locals.isNativeApp,
     session,
-    theme
+    theme,
+    isAdmin
   };
 };
