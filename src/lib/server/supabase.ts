@@ -3,11 +3,14 @@ import type { Database } from '../database.types';
 import { getSessionRecommendationPrompt, getFeedbackConversationPrompt } from '../ai/prompts';
 
 const PUBLIC_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const PRIVATE_SUPABASE_SERVICE_ROLE_KEY = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+import { SUPABASE_SERVICE_ROLE_KEY } from '$env/static/private';
+import { DEEPINFRA_API_KEY } from '$env/static/private';
+import { GROQ_API_KEY } from '$env/static/private';
+import { GOOGLE_AI_API_KEY } from '$env/static/private';
 
 export const supabaseAdmin = createClient<Database>(
   PUBLIC_SUPABASE_URL,
-  PRIVATE_SUPABASE_SERVICE_ROLE_KEY
+  SUPABASE_SERVICE_ROLE_KEY
 );
 
 // Helper function to get user profile
@@ -350,7 +353,7 @@ export async function serverTranscribeAudio(audioBuffer: Buffer): Promise<string
     // const response = await fetch('https://api.deepinfra.com/v1/openai/audio/transcriptions', {
     //   method: 'POST',
     //   headers: {
-    //     'Authorization': `Bearer ${import.meta.env.VITE_DEEPINFRA_API_KEY}`
+    //     'Authorization': `Bearer ${DEEPINFRA_API_KEY}`
     //   },
     //   body: formData
     // });
@@ -377,7 +380,7 @@ export async function serverTranscribeAudio(audioBuffer: Buffer): Promise<string
     const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`
+        'Authorization': `Bearer ${GROQ_API_KEY}`
       },
       body: formData
     });
@@ -463,7 +466,7 @@ export async function serverHandleAIConversation(
 
     // Call Gemini API for both types of conversations
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${import.meta.env.VITE_GOOGLE_AI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GOOGLE_AI_API_KEY}`,
       {
         method: 'POST',
         headers: {
