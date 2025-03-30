@@ -204,21 +204,32 @@ export const actions: Actions = {
 
 			console.log('Server: Result from generateMeditation:', JSON.stringify(result, null, 2));
 
-			// Clear the pre-session cookie after successful generation
 			cookies.delete(PRE_SESSION_COOKIE_NAME, { path: '/' });
 
+			// On success, return the success object as before
 			return {
 				type: 'success',
 				data: {
 					meditation_id: result.data.meditation_id
 				}
 			};
-		} catch (err) {
+		} catch (err: unknown) {
 			console.error('Server: Meditation generation error:', err);
-			return {
-				type: 'error',
-				message: 'An error occurred while generating the meditation. Please try again.'
-			};
+
+			let errorMessage = 'An error occurred while generating the meditation. Please try again.';
+			let errorStatus = 500; // Default status
+
+			if (err instanceof Error) {
+				errorMessage = err.message;
+				// Check if the custom status property exists from pythonApi.ts
+				if ((err as any).status) {
+					errorStatus = (err as any).status;
+				}
+			}
+
+			// Instead of returning, THROW a SvelteKit error
+			// This will send a proper HTTP error response (e.g., 429, 500)
+			throw error(errorStatus, errorMessage);
 		}
 	}
 };

@@ -400,27 +400,17 @@
 		console.log('Client: handleFormSubmit called');
 		event.preventDefault();
 
-		// Prevent multiple submissions
 		if ($meditationGeneration.isGenerating) {
 			return;
 		}
 
-		// Store the current session type for notifications
 		const generatingSessionType = sessionType;
-
 		const formData = new FormData(formElement);
 		formData.set('userLocalTime', getUserLocalTime());
 		formData.set('length', duration.toString());
-
-		// Create parameters JSON with appropriate format for the session type
 		const parameters = createParametersJSON();
-		console.log('Client: Parameters:', parameters);
 		formData.set('parameters', JSON.stringify(parameters));
-
-		// Set content type (meditation or hypnosis)
 		formData.set('content_type', sessionType);
-
-		// For meditation with playlist, also set playlist_id at the top level
 		if (sessionType === 'meditation' && selectedPlaylist) {
 			formData.set('playlist_id', selectedPlaylist);
 		}
@@ -436,105 +426,115 @@
 			console.log('Client: Response status:', response.status);
 
 			if (!response.ok) {
-				throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+				let serverErrorMessage = `Failed with status ${response.status}`;
+				let responseBodyText = '';
+				try {
+					responseBodyText = await response.text();
+					const errorData = JSON.parse(responseBodyText);
+					if (
+						errorData &&
+						typeof errorData === 'object' &&
+						errorData.error &&
+						typeof errorData.error === 'object' &&
+						typeof errorData.error.message === 'string'
+					) {
+						serverErrorMessage = errorData.error.message;
+					} else {
+						console.warn(
+							'Parsed error JSON did not contain expected nested "error.message":',
+							errorData
+						);
+						if (responseBodyText.trim()) {
+							serverErrorMessage = responseBodyText.trim();
+						} else {
+							serverErrorMessage = response.statusText;
+						}
+					}
+				} catch (e) {
+					console.warn('Could not read or parse error response body:', e);
+					if (responseBodyText.trim()) {
+						serverErrorMessage = responseBodyText.trim();
+					} else {
+						serverErrorMessage = response.statusText;
+					}
+				}
+				throw new Error(serverErrorMessage);
 			}
 
-			const result: CustomActionData = await response.json();
-			console.log('Client: Result:', JSON.stringify(result, null, 2));
+			const result = await response.json();
+			console.log('Client: Result (on success):', result);
 
-			if (result.type === 'success') {
-				let meditationId;
+			let meditationId: string | null = null;
 
-				// Handle different response formats
-				if (typeof result.data === 'string') {
-					try {
-						const parsedData = JSON.parse(result.data);
-						console.log('Client: Parsed data:', parsedData);
+			if (result.type === 'success' && typeof result.data === 'string') {
+				try {
+					const parsedDataArray = JSON.parse(result.data);
+					console.log('Client: Parsed data string:', parsedDataArray);
 
-						// Handle array format with nested JSON
-						if (Array.isArray(parsedData)) {
-							// Check if the meditation ID is in the 4th element (index 3)
-							if (parsedData.length >= 4 && typeof parsedData[3] === 'string') {
-								meditationId = parsedData[3];
-							}
-							// Check if the meditation ID is in a stringified JSON in the 3rd element (index 2)
-							else if (parsedData.length >= 3 && typeof parsedData[2] === 'string') {
-								try {
-									// Try to parse the 3rd element as JSON
-									const nestedJson = JSON.parse(parsedData[2]);
-									if (nestedJson && nestedJson.meditation_id) {
-										meditationId = nestedJson.meditation_id;
-									}
-								} catch (e) {
-									console.error('Failed to parse nested JSON:', e);
+					if (Array.isArray(parsedDataArray) && parsedDataArray.length > 0) {
+						const potentialId = parsedDataArray[parsedDataArray.length - 1];
+						if (typeof potentialId === 'string') {
+							meditationId = potentialId;
+							console.log('Client: Extracted meditation ID from stringified array:', meditationId);
+						}
+					}
+				} catch (e) {
+					console.error(
+						'Client: Failed to parse result.data string or extract ID:',
+						e,
+						result.data
+					);
+				}
+			} else if (
+				result.type === 'success' &&
+				result.data &&
+				typeof result.data === 'object' &&
+				result.data.meditation_id
+			) {
+				console.log('Client: Received expected object structure (unexpectedly)');
+				meditationId = result.data.meditation_id;
+			}
+
+			if (meditationId) {
+				console.log('Client: Valid meditation ID found:', meditationId);
+				meditationGeneration.startGeneration(meditationId, generatingSessionType);
+				const loadingNotificationId = showLoading('Starting your session generation...', {
+					dismissible: false
+				});
+				deleteCookie(PRE_SESSION_COOKIE_NAME);
+
+				const unsubscribe = subscribeMeditationStatus(meditationId, (status) => {
+					meditationGeneration.updateStatus(status);
+					if (status === 'Completed') {
+						notifications.clear();
+						showSuccess(`Your ${generatingSessionType} is ready!`, {
+							action: {
+								label: 'View',
+								onClick: () => {
+									notifications.clear();
+									meditationGeneration.reset();
+									goto(`/session/${meditationId}`);
 								}
-							}
-						}
-						// Handle direct object format
-						else if (parsedData.meditation_id) {
-							meditationId = parsedData.meditation_id;
-						}
-					} catch (e) {
-						console.error('Failed to parse result.data string:', e);
+							},
+							dismissible: false,
+							autoClose: 0
+						});
+						meditationGeneration.completeGeneration();
+						if (unsubscribe) unsubscribe();
+					} else if (status === 'Failed') {
+						notifications.clear();
+						showError(`${generatingSessionType} generation failed. Please try again.`);
+						meditationGeneration.failGeneration();
+						if (unsubscribe) unsubscribe();
+					} else {
+						notifications.update(loadingNotificationId, {
+							message: getStatusMessage(status, generatingSessionType)
+						});
 					}
-				} else if (result.data && typeof result.data === 'object') {
-					// Handle direct object format
-					if (result.data.meditation_id) {
-						meditationId = result.data.meditation_id;
-					}
-				}
-
-				console.log('Client: Extracted meditation ID:', meditationId);
-
-				if (meditationId) {
-					console.log('Client: Valid meditation ID:', meditationId);
-					// Store the session type in the meditation generation store
-					meditationGeneration.startGeneration(meditationId, generatingSessionType);
-					const loadingNotificationId = showLoading('Starting your session generation...', {
-						dismissible: false
-					});
-
-					// Clear the pre-session cookie after successful generation
-					deleteCookie(PRE_SESSION_COOKIE_NAME);
-
-					// Subscribe to status updates
-					const unsubscribe = subscribeMeditationStatus(meditationId, (status) => {
-						meditationGeneration.updateStatus(status);
-
-						// Update the loading notification with the current status
-						if (status === 'Completed') {
-							notifications.clear();
-							showSuccess(`Your ${generatingSessionType} is ready!`, {
-								action: {
-									label: 'View',
-									onClick: () => {
-										notifications.clear();
-										meditationGeneration.reset();
-										goto(`/session/${meditationId}`);
-									}
-								},
-								dismissible: false,
-								autoClose: 0
-							});
-							meditationGeneration.completeGeneration();
-							if (unsubscribe) unsubscribe();
-						} else if (status === 'Failed') {
-							notifications.clear();
-							showError(`${generatingSessionType} generation failed. Please try again.`);
-							meditationGeneration.failGeneration();
-							if (unsubscribe) unsubscribe();
-						} else {
-							// Update the existing notification
-							notifications.update(loadingNotificationId, {
-								message: getStatusMessage(status, generatingSessionType)
-							});
-						}
-					});
-				} else {
-					throw new Error('Could not find meditation ID in the response');
-				}
+				});
 			} else {
-				throw new Error(result.message || `Failed to generate ${sessionType}`);
+				console.error('Client: Could not extract meditation ID from response:', result);
+				throw new Error('Could not find meditation ID in the server response.');
 			}
 		} catch (error: unknown) {
 			console.error('Client: Error in handleFormSubmit:', error);
