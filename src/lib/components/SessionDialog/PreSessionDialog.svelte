@@ -251,6 +251,15 @@
 	</div>
 {:else}
 	<div class="session-header">
+		<!-- Info Icon -->
+		<div class="info-icon-container">
+			<i class="fas fa-info-circle info-icon"></i>
+			<div class="tooltip">
+				Your responses help tailor the upcoming session. This conversation is not stored
+				persistently in its raw form after the session is configured, but summaries may be stored to
+				help personalise future sessions.
+			</div>
+		</div>
 		<!-- Mode toggle -->
 		<div class="mode-toggle">
 			<button
@@ -337,6 +346,59 @@
 		flex-direction: column;
 		align-items: center;
 		gap: 1rem;
+		position: relative; /* Needed for absolute positioning of info icon */
+		padding-top: 1.5rem; /* Add padding to make space for the icon */
+	}
+
+	.info-icon-container {
+		position: absolute;
+		top: -6px;
+		right: 0rem; /* Adjust as needed */
+		display: inline-block;
+		z-index: 2; /* Ensure it's above other elements if needed */
+	}
+
+	.info-icon {
+		font-size: 1.2rem;
+		color: var(--text-secondary);
+		cursor: help;
+		transition: color 0.2s ease;
+	}
+
+	.info-icon:hover {
+		color: var(--text-primary);
+	}
+
+	.tooltip {
+		visibility: hidden;
+		width: 280px; /* Adjusted width */
+		background-color: rgba(var(--background-card-rgb), 0.95);
+		color: var(--text-primary);
+		text-align: center;
+		border-radius: 6px;
+		padding: 8px 12px;
+		position: absolute;
+		z-index: 1;
+		right: 0;
+		top: 130%;
+		opacity: 0;
+		transition: opacity 0.3s;
+		font-size: 0.8rem;
+		line-height: 1.4;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+		border: 1px solid rgba(var(--interactive-gradient-1), 0.1);
+		pointer-events: none; /* Prevents tooltip from interfering with hover */
+		transform-origin: top right;
+		transform: translateY(-5px);
+		transition:
+			opacity 0.3s,
+			transform 0.3s;
+	}
+
+	.info-icon-container:hover .tooltip {
+		visibility: visible;
+		opacity: 1;
+		transform: translateY(0);
 	}
 
 	.mode-toggle {
