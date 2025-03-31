@@ -27,16 +27,16 @@
 		<form method="POST" use:enhance>
 			<div class="form-group">
 				<label for="email">Email</label>
-				<input type="email" id="email" name="email" required disabled />
+				<input type="email" id="email" name="email" required />
 			</div>
 			<div class="form-group">
 				<label for="password">Password</label>
-				<input type="password" id="password" name="password" required disabled />
+				<input type="password" id="password" name="password" required />
 			</div>
 			{#if form?.message}
 				<p class="error">{form.message}</p>
 			{/if}
-			<button type="submit" class="auth-button" disabled>Register</button>
+			<button type="submit" class="auth-button">Register</button>
 		</form>
 		<p class="auth-link">Already have an account? <a href="/login">Login</a></p>
 	</div>
@@ -45,10 +45,11 @@
 <style>
 	.auth-page {
 		display: flex;
-		align-items: center;
+		align-items: flex-start;
 		justify-content: center;
-		margin-top: -5rem;
 		min-height: 100vh;
+		padding-top: 8vh;
+		box-sizing: border-box;
 	}
 
 	.auth-container {
@@ -206,7 +207,10 @@
 		text-decoration: underline;
 	}
 
-	@media (max-width: 480px) {
+	@media (max-width: 768px) {
+		.auth-page {
+			padding-top: 4vh;
+		}
 		.auth-container {
 			padding: 2rem 1.5rem;
 		}

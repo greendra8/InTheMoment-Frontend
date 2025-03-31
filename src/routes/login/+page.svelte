@@ -150,9 +150,11 @@
 <style>
 	.auth-page {
 		display: flex;
-		align-items: center;
+		align-items: flex-start;
 		justify-content: center;
 		min-height: 100vh;
+		padding-top: 8vh;
+		box-sizing: border-box;
 	}
 
 	.auth-container {
@@ -274,7 +276,10 @@
 		text-decoration: underline;
 	}
 
-	@media (max-width: 480px) {
+	@media (max-width: 768px) {
+		.auth-page {
+			padding-top: 4vh;
+		}
 		.auth-container {
 			padding: 2rem 1.5rem;
 		}
@@ -285,12 +290,12 @@
 	}
 
 	.auth-options {
-		margin-top: 1.5rem; /* Increased spacing */
+		margin-top: 1.5rem;
 		text-align: center;
-		display: flex; /* Use flexbox for better alignment */
-		justify-content: center; /* Center buttons */
-		gap: 1rem; /* Add gap between buttons */
-		flex-wrap: wrap; /* Allow wrapping on small screens */
+		display: flex;
+		justify-content: center;
+		gap: 1rem;
+		flex-wrap: wrap;
 	}
 
 	.link-button {
@@ -300,14 +305,13 @@
 		cursor: pointer;
 		font-family: 'Inter', sans-serif;
 		font-size: 0.9rem;
-		/* text-decoration: underline; */ /* Removing underline for cleaner look */
-		padding: 0.25rem 0; /* Add some padding for click area */
+		padding: 0.25rem 0;
 		transition: color 0.3s ease;
 	}
 
 	.link-button:hover {
 		color: rgba(132, 112, 255, 1);
-		text-decoration: underline; /* Add underline on hover */
+		text-decoration: underline;
 	}
 
 	.success {
@@ -321,10 +325,7 @@
 		border: 1px solid rgba(76, 175, 80, 0.2);
 	}
 
-	/* Add styles for loading spinner if using daisyUI or similar */
-	/* Ensure loading class is available or replace with your spinner implementation */
 	.loading {
-		/* Example using daisyUI spinner */
 		display: inline-block;
 		vertical-align: middle;
 	}
@@ -338,6 +339,6 @@
 	}
 
 	.mr-2 {
-		margin-right: 0.5rem; /* Spacing for spinner */
+		margin-right: 0.5rem;
 	}
 </style>

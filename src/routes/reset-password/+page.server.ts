@@ -1,6 +1,7 @@
 import { fail, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { AuthApiError } from '@supabase/supabase-js';
+import { validatePassword } from '$lib/utils/validation'; // Import validation function
 
 // --- LOAD Function ---
 export const load: PageServerLoad = async ({ url, locals }) => {
@@ -33,12 +34,16 @@ export const actions: Actions = {
         if (!code) {
             return fail(400, { message: 'Verification code is missing. Please use the link from your email again.' });
         }
-        if (!password || password.length < 6) {
-            return fail(400, { message: 'Password must be at least 6 characters long.', code });
+
+        // --- Password Validation ---
+        const passwordError = validatePassword(password);
+        if (passwordError) {
+            return fail(400, { message: passwordError, code });
         }
         if (password !== confirmPassword) {
             return fail(400, { message: 'Passwords do not match.', code });
         }
+        // --- End Validation ---
 
         try {
             // 1. Exchange the code - This verifies the code
@@ -47,11 +52,16 @@ export const actions: Actions = {
 
             if (exchangeError) {
                 let userMessage = 'Failed to verify password reset link.';
-                if (exchangeError.message.includes('invalid_grant') || exchangeError.message.includes('expired') || exchangeError.message.includes('code verifier')) {
-                    userMessage = 'Password reset link is invalid, expired, or already used. Please request a new one.';
-                } else if (exchangeError.message.includes('Already Used')) {
-                    userMessage = 'Password reset link has already been used. Please request a new one.';
+                if (
+                    exchangeError.message.includes('invalid_grant') ||
+                    exchangeError.message.includes('expired') ||
+                    exchangeError.message.includes('code verifier') ||
+                    exchangeError.message.includes('used') // Catch already used
+                ) {
+                    userMessage =
+                        'Password reset link is invalid, expired, or already used. Please request a new one.';
                 }
+                console.warn('[Reset Password Action] Code exchange error:', exchangeError.message);
                 return fail(401, { message: userMessage });
             }
 
@@ -59,6 +69,7 @@ export const actions: Actions = {
             const { error: updateError } = await locals.supabase.auth.updateUser({ password });
 
             if (updateError) {
+                console.error('[Reset Password Action] Password update error:', updateError.message);
                 return fail(500, { message: `Password update failed: ${updateError.message}` });
             }
 
@@ -67,7 +78,7 @@ export const actions: Actions = {
 
             if (signOutError) {
                 // Log server-side if needed, but don't block user success
-                console.warn('Action Warning: Failed to sign out after password update:', signOutError.message);
+                console.warn('[Reset Password Action] Failed to sign out after password update:', signOutError.message);
             }
 
             // 4. Return success to the client
@@ -76,7 +87,7 @@ export const actions: Actions = {
                 message: 'Password updated successfully!'
             };
         } catch (e: any) {
-            console.error('Action: Unexpected exception:', e);
+            console.error('[Reset Password Action] Unexpected exception:', e);
             return fail(500, { message: 'An unexpected server error occurred.' });
         }
     }

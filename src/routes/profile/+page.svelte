@@ -5,6 +5,7 @@
 	import { theme, setTheme } from '$lib/stores/theme';
 	import { showSuccess, showError } from '$lib/stores/notifications';
 	import { updateUserProfile, updateUserTheme } from '$lib/api';
+	import { validatePassword } from '$lib/utils/validation';
 
 	export let data: PageData;
 
@@ -19,6 +20,7 @@
 	let confirmNewPassword = '';
 	let isChangingEmail = false;
 	let isChangingPassword = false;
+	let passwordChangeError: string | null = null;
 
 	const voiceOptions = [
 		{ id: 0, label: 'Female 1', audioSrc: '/audio/female1-sample.mp3' },
@@ -185,23 +187,24 @@
 	}
 
 	async function handlePasswordChange() {
+		passwordChangeError = null;
+
 		if (!currentPassword) {
-			showError('Please enter your current password');
+			passwordChangeError = 'Please enter your current password';
+			showError(passwordChangeError);
 			return;
 		}
 
-		if (!newPassword) {
-			showError('Please enter a new password');
+		const validationError = validatePassword(newPassword);
+		if (validationError) {
+			passwordChangeError = validationError;
+			showError(passwordChangeError);
 			return;
 		}
 
 		if (newPassword !== confirmNewPassword) {
-			showError('New passwords do not match');
-			return;
-		}
-
-		if (newPassword.length < 6) {
-			showError('New password must be at least 6 characters');
+			passwordChangeError = 'New passwords do not match';
+			showError(passwordChangeError);
 			return;
 		}
 
@@ -218,9 +221,16 @@
 			currentPassword = '';
 			newPassword = '';
 			confirmNewPassword = '';
-		} catch (err) {
+		} catch (err: any) {
 			console.error('Error changing password:', err);
-			showError('Failed to update password. Please try again.');
+			let userMessage = 'Failed to update password. Please try again.';
+			if (err.message && err.message.includes('session is required')) {
+				userMessage = 'Your session may have expired. Please log in again.';
+			} else if (err.message && err.message.includes('weak password')) {
+				userMessage = 'The new password is too weak.';
+			}
+			passwordChangeError = userMessage;
+			showError(userMessage);
 		} finally {
 			isChangingPassword = false;
 		}
@@ -383,6 +393,9 @@
 							<label for="confirmNewPassword">Confirm New Password</label>
 							<input type="password" id="confirmNewPassword" bind:value={confirmNewPassword} />
 						</div>
+						{#if passwordChangeError}
+							<p class="error">{passwordChangeError}</p>
+						{/if}
 						<button
 							class="security-button"
 							on:click={handlePasswordChange}
@@ -876,5 +889,15 @@
 		.security-card {
 			padding: 1rem;
 		}
+	}
+
+	.error {
+		color: #ff6b6b;
+		margin: 0.5rem 0 1rem 0;
+		text-align: left;
+		font-size: 0.85rem;
+		padding: 0;
+		background: none;
+		border: none;
 	}
 </style>

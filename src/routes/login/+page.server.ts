@@ -1,6 +1,7 @@
 import { AuthApiError } from '@supabase/supabase-js';
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions } from './$types';
+import { validateEmail, validatePassword } from '$lib/utils/validation';
 
 export const actions: Actions = {
   login: async ({ request, locals, url }) => {
@@ -9,8 +10,10 @@ export const actions: Actions = {
     const password = formData.get('password') as string;
     const useMagicLink = formData.get('magicLink') === 'true';
 
-    if (!email) {
-      return fail(400, { email, useMagicLink, message: 'Email is required' });
+    // --- Email Validation (Always required) ---
+    const emailError = validateEmail(email);
+    if (emailError) {
+      return fail(400, { email, useMagicLink, message: emailError });
     }
 
     // Handle magic link login
@@ -37,6 +40,12 @@ export const actions: Actions = {
       return fail(400, { email, useMagicLink, message: 'Password is required' });
     }
 
+    // --- Password Validation ---
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      return fail(400, { email, useMagicLink, message: passwordError });
+    }
+
     const { data, error: err } = await locals.supabase.auth.signInWithPassword({
       email,
       password
@@ -58,8 +67,10 @@ export const actions: Actions = {
     const formData = await request.formData();
     const email = formData.get('email') as string;
 
-    if (!email) {
-      return fail(400, { resetEmail: email, resetError: 'Email is required to reset password.' });
+    // --- Email Validation ---
+    const emailError = validateEmail(email);
+    if (emailError) {
+      return fail(400, { resetEmail: email, resetError: emailError });
     }
 
     const redirectToUrl = `${url.origin}/reset-password`;

@@ -44,6 +44,7 @@
 		"@supabase/supabase-js": "^2.49.1",
 		"axios": "^1.7.6",
 		"keen-slider": "^6.8.6",
-		"zimmerframe": "^0.1.0"
+		"zimmerframe": "^0.1.0",
+		"zod": "^3.24.2"
 	}
 }

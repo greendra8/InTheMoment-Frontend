@@ -148,9 +148,11 @@
 <style>
 	.auth-page {
 		display: flex;
-		align-items: center;
+		align-items: flex-start;
 		justify-content: center;
 		min-height: 100vh;
+		padding-top: 8vh;
+		box-sizing: border-box;
 	}
 
 	.auth-container {
@@ -283,7 +285,10 @@
 		text-decoration: underline;
 	}
 
-	@media (max-width: 480px) {
+	@media (max-width: 768px) {
+		.auth-page {
+			padding-top: 4vh;
+		}
 		.auth-container {
 			padding: 2rem 1.5rem;
 		}
