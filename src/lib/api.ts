@@ -1,5 +1,6 @@
 // $lib/api.ts
 import { supabase } from '$lib/supabaseClient';
+import type { ProfileSetup } from '$lib/stores/profileSetup';
 
 // Define your client-side helper functions here
 
@@ -209,7 +210,7 @@ export async function updateUserProfile(userId: string, data: {
   name?: string;
   experience?: string;
   voice_id?: number;
-  preferences?: any;
+  preferences?: Partial<ProfileSetup>;
   complete?: boolean;
 }) {
   const { data: updatedProfile, error } = await supabase

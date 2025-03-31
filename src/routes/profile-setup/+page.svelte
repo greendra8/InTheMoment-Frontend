@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { enhance } from '$app/forms';
 	import {
 		profileSetupStore,
 		updateProfileSetupStore,
@@ -16,7 +15,6 @@
 	export let data: PageData;
 
 	let currentQuestion = 0;
-	let errorMessage = '';
 	let progressPercentage = 0;
 	let isTransitioning = false;
 
@@ -199,6 +197,16 @@
 		}
 	];
 
+	// Define the expected keys consistently
+	const expectedPreferenceKeys: (keyof ProfileSetup)[] = [
+		'meditationGoal',
+		'stressLevel',
+		'sleepPattern',
+		'focusDuration',
+		'mentalState',
+		'techUsage'
+	];
+
 	onMount(() => {
 		resetProfileSetupStore();
 		updateProgressBar();
@@ -271,44 +279,31 @@
 	async function submitForm() {
 		if (isTransitioning) return;
 
-		const formElement = document.querySelector('form');
-		if (!formElement) {
-			errorMessage = 'Form not found';
-			return;
-		}
-
 		try {
 			if (!data.session?.user?.id) {
 				showError('User session not found. Please log in again.');
 				return;
 			}
 
-			const response = await fetch('?/submit', {
-				method: 'POST',
-				body: new FormData(formElement as HTMLFormElement)
+			// Validate that we have all required preferences
+			const missingPreferences = expectedPreferenceKeys.filter((key) => !$profileSetupStore[key]);
+			if (missingPreferences.length > 0) {
+				showError('Please complete all questions before submitting.');
+				return;
+			}
+
+			// Use the store data directly
+			await updateUserProfile(data.session.user.id, {
+				preferences: $profileSetupStore,
+				complete: true
 			});
 
-			const result = await response.json();
-
-			if (result.type === 'success') {
-				// Now make the API call on the client side
-				try {
-					await updateUserProfile(data.session.user.id, {
-						preferences: result.data.preferences,
-						complete: true
-					});
-
-					goto('/dashboard');
-				} catch (err) {
-					console.error('Error updating user profile:', err);
-					showError('An error occurred while saving your profile. Please try again.');
-				}
-			} else {
-				errorMessage = 'An error occurred while processing your profile. Please try again.';
-			}
+			showSuccess('Profile setup complete!');
+			goto('/dashboard');
 		} catch (err) {
-			console.error('Error submitting form:', err);
-			errorMessage = 'An error occurred while submitting the form. Please try again.';
+			// It's still good practice to log the actual error for developers
+			console.error('Error updating profile:', err);
+			showError(`Failed to save profile: ${err instanceof Error ? err.message : 'Unknown error'}`);
 		}
 	}
 
@@ -365,7 +360,7 @@
 		<div class="progress-text">Question {currentQuestion + 1} of {questions.length}</div>
 	</div>
 
-	<form method="POST" use:enhance>
+	<form method="POST">
 		{#each questions as q}
 			<input type="hidden" name={q.key} value={$profileSetupStore[q.key] || ''} />
 		{/each}
@@ -445,13 +440,6 @@
 		{/if}
 	</form>
 </div>
-
-{#if errorMessage}
-	<div class="error-message">
-		<i class="fas fa-exclamation-circle"></i>
-		{errorMessage}
-	</div>
-{/if}
 
 <style>
 	.profile-setup {
@@ -716,26 +704,6 @@
 	button[disabled] {
 		opacity: 0.7;
 		cursor: not-allowed;
-	}
-
-	.error-message {
-		position: fixed;
-		bottom: 2rem;
-		left: 50%;
-		transform: translateX(-50%);
-		color: var(--text-error);
-		background: var(--background-error);
-		text-align: center;
-		padding: 1rem 1.5rem;
-		border-radius: 12px;
-		font-size: 0.9rem;
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		justify-content: center;
-		max-width: 90%;
-		box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-		z-index: 100;
 	}
 
 	@media (max-width: 768px) {
