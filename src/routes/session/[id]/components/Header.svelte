@@ -14,12 +14,12 @@
 	<div class="header-content">
 		<h2>
 			<span class="title-wrapper">
+				{title}
 				{#if listened || isCompletedThisSession}
 					<span class="listened-icon" title="You've listened to this session before">
 						<i class="fas fa-check-circle"></i>
 					</span>
 				{/if}
-				{title}
 			</span>
 		</h2>
 		<div class="session-info">
@@ -48,17 +48,16 @@
 
 <style>
 	header {
-		position: fixed;
-		top: 0;
-		left: 0;
-		right: 0;
 		padding: 1rem;
+		padding-top: clamp(2rem, 8vh, 4rem);
+		padding-bottom: 0;
 		box-sizing: border-box;
 		display: flex;
 		justify-content: center;
 		text-align: center;
 		z-index: 2;
-		padding-top: clamp(3rem, 10vh, 4rem);
+		width: 100%;
+		flex-shrink: 0;
 	}
 
 	.header-content {
@@ -73,23 +72,22 @@
 		font-size: 2rem;
 		font-weight: 600;
 		color: var(--text-primary);
-		margin-bottom: clamp(0.3rem, 2vw, 0.5rem);
+		margin-bottom: 0;
 	}
 
 	.title-wrapper {
 		font-family: 'Space Grotesk', sans-serif;
-		position: relative;
-		display: inline-block;
-		padding-top: 2rem;
+		display: inline;
+		padding-top: 1rem;
 	}
 
 	.listened-icon {
-		position: absolute;
-		top: 0;
-		left: 50%;
-		transform: translateX(-50%);
+		display: inline-flex;
+		align-items: center;
+		margin-left: 0.25em;
 		font-size: clamp(0.8rem, 2.5vw, 0.9rem);
 		color: #4caf50;
+		vertical-align: middle;
 	}
 
 	.listened-icon i {
@@ -149,6 +147,7 @@
 	/* Responsive Design */
 	@media (max-width: 768px) {
 		header {
+			padding-top: 4rem;
 			width: 100%;
 		}
 		.header-content {
@@ -175,9 +174,6 @@
 		}
 		.title-wrapper {
 			padding-top: 0;
-		}
-		.listened-icon {
-			top: -20px;
 		}
 	}
 </style>

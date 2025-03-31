@@ -362,6 +362,7 @@
 		{userId}
 		{isFeedbackVisible}
 		{sendCompletionRequest}
+		spaceForControls={showFeedbackForm}
 	/>
 
 	<FeedbackDialog

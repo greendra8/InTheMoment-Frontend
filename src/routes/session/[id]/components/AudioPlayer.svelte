@@ -17,6 +17,7 @@
 	export let userId: string;
 	export let isFeedbackVisible: boolean;
 	export let sendCompletionRequest: () => void;
+	export let spaceForControls: boolean = false;
 
 	let audioElement: HTMLAudioElement;
 	let canvasElement: HTMLCanvasElement;
@@ -486,13 +487,15 @@
 </script>
 
 {#if audioUrl}
-	<div class="audio-player">
+	<!-- New wrapper to handle flex centering -->
+	<div class="audio-player-flex-container" class:add-bottom-padding={spaceForControls}>
+		<!-- Visualizer Part -->
 		<div
-			class="canvas-container"
+			class="visualizer-container"
 			on:click={togglePlayPause}
 			style="opacity: {canvasOpacity}; filter: blur({canvasBlur}px); transition: opacity 0.2s ease-in, filter 0.1s ease-in;"
 		>
-			<canvas bind:this={canvasElement} style="width: 300px; height: 300px;"></canvas>
+			<canvas bind:this={canvasElement}></canvas>
 			<button
 				class="play-button"
 				on:click|stopPropagation={togglePlayPause}
@@ -505,6 +508,7 @@
 				</div>
 			</button>
 		</div>
+		<!-- Audio Element (Hidden) -->
 		<audio
 			bind:this={audioElement}
 			src={audioUrl}
@@ -517,6 +521,7 @@
 		></audio>
 	</div>
 
+	<!-- Controls Part - Moved outside the centering container -->
 	<div class="controls-wrapper">
 		<div class="custom-audio-controls">
 			<div
@@ -579,40 +584,46 @@
 <style>
 	/* Styles related to the audio player and controls */
 
-	.audio-player {
+	/* NEW: Flex container for the visualizer part */
+	.audio-player-flex-container {
+		flex-grow: 1; /* Takes up available space */
 		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		flex-grow: 1;
-		transition: opacity 0.5s ease-in-out;
-		position: absolute;
-		left: 50%;
-		top: 50%;
-		transform: translate(-50%, -50%);
+		flex-direction: column; /* Stack canvas above audio tag if needed */
+		align-items: center; /* Vertically center */
+		justify-content: center; /* Horizontally center */
+		min-height: 0; /* Essential for flex-grow in column layout */
 		width: 100%;
+		position: relative; /* For absolute positioning of play button inside */
+		padding: 0.5rem 0; /* Add some vertical padding */
+		box-sizing: border-box;
+		transition: padding-bottom 0.3s ease; /* Add transition */
 	}
 
-	.audio-player.hidden {
-		opacity: 0;
-		pointer-events: none;
+	/* NEW: Add padding when the conditional class is present. This moves the visualizer up when the feedback button is visible */
+	.audio-player-flex-container.add-bottom-padding {
+		padding-bottom: 40px;
 	}
 
-	.canvas-container {
+	.visualizer-container {
 		position: relative;
 		cursor: pointer;
-		margin-bottom: 0;
-		opacity: 0;
-		filter: blur(1.25rem);
+		/* Removed margin-bottom: 0 */
+		opacity: 0; /* Keep initial state for fade-in */
+		filter: blur(1.25rem); /* Keep initial state for fade-in */
 		transition:
 			opacity 0.4s ease-in,
 			filter 0.4s ease-in;
+		width: 300px; /* Explicit size */
+		height: 300px; /* Explicit size */
+		flex-shrink: 0; /* Prevent shrinking */
 	}
 
 	canvas {
 		display: block;
 		border-radius: 50%;
 		transition: filter 0.3s ease;
+		width: 100%; /* Fill container */
+		height: 100%; /* Fill container */
 	}
 
 	:global(.gem-theme) canvas,
@@ -658,16 +669,24 @@
 	}
 
 	.controls-wrapper {
+		/* Removed position: fixed and related properties */
 		width: 100%;
 		max-width: 400px;
-		position: fixed;
-		bottom: 4rem;
-		left: 50%;
-		transform: translateX(-50%);
+		/* Added margin auto for horizontal centering */
+		margin-left: auto;
+		margin-right: auto;
 		display: flex;
 		flex-direction: column;
-		align-items: flex-end;
-		z-index: 1;
+		align-items: center; /* Center controls content */
+		z-index: 1; /* Keep above background */
+		box-sizing: border-box;
+		flex-shrink: 0; /* Prevent controls from shrinking */
+		padding-bottom: 3rem;
+	}
+
+	/* Native App Adjustments (Add more space at the bottom) */
+	:global(.native-app) .controls-wrapper {
+		padding-bottom: 6rem; /* Extra space */
 	}
 
 	.custom-audio-controls {
@@ -742,11 +761,7 @@
 		cursor: pointer;
 	}
 
-	:global(.native-app) .controls-wrapper {
-		bottom: 5.5rem; /* More space at bottom for native app navigation */
-	}
-
-	/* Global styles for pseudo-elements */
+	/* Global styles for volume slider pseudo-elements */
 	:global(.volume-slider::-webkit-slider-thumb) {
 		-webkit-appearance: none;
 		height: 0.75rem;
@@ -811,34 +826,12 @@
 
 	@media (max-width: 600px) {
 		.controls-wrapper {
-			max-width: 85%;
+			max-width: 90%; /* Slightly wider */
+			padding: 0 1rem 2rem 1rem;
 		}
 
 		.volume-control {
 			display: none;
-		}
-	}
-
-	/* Adjust for smaller screens */
-	@media (max-height: 900px) {
-		.audio-player {
-			top: 55%;
-		}
-	}
-
-	@media (max-height: 700px) {
-		.audio-player {
-			transform: translate(-50%, -50%) scale(0.9);
-		}
-		.controls-wrapper {
-			bottom: 1rem;
-		}
-	}
-
-	/* Adjust for very small screens */
-	@media (max-height: 600px) {
-		.audio-player {
-			transform: translate(-50%, -50%) scale(0.8);
 		}
 	}
 </style>

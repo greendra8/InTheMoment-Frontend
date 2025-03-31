@@ -23,15 +23,20 @@
 <style>
 	.feedback-controls-wrapper {
 		position: fixed;
-		bottom: 7rem;
+		bottom: 6rem;
 		left: 50%;
-		transform: translateX(-50%);
+		transform: translate(-50%);
 		width: 100%;
 		max-width: 400px;
 		display: flex;
 		flex-direction: column;
 		align-items: flex-end;
 		z-index: 2;
+	}
+
+	/* Native app specific positioning */
+	:global(.native-app) .feedback-controls-wrapper {
+		padding-bottom: 5rem;
 	}
 
 	.show-feedback-button {
@@ -59,22 +64,14 @@
 		);
 	}
 
-	/* Native app specific positioning */
-	:global(.native-app) .feedback-controls-wrapper {
-		bottom: 8.5rem; /* More space at bottom for native app navigation */
-	}
-
 	/* Responsive Design */
 	@media (max-width: 600px) {
 		.feedback-controls-wrapper {
-			max-width: 85%;
-		}
-	}
-
-	/* Adjust for smaller screens */
-	@media (max-height: 700px) {
-		.feedback-controls-wrapper {
+			max-width: 90%;
 			bottom: 3.5rem;
+			padding-left: 1rem;
+			padding-right: 1rem;
+			padding-bottom: 1.25rem;
 		}
 	}
 </style>
