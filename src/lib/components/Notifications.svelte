@@ -70,7 +70,7 @@
 
 	.notification {
 		background: var(--background-card);
-		padding: 1rem 1.5rem;
+		padding: 0.8rem 1.5rem;
 		border-radius: 12px;
 		box-shadow: 0 4px 12px var(--ui-shadow);
 		display: flex;
@@ -84,23 +84,23 @@
 	}
 
 	.notification.success {
-		background: var(--background-button);
-		color: var(--text-light);
+		background: var(--background-success);
+		color: var(--text-success);
 	}
 
 	.notification.error {
-		background: #e53935;
-		color: white;
+		color: var(--text-error);
+		background: var(--background-error);
 	}
 
 	.notification.info {
-		background: var(--background-card);
-		color: var(--text-primary);
+		background: var(--background-info);
+		color: var(--text-info);
 	}
 
 	.notification.loading {
-		background: var(--background-card);
-		color: var(--text-primary);
+		background: var(--background-info);
+		color: var(--text-info);
 	}
 
 	.content {
@@ -118,6 +118,8 @@
 	.content span {
 		font-size: 0.9rem;
 		font-weight: 500;
+		position: relative;
+		top: 1px;
 	}
 
 	.action {

@@ -21,7 +21,8 @@
   --text-secondary: #a0a8e0;
   --text-light: #1a1a2e;
   --text-error: #ff6b6b;
-  --text-success: #72efdd;
+  --text-success: #66bb6a;
+  --text-info: #e0e4fc;
 
   /* 
     Button Text Colors
@@ -53,6 +54,8 @@
   --background-buttonHover: #8470ff;
   --background-input: #252550;
   --background-error: #4a1530;
+  --background-success: #154a30;
+  --background-info: #252550;
 
   /* Fixed colors for elements that previously used gradients */
   --fixed-card-bg: #1C1B39;
@@ -189,7 +192,8 @@
   --text-secondary: #a0a0a0;
   --text-light: #1a1a1a;
   --text-error: #ef5350;
-  --text-success: #66bb6a;
+  --text-success: #81c784;
+  --text-info: #e0e4fc;
 
   /* Button text colors */
   --btn-text: #ffffff;
@@ -215,6 +219,8 @@
   --background-buttonHover: #d0d0d0;
   --background-input: #2a2a2a;
   --background-error: #4a1515;
+  --background-success: #154a15;
+  --background-info: #252550;
 
   /* Fixed colors for elements that previously used gradients */
   --fixed-card-bg: #1a2630;
