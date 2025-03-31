@@ -392,6 +392,7 @@
 		width: 100%;
 		opacity: 0.3;
 		mask-image: none;
+		filter: blur(0.5px);
 	}
 
 	li.featured .play-button {
