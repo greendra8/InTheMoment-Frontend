@@ -141,7 +141,9 @@
 			// Update in the database
 			await updateUserTheme(data.session.user.id, newTheme);
 			console.log('Theme updated in database');
-			showSuccess(`Theme changed to ${newTheme}`);
+			// capitalise the first letter of the new theme
+			const capitalisedTheme = newTheme.charAt(0).toUpperCase() + newTheme.slice(1);
+			showSuccess(`Theme changed to ${capitalisedTheme}`);
 		} catch (err) {
 			console.error('Error updating theme:', err);
 			showError('Failed to update theme. Please try again.');
