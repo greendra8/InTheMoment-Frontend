@@ -98,18 +98,18 @@
 
 			<div class="hero-stats">
 				<div class="stat">
-					<div class="stat-number">10K+</div>
-					<div class="stat-label">Active Users</div>
+					<div class="stat-number">AI-Driven</div>
+					<div class="stat-label">Personalization</div>
 				</div>
 				<div class="stat-divider"></div>
 				<div class="stat">
-					<div class="stat-number">98%</div>
-					<div class="stat-label">Satisfaction</div>
+					<div class="stat-number">Reduce</div>
+					<div class="stat-label">Digital Stress</div>
 				</div>
 				<div class="stat-divider"></div>
 				<div class="stat">
-					<div class="stat-number">4.9</div>
-					<div class="stat-label">App Rating</div>
+					<div class="stat-number">Discover</div>
+					<div class="stat-label">Inner Calm</div>
 				</div>
 			</div>
 		</div>
